@@ -92,9 +92,10 @@ function Onboarding() {
     navigate({ to: "/dashboard" });
   };
 
+  const isSingle = "multi" in step && step.multi === false;
   const toggle = (opt: string) => {
     setState((s) => {
-      if (step.multi === false) return { ...s, [step.key]: opt };
+      if (isSingle) return { ...s, [step.key]: opt };
       const cur = (s[step.key] as string[]) ?? [];
       return { ...s, [step.key]: cur.includes(opt) ? cur.filter((x) => x !== opt) : [...cur, opt] };
     });
