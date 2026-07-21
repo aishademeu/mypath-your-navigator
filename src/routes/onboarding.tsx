@@ -72,7 +72,7 @@ function Onboarding() {
             />
           ) : (
             <div className="mt-8 flex flex-wrap gap-3">
-              {step.options?.map((opt) => {
+              {("options" in step ? step.options : []).map((opt: string) => {
                 const selected = ((state[step.key] as string[]) ?? []).includes(opt);
                 return (
                   <button
