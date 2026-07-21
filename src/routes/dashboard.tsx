@@ -26,19 +26,20 @@ function Dashboard() {
     if (typeof window !== "undefined" && !isAuthed()) navigate({ to: "/login" });
   }, [navigate]);
 
-  if (!profile) return <div className="min-h-screen" />;
-
-  const { user, onboarding, portfolio } = profile;
-  const done = onboarding?.completedAt;
-  const direction = deriveDirection(profile);
-  const growth = growthPct(profile);
-
+  const onboarding = profile?.onboarding;
   const recs = useMemo(() => {
     return OPPORTUNITIES
       .map((o) => ({ o, s: matchScore(o, onboarding?.interests, onboarding?.problems) }))
       .sort((a, b) => b.s - a.s)
       .slice(0, 6);
   }, [onboarding]);
+
+  if (!profile) return <div className="min-h-screen" />;
+
+  const { user, portfolio } = profile;
+  const done = onboarding?.completedAt;
+  const direction = deriveDirection(profile);
+  const growth = growthPct(profile);
 
   return (
     <div className="min-h-screen">
