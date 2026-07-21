@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { getProfile, isAuthed, updateProfile, uid, type ChatMsg, type Profile } from "@/lib/store";
+import { useSession, useProfile, useOnboarding, useChat, useAddChat } from "@/lib/supabase-hooks";
 
-export const Route = createFileRoute("/mentor")({ component: MentorPage });
+export const Route = createFileRoute("/_authenticated/mentor")({ component: MentorPage });
 
 const PROMPTS = [
   "Help me find my direction",
@@ -14,36 +14,35 @@ const PROMPTS = [
 ];
 
 function MentorPage() {
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { user } = useSession();
+  const { data: profile } = useProfile(user);
+  const { data: onboarding } = useOnboarding(user);
+  const { data: chat } = useChat(user);
+  const addChat = useAddChat(user?.id);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isAuthed()) navigate({ to: "/login" });
-    setProfile(getProfile());
-    const s = () => setProfile(getProfile());
-    window.addEventListener("mypath:update", s);
-    return () => window.removeEventListener("mypath:update", s);
-  }, [navigate]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chat?.length, thinking]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [profile?.chat.length, thinking]);
+  const firstName = (profile?.name ?? "friend").split(" ")[0];
 
-  if (!profile) return <div className="min-h-screen" />;
-
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
-    const userMsg: ChatMsg = { id: uid(), role: "user", content: text, at: new Date().toISOString() };
-    updateProfile((p) => ({ ...p, chat: [...p.chat, userMsg] }));
     setInput("");
+    await addChat.mutateAsync({ role: "user", content: text });
     setThinking(true);
-    setTimeout(() => {
-      const reply = mentorReply(text, getProfile()!);
-      const asst: ChatMsg = { id: uid(), role: "assistant", content: reply, at: new Date().toISOString() };
-      updateProfile((p) => ({ ...p, chat: [...p.chat, asst] }));
+    setTimeout(async () => {
+      const reply = mentorReply(text, {
+        name: firstName,
+        interests: onboarding?.interests ?? [],
+        strengths: onboarding?.strengths ?? [],
+        goals: onboarding?.goals ?? [],
+        dream: onboarding?.dream ?? "",
+      });
+      await addChat.mutateAsync({ role: "assistant", content: reply });
       setThinking(false);
-    }, 900 + Math.random() * 900);
+    }, 900 + Math.random() * 700);
   };
 
   return (
@@ -64,10 +63,10 @@ function MentorPage() {
 
         <div className="mt-6 rounded-3xl border border-navy/10 bg-white">
           <div className="max-h-[52vh] min-h-[42vh] overflow-y-auto p-6">
-            {profile.chat.length === 0 && (
+            {(chat?.length ?? 0) === 0 && (
               <div className="mx-auto max-w-lg py-10 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-navy text-ivory">✦</div>
-                <p className="mt-4 font-display text-2xl text-balance">Hi {profile.user.name.split(" ")[0]} — where should we start today?</p>
+                <p className="mt-4 font-display text-2xl text-balance">Hi {firstName} — where should we start today?</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                   {PROMPTS.map((p) => (
                     <button key={p} onClick={() => send(p)} className="rounded-full border border-navy/15 bg-ivory px-4 py-2 text-sm hover:border-navy/40">{p}</button>
@@ -75,7 +74,7 @@ function MentorPage() {
                 </div>
               </div>
             )}
-            {profile.chat.map((m) => (
+            {(chat ?? []).map((m) => (
               <div key={m.id} className={`mb-4 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[80%] rounded-3xl px-5 py-3 text-sm ${m.role === "user" ? "bg-navy text-ivory" : "bg-ivory text-navy"}`}>
                   {m.content.split("\n").map((line, i) => <p key={i} className={i > 0 ? "mt-2" : ""}>{line}</p>)}
@@ -106,18 +105,14 @@ function MentorPage() {
   );
 }
 
-function mentorReply(q: string, p: Profile): string {
-  const name = p.user.name.split(" ")[0];
-  const ints = p.onboarding?.interests ?? [];
-  const strs = p.onboarding?.strengths ?? [];
-  const goals = p.onboarding?.goals ?? [];
+function mentorReply(q: string, p: { name: string; interests: string[]; strengths: string[]; goals: string[]; dream: string }): string {
   const low = q.toLowerCase();
-
+  const ints = p.interests;
   if (low.includes("direction")) {
-    return `Here's what I see, ${name}:\n\nYour center of gravity looks like ${ints[0] ?? "curiosity"} × ${ints[1] ?? "impact"}. That combination is unusually strong for your age.\n\nA good working direction: build one visible artifact this month (a project, essay, or event) that fuses those two. Direction is discovered through motion, not thought.`;
+    return `Here's what I see, ${p.name}:\n\nYour center of gravity looks like ${ints[0] ?? "curiosity"} × ${ints[1] ?? "impact"}. That combination is unusually strong for your age.\n\nA good working direction: build one visible artifact this month (a project, essay, or event) that fuses those two. Direction is discovered through motion, not thought.`;
   }
   if (low.includes("analyze") || low.includes("profile")) {
-    return `Profile snapshot:\n• Interests: ${ints.join(", ") || "not set yet"}\n• Strengths: ${strs.join(", ") || "still forming"}\n• Goals: ${goals.join(", ") || "let's define these"}\n\nOne insight: your strongest asset right now is initiative. Most students your age wait; you don't have to. Ship something small this week.`;
+    return `Profile snapshot:\n• Interests: ${ints.join(", ") || "not set yet"}\n• Strengths: ${p.strengths.join(", ") || "still forming"}\n• Goals: ${p.goals.join(", ") || "let's define these"}\n\nOne insight: your strongest asset right now is initiative. Most students your age wait; you don't have to. Ship something small this week.`;
   }
   if (low.includes("next") || low.includes("do")) {
     return `Your next 3 steps:\n1. Pick one opportunity from your dashboard and draft the application this weekend.\n2. Add a project to your portfolio — even a small one counts.\n3. Message one adult you admire and ask a specific question. Small, brave, real.`;
@@ -125,5 +120,5 @@ function mentorReply(q: string, p: Profile): string {
   if (low.includes("summer")) {
     return `A meaningful summer for you:\n• Weeks 1–3: run a personal project tied to ${ints[0] ?? "your top interest"}.\n• Weeks 4–6: apply to a competition or research program.\n• Weeks 7–8: build a public portfolio page and reach out to a mentor.\n\nWant me to draft week 1 in detail?`;
   }
-  return `That's a good question, ${name}. Given your interests (${ints.slice(0,2).join(", ") || "still forming"}), the honest answer is: get closer to it by doing. What's one small action you could take in the next 48 hours?`;
+  return `That's a good question, ${p.name}. Given your interests (${ints.slice(0,2).join(", ") || "still forming"}), the honest answer is: get closer to it by doing. What's one small action you could take in the next 48 hours?`;
 }

@@ -1,27 +1,35 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { getProfile, isAuthed, type Profile } from "@/lib/store";
-import { OPPORTUNITIES, matchScore } from "@/lib/opportunities";
+import { useSession, useProfile, useOnboarding } from "@/lib/supabase-hooks";
+import { OPPORTUNITIES } from "@/lib/opportunities";
+import { rankOpportunities } from "@/lib/matching";
 
-export const Route = createFileRoute("/analyze")({ component: AnalyzePage });
+export const Route = createFileRoute("/_authenticated/analyze")({ component: AnalyzePage });
 
 function AnalyzePage() {
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { user } = useSession();
+  const { data: profile } = useProfile(user);
+  const { data: onboarding } = useOnboarding(user);
   const [stage, setStage] = useState<"idle" | "running" | "done">("idle");
   const [step, setStep] = useState(0);
 
-  useEffect(() => {
-    if (!isAuthed()) navigate({ to: "/login" });
-    setProfile(getProfile());
-  }, [navigate]);
+  const ctx = useMemo(() => ({
+    age: profile?.age ?? null,
+    grade: profile?.grade ? parseInt(profile.grade, 10) : null,
+    country: profile?.country ?? null,
+    interests: onboarding?.interests ?? [],
+    problems: onboarding?.problems ?? [],
+    goals: onboarding?.goals ?? [],
+  }), [profile, onboarding]);
+
+  const recs = useMemo(() => rankOpportunities(OPPORTUNITIES, ctx).slice(0, 4), [ctx]);
 
   const run = () => {
     setStage("running");
     setStep(0);
-    const steps = ["Scanning profile…", "Mapping strengths to directions…", "Cross-referencing 500+ opportunities…", "Synthesizing your report…"];
+    const steps = ["Scanning profile…", "Mapping strengths to directions…", "Cross-referencing 50+ opportunities…", "Synthesizing your report…"];
     let i = 0;
     const tick = () => {
       setStep(i);
@@ -32,12 +40,9 @@ function AnalyzePage() {
     tick();
   };
 
-  if (!profile) return <div className="min-h-screen" />;
-  const ints = profile.onboarding?.interests ?? [];
-  const strs = profile.onboarding?.strengths ?? [];
-  const problems = profile.onboarding?.problems ?? [];
-  const recs = OPPORTUNITIES.map((o) => ({ o, s: matchScore(o, ints, problems) })).sort((a,b) => b.s - a.s).slice(0, 4);
-
+  const ints = onboarding?.interests ?? [];
+  const strs = onboarding?.strengths ?? [];
+  const problems = onboarding?.problems ?? [];
   const directions = deriveDirections(ints, problems);
 
   return (
@@ -58,15 +63,12 @@ function AnalyzePage() {
 
         {stage === "running" && (
           <div className="mt-10 rounded-3xl border border-navy/10 bg-white p-10">
-            {["Scanning profile…", "Mapping strengths to directions…", "Cross-referencing 500+ opportunities…", "Synthesizing your report…"].map((label, i) => (
+            {["Scanning profile…", "Mapping strengths to directions…", "Cross-referencing 50+ opportunities…", "Synthesizing your report…"].map((label, i) => (
               <div key={label} className={`flex items-center gap-3 py-2 transition ${i <= step ? "opacity-100" : "opacity-30"}`}>
                 <span className={`h-2.5 w-2.5 rounded-full ${i < step ? "bg-growth" : i === step ? "animate-pulse bg-lavender" : "bg-navy/20"}`} />
                 <span className="text-sm">{label}</span>
               </div>
             ))}
-            <div className="mt-6 h-1.5 w-full overflow-hidden rounded-full bg-navy/10">
-              <div className="h-full rounded-full bg-gradient-to-r from-growth via-lavender to-gold animate-shimmer" style={{ backgroundImage: "linear-gradient(90deg, #4CAF8A, #C8B6FF, #F4C95D, #4CAF8A)" }} />
-            </div>
           </div>
         )}
 
@@ -101,11 +103,11 @@ function AnalyzePage() {
 
             <Section title="Opportunities to explore" accent="from-navy/10">
               <div className="grid gap-3 md:grid-cols-2">
-                {recs.map(({ o, s }) => (
-                  <Link to="/opportunities" key={o.id} className="group rounded-2xl border border-navy/10 bg-white p-4 hover:-translate-y-0.5 hover:shadow-lg">
+                {recs.map(({ opp: o, score }) => (
+                  <Link to="/apply-guide/$id" params={{ id: o.id }} key={o.id} className="group rounded-2xl border border-navy/10 bg-white p-4 hover:-translate-y-0.5 hover:shadow-lg">
                     <div className="flex items-center justify-between">
                       <span className="rounded-full bg-navy/5 px-2 py-0.5 text-[10px]">{o.category}</span>
-                      <span className="text-[11px] font-semibold text-growth">{s}% match</span>
+                      <span className="text-[11px] font-semibold text-growth">{score}% match</span>
                     </div>
                     <div className="mt-2 font-display text-lg">{o.title}</div>
                     <div className="text-[11px] text-navy/50">{o.org}</div>
@@ -128,7 +130,7 @@ function AnalyzePage() {
 
 function Section({ title, children, accent }: { title: string; children: React.ReactNode; accent: string }) {
   return (
-    <section className={`relative overflow-hidden rounded-3xl border border-navy/10 bg-white p-6`}>
+    <section className="relative overflow-hidden rounded-3xl border border-navy/10 bg-white p-6">
       <div className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br ${accent} to-transparent blur-2xl`} />
       <h2 className="relative font-display text-2xl">{title}</h2>
       <div className="relative mt-4">{children}</div>
@@ -140,12 +142,14 @@ function deriveDirections(ints: string[], problems: string[]) {
   const combos: { title: string; desc: string }[] = [];
   if (ints.includes("Technology") && problems.includes("Climate change"))
     combos.push({ title: "Climate Tech Builder", desc: "Use engineering to solve environmental problems — high-impact, high-growth field." });
-  if (ints.includes("Business") || ints.includes("Leadership"))
+  if (ints.includes("Business") || ints.includes("Leadership") || ints.includes("Entrepreneurship"))
     combos.push({ title: "Social Entrepreneurship", desc: "Blend commercial thinking with cause-driven work; ideal for ambitious changemakers." });
-  if (ints.includes("Science") || ints.includes("Writing"))
+  if (ints.includes("Science") || ints.includes("Writing") || ints.includes("Mathematics"))
     combos.push({ title: "Research & Communication", desc: "Investigate deeply, then translate your findings for the world." });
-  if (ints.includes("Arts") || ints.includes("Design"))
+  if (ints.includes("Arts") || ints.includes("Design") || ints.includes("Film & Media"))
     combos.push({ title: "Creative Technologist", desc: "Bridge design, code, and storytelling — one of the fastest-growing modern paths." });
+  if (ints.includes("Psychology") || ints.includes("Healthcare"))
+    combos.push({ title: "Human-Centered Health", desc: "Blend science and empathy in medicine, therapy or public health innovation." });
   if (combos.length === 0) combos.push({ title: "Renaissance Path", desc: "You're early — a wide base now will compound into something rare." });
   return combos.slice(0, 4);
 }

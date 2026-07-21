@@ -30,7 +30,6 @@ function Landing() {
     <div className="min-h-screen">
       <Navbar />
 
-      {/* HERO */}
       <section className="gradient-hero relative overflow-hidden">
         <div className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-16 md:grid-cols-2 md:pt-24">
           <div className="animate-fade-up">
@@ -45,7 +44,7 @@ function Landing() {
               MyPath helps students discover who they are, find opportunities that match their goals, and build a future they truly believe in.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/signup" className="group inline-flex items-center gap-2 rounded-full bg-navy px-6 py-3.5 text-sm font-semibold text-ivory shadow-lg shadow-navy/20 transition hover:translate-y-[-1px]">
+              <Link to="/auth" search={{ mode: "signup" }} className="group inline-flex items-center gap-2 rounded-full bg-navy px-6 py-3.5 text-sm font-semibold text-ivory shadow-lg shadow-navy/20 transition hover:translate-y-[-1px]">
                 Start Your Journey
                 <span className="transition group-hover:translate-x-1">→</span>
               </Link>
@@ -53,25 +52,20 @@ function Landing() {
                 Explore Opportunities
               </Link>
             </div>
-
             <div className="mt-10 flex flex-wrap items-center gap-6 text-xs text-navy/60">
-              <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-gold" /> 500+ curated opportunities</div>
+              <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-gold" /> 50+ curated opportunities</div>
               <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-lavender" /> AI mentor guidance</div>
               <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-growth" /> Portfolio that stands out</div>
             </div>
           </div>
 
-          {/* Floating opportunity cards */}
           <div className="relative h-[28rem] md:h-[32rem]">
             <div className="absolute inset-0 rounded-3xl bg-white/40 backdrop-blur-sm" />
             {FLOATERS.map((f) => (
               <div key={f.label} className={`absolute ${f.top} ${f.left} animate-float`} style={{ animationDelay: f.delay }}>
-                <div className={`rounded-2xl ${f.accent} px-4 py-3 text-sm font-semibold shadow-xl shadow-navy/10`}>
-                  {f.label}
-                </div>
+                <div className={`rounded-2xl ${f.accent} px-4 py-3 text-sm font-semibold shadow-xl shadow-navy/10`}>{f.label}</div>
               </div>
             ))}
-            {/* Center card */}
             <div className="absolute left-1/2 top-1/2 w-64 -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-navy/10 bg-white p-5 shadow-2xl shadow-navy/10">
               <div className="text-xs font-medium text-navy/60">Your direction</div>
               <div className="mt-1 font-display text-xl text-navy">Social Entrepreneurship <span className="text-lavender">+ Leadership</span></div>
@@ -84,7 +78,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* WHY */}
       <section className="mx-auto max-w-5xl px-6 py-24 text-center">
         <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">Why MyPath exists</div>
         <h2 className="mt-4 font-display text-4xl leading-tight md:text-5xl text-balance">
@@ -95,7 +88,6 @@ function Landing() {
         </p>
       </section>
 
-      {/* JOURNEY */}
       <section className="mx-auto max-w-7xl px-6 py-12">
         <div className="mb-10 flex items-end justify-between gap-6">
           <div>
@@ -117,34 +109,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* HOW */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="grid gap-14 md:grid-cols-2">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">How it works</div>
-            <h2 className="mt-3 font-display text-4xl md:text-5xl text-balance">A path designed for you, not for everyone.</h2>
-            <p className="mt-5 text-navy/70">MyPath blends deep self-discovery with a live database of world-class opportunities and an AI mentor that actually knows you.</p>
-          </div>
-          <ol className="space-y-4">
-            {[
-              ["Discover yourself", "A guided reflection that maps your strengths, interests and values."],
-              ["Find your opportunities", "Curated scholarships, research, competitions matched to who you are."],
-              ["Build your portfolio", "Turn projects and leadership into a page universities remember."],
-              ["Grow with guidance", "AI mentorship that keeps you moving toward the future you want."],
-            ].map(([t, d], i) => (
-              <li key={t} className="flex gap-4 rounded-2xl border border-navy/10 bg-white p-5">
-                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-navy text-ivory font-semibold">{i + 1}</div>
-                <div>
-                  <div className="font-semibold">{t}</div>
-                  <div className="mt-1 text-sm text-navy/70">{d}</div>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="text-center">
           <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">Students on MyPath</div>
@@ -160,7 +124,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* FINAL CTA */}
       <section className="mx-auto max-w-7xl px-6 py-24">
         <div className="gradient-navy relative overflow-hidden rounded-[2rem] px-8 py-20 text-center text-ivory">
           <div className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-lavender/30 blur-3xl" />
@@ -168,7 +131,7 @@ function Landing() {
           <h2 className="relative mx-auto max-w-3xl font-display text-5xl leading-tight md:text-6xl text-balance">Your journey starts here.</h2>
           <p className="relative mx-auto mt-6 max-w-xl text-ivory/70">Join thousands of ambitious students already building futures they believe in.</p>
           <div className="relative mt-8 flex justify-center gap-3">
-            <Link to="/signup" className="rounded-full bg-ivory px-7 py-3.5 text-sm font-semibold text-navy hover:opacity-90">Create free account</Link>
+            <Link to="/auth" search={{ mode: "signup" }} className="rounded-full bg-ivory px-7 py-3.5 text-sm font-semibold text-navy hover:opacity-90">Create free account</Link>
             <Link to="/opportunities" className="rounded-full border border-ivory/30 px-7 py-3.5 text-sm font-semibold text-ivory hover:bg-white/10">Browse opportunities</Link>
           </div>
         </div>

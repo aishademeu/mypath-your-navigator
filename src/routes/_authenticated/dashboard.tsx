@@ -1,45 +1,35 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { getProfile, isAuthed, type Profile } from "@/lib/store";
-import { OPPORTUNITIES, matchScore } from "@/lib/opportunities";
+import { useSession, useProfile, useOnboarding, usePortfolio, useChat } from "@/lib/supabase-hooks";
+import { OPPORTUNITIES } from "@/lib/opportunities";
+import { rankOpportunities } from "@/lib/matching";
 
-export const Route = createFileRoute("/dashboard")({ component: Dashboard });
-
-function useProfile(): Profile | null {
-  const [p, setP] = useState<Profile | null>(null);
-  useEffect(() => {
-    setP(getProfile());
-    const sync = () => setP(getProfile());
-    window.addEventListener("mypath:update", sync);
-    return () => window.removeEventListener("mypath:update", sync);
-  }, []);
-  return p;
-}
+export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
 
 function Dashboard() {
-  const navigate = useNavigate();
-  const profile = useProfile();
+  const { user } = useSession();
+  const { data: profile } = useProfile(user);
+  const { data: onboarding } = useOnboarding(user);
+  const { data: portfolio } = usePortfolio(user);
+  const { data: chat } = useChat(user);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && !isAuthed()) navigate({ to: "/login" });
-  }, [navigate]);
+  const ctx = useMemo(() => ({
+    age: profile?.age ?? null,
+    grade: profile?.grade ? parseInt(profile.grade, 10) : null,
+    country: profile?.country ?? null,
+    interests: onboarding?.interests ?? [],
+    problems: onboarding?.problems ?? [],
+    goals: onboarding?.goals ?? [],
+  }), [profile, onboarding]);
 
-  const onboarding = profile?.onboarding;
-  const recs = useMemo(() => {
-    return OPPORTUNITIES
-      .map((o) => ({ o, s: matchScore(o, onboarding?.interests, onboarding?.problems) }))
-      .sort((a, b) => b.s - a.s)
-      .slice(0, 6);
-  }, [onboarding]);
+  const recs = useMemo(() => rankOpportunities(OPPORTUNITIES, ctx).slice(0, 6), [ctx]);
 
-  if (!profile) return <div className="min-h-screen" />;
-
-  const { user, portfolio } = profile;
-  const done = onboarding?.completedAt;
-  const direction = deriveDirection(profile);
-  const growth = growthPct(profile);
+  const done = !!onboarding?.completed_at;
+  const firstName = (profile?.name ?? user?.email?.split("@")[0] ?? "friend").split(" ")[0];
+  const direction = deriveDirection(onboarding?.interests ?? []);
+  const growth = growthPct({ done, portfolio: portfolio?.length ?? 0, chat: chat?.length ?? 0 });
 
   return (
     <div className="min-h-screen">
@@ -48,7 +38,7 @@ function Dashboard() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">Dashboard</div>
-            <h1 className="mt-2 font-display text-4xl md:text-5xl">Welcome back, {user.name.split(" ")[0]}.</h1>
+            <h1 className="mt-2 font-display text-4xl md:text-5xl">Welcome back, {firstName}.</h1>
             <p className="mt-2 text-navy/60">Here's what's opening for you today.</p>
           </div>
           <div className="flex gap-2">
@@ -57,9 +47,7 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* TOP GRID */}
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {/* Growth */}
           <div className="rounded-3xl border border-navy/10 bg-white p-6">
             <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">Personal growth</div>
             <div className="mt-4 flex items-center gap-6">
@@ -68,7 +56,7 @@ function Dashboard() {
                 <div className="font-display text-3xl">{growth}%</div>
                 <div className="text-sm text-navy/60">Profile completeness</div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {[["Onboarding", !!done], ["Portfolio 3+", portfolio.length >= 3], ["Chat with AI", profile.chat.length > 0]].map(([k, ok]) => (
+                  {[["Onboarding", done], ["Portfolio 3+", (portfolio?.length ?? 0) >= 3], ["Chat with AI", (chat?.length ?? 0) > 0]].map(([k, ok]) => (
                     <span key={k as string} className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${ok ? "bg-growth/20 text-navy" : "bg-navy/5 text-navy/50"}`}>
                       {ok ? "✓" : "○"} {k}
                     </span>
@@ -78,7 +66,6 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Direction */}
           <div className="rounded-3xl border border-navy/10 bg-gradient-to-br from-navy to-[#1d3a72] p-6 text-ivory lg:col-span-2">
             <div className="text-xs font-semibold uppercase tracking-widest text-ivory/60">My Direction</div>
             <div className="mt-3 font-display text-3xl leading-tight md:text-4xl">{direction}</div>
@@ -103,40 +90,42 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* RECS */}
         <section className="mt-14">
           <div className="flex items-end justify-between">
             <h2 className="font-display text-3xl">Recommended opportunities</h2>
             <Link to="/opportunities" className="text-sm font-medium underline">Browse all →</Link>
           </div>
           <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {recs.map(({ o, s }) => (
+            {recs.map(({ opp: o, score, eligible, reasons }) => (
               <div key={o.id} className="group flex flex-col rounded-3xl border border-navy/10 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-xl">
                 <div className="flex items-center justify-between">
                   <span className="rounded-full bg-navy/5 px-3 py-1 text-[11px] font-medium text-navy/70">{o.category}</span>
-                  <span className="rounded-full bg-gradient-to-r from-growth/20 to-lavender/30 px-3 py-1 text-[11px] font-semibold text-navy">{s}% match</span>
+                  <span className="rounded-full bg-gradient-to-r from-growth/20 to-lavender/30 px-3 py-1 text-[11px] font-semibold text-navy">{score}% match</span>
                 </div>
                 <div className="mt-4 font-display text-xl leading-snug">{o.title}</div>
                 <div className="text-xs text-navy/50">{o.org}</div>
                 <p className="mt-3 text-sm text-navy/70 line-clamp-3">{o.description}</p>
+                {!eligible && <div className="mt-2 rounded-lg bg-destructive/10 px-2 py-1 text-[10px] text-destructive">Check eligibility</div>}
                 <div className="mt-4 text-xs text-navy/60">Deadline · {new Date(o.deadline).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div>
-                <div className="mt-4 rounded-xl bg-lavender/20 px-3 py-2 text-xs text-navy/70"><b>Why it matches:</b> aligns with your {(onboarding?.interests ?? []).slice(0,2).join(" & ") || "interests"}.</div>
-                <Link to="/opportunities" className="mt-5 inline-flex items-center justify-center rounded-full bg-navy px-4 py-2 text-sm font-semibold text-ivory">View opportunity →</Link>
+                {reasons[0] && <div className="mt-3 rounded-xl bg-lavender/20 px-3 py-2 text-xs text-navy/70"><b>Why:</b> {reasons[0]}</div>}
+                <div className="mt-4 flex gap-2">
+                  <Link to="/opportunities" className="flex-1 rounded-full border border-navy/15 px-4 py-2 text-sm font-medium text-center">View</Link>
+                  <Link to="/apply-guide/$id" params={{ id: o.id }} className="flex-1 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-ivory text-center">Apply →</Link>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* PORTFOLIO SUMMARY */}
         <section className="mt-16 grid gap-5 md:grid-cols-2">
           <div className="rounded-3xl border border-navy/10 bg-white p-6">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl">My portfolio</h2>
-              <Link to="/portfolio" className="text-sm font-medium underline">Edit →</Link>
+              <Link to="/profile" className="text-sm font-medium underline">Edit →</Link>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               {["projects", "achievements", "leadership", "skills"].map((k) => {
-                const n = portfolio.filter((x) => x.section === k).length;
+                const n = (portfolio ?? []).filter((x) => x.section === k).length;
                 return (
                   <div key={k} className="rounded-2xl bg-ivory p-4">
                     <div className="text-xs font-semibold uppercase tracking-wider text-navy/50">{k}</div>
@@ -177,18 +166,17 @@ function ProgressRing({ value }: { value: number }) {
   );
 }
 
-function deriveDirection(p: Profile) {
-  const i = p.onboarding?.interests ?? [];
+function deriveDirection(i: string[]) {
   if (!i.length) return "Explorer — direction forming";
   const a = i[0], b = i[1] ?? "Growth";
   return `${a} + ${b}`;
 }
 
-function growthPct(p: Profile) {
+function growthPct({ done, portfolio, chat }: { done: boolean; portfolio: number; chat: number }) {
   let s = 20;
-  if (p.onboarding?.completedAt) s += 40;
-  if (p.portfolio.length >= 1) s += 10;
-  if (p.portfolio.length >= 3) s += 15;
-  if (p.chat.length > 0) s += 10;
+  if (done) s += 40;
+  if (portfolio >= 1) s += 10;
+  if (portfolio >= 3) s += 15;
+  if (chat > 0) s += 10;
   return Math.min(99, s);
 }
