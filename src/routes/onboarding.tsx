@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
-import { getProfile, updateProfile, isAuthed } from "@/lib/store";
+import { updateProfile, isAuthed } from "@/lib/store";
 
 export const Route = createFileRoute("/onboarding")({ component: Onboarding });
 
