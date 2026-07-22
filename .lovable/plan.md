@@ -1,87 +1,62 @@
+# MyPath — Multilingual + Mobile-First MVP
 
-# MyPath: Prototype → MVP
+Scope covers requests 9–12. Design system stays exactly as-is; this adds language and mobile polish on top.
 
-Keep the current design language (navy/ivory/lavender/gold, gradient-hero, rounded-3xl cards, animations, Logo component). All work is additive — no visual regressions.
+## 1. Internationalization (EN / RU / KK)
 
-## 1. Real auth & persistence (Lovable Cloud / Supabase)
+- Add a lightweight in-house i18n system (no extra deps): `src/lib/i18n/` with:
+  - `en.ts`, `ru.ts`, `kk.ts` — full translation dictionaries with nested keys (nav, landing, auth, onboarding, dashboard, opportunities, profile, mentor, apply, common, errors).
+  - `LanguageProvider` (React context) exposing `{ lang, setLang, t(key, vars?) }`.
+  - Persists to `localStorage` under `mypath.lang`, and — when a user is signed in — mirrors to `profiles.preferred_lang` via Supabase so it follows the account.
+- All EN/RU/KK strings written by hand for natural tone: inspiring, warm, professional. Kazakh reviewed for native phrasing (proper suffixes, no calques from Russian). Slogan set:
+  - EN: "Find your path. Build your future."
+  - RU: "Найди свой путь. Построй своё будущее."
+  - KK: "Өз жолыңды тап. Болашағыңды құр."
+- Replace hardcoded strings in every route/component: Navbar, Footer, Landing, Auth, Onboarding, Dashboard, Opportunities, Profile, Mentor, Analyze, ApplyGuide, error boundaries, toasts.
+- Opportunity categories and tags translated via a category key map (data stays canonical in English, UI labels resolved through `t`).
+- `<html lang="…">` updated on language change.
 
-- Enable Lovable Cloud.
-- Auth: email + password (default), plus Google sign-in via the Lovable broker.
-- Tables (all with GRANTs + RLS scoped to `auth.uid()`):
-  - `profiles` — id (FK auth.users), name, age, grade, country, avatar_url, about, curious_about, world_change, created_at.
-  - `onboarding` — user_id, interests[], strengths[], problems[], goals[], dream, completed_at.
-  - `portfolio_items` — id, user_id, section, title, description, date.
-  - `saved_opportunities` — user_id, opportunity_id, status ('saved'|'applying'|'applied'|'accepted'), created_at.
-  - `application_progress` — user_id, opportunity_id, step_key, completed, updated_at.
-  - `chat_messages` — user_id, role, content, created_at.
-- Auto-create profile row via trigger on `auth.users` insert.
-- Move gated routes under `src/routes/_authenticated/` (dashboard, onboarding, portfolio, mentor, analyze, opportunities detail, apply-guide). Landing, `/auth` stay public.
-- Replace `src/lib/store.ts` localStorage layer with Supabase-backed hooks (`useProfile`, `useOnboarding`, `usePortfolio`, `useSavedOpportunities`, `useApplicationProgress`) using TanStack Query + server functions where user-scoped.
-- Root: register `onAuthStateChange` once → invalidate router/queries; add session-aware navbar (avatar + logout when signed in).
-- New `/auth` route replacing `/login` + `/signup` (tabbed), keeping current premium visuals. Redirect old routes.
+## 2. First-visit language picker
 
-## 2. Expanded onboarding
+- New route `/welcome` (public) shown when no language is stored yet. Beautiful full-screen picker matching the premium palette:
+  - Title "Choose your language / Выберите язык / Тілді таңдаңыз"
+  - Three large cards: 🇬🇧 English · 🇷🇺 Русский · 🇰🇿 Қазақша
+- Root route redirects to `/welcome` on first visit; after selection, routes to `/` (landing).
 
-Rework `src/routes/_authenticated/onboarding.tsx` with the full option sets requested:
-- Academic interests (18 options).
-- Personal strengths (11 options).
-- World problems (10 options).
-- Goals (8 options).
-- Grade + experience-level step.
-- Open-ended textareas: "Tell us about yourself", "What are you curious about?", "What change would you like to make?" (all optional).
-Persist to `onboarding` + `profiles` on completion; allow returning users to edit from profile.
+## 3. Language settings in Profile
 
-## 3. Smarter matching
+- Profile page gets a "Language / Тіл / Язык" section with the same three options.
+- Switching is instant; profile data, onboarding answers, portfolio, and progress are untouched (only the display language changes).
+- Add `preferred_lang text` column to `profiles` (nullable, default null) via migration so preference syncs across devices.
 
-New `src/lib/matching.ts`:
-- Opportunity shape includes `ageMin`, `ageMax`, `gradeMin`, `gradeMax`, `countries` (or "Global"|"Online"), `requiredInterests`, `requiredSkills`, `goalAlignment`, `experienceLevel`.
-- Score components (weighted): eligibility hard-check (age/grade) 40, interest overlap 25, skill overlap 15, goal alignment 15, problem/world overlap 5.
-- If age/grade fails → score capped at 45 and marked "Not eligible yet".
-- Return `{ score, reasons: [{ok, text}] }` — rendered on card and detail page with ✓/✗ chips.
+## 4. AI Mentor multilingual replies
 
-## 4. Expanded opportunity database
+- `mentorReply()` becomes language-aware: dedicated reply templates per language (EN/RU/KK) with the same structure (direction, profile analysis, next steps, summer plan, default). Uses translated interest labels when composing answers.
+- Prompt chips and empty-state greeting translated.
+- Reply language always matches `lang` at send time.
 
-`src/lib/opportunities.ts` grows to ~40–50 curated realistic entries across all 11 categories (Scholarships, Competitions, Research, Internships, Leadership, Volunteering, Summer Programs, Fellowships, Entrepreneurship, Courses, Conferences). Each has: name, description, category, country, mode (online/in-person/hybrid), age range, grade range, deadline, eligibility, skills gained, application link, tags. Filters in `/opportunities` gain category, mode, deadline-window, and "eligible only" toggle.
+## 5. Mobile-first experience
 
-## 5. Functional Apply Guide
+- Global responsive audit: touch targets ≥ 44px, readable base font, no horizontal scroll, safe-area padding.
+- **Navbar**: desktop links hidden below `md`. Replaced on mobile by a fixed **bottom nav bar** with 6 items: Home, My Path (Dashboard), Opportunities, Portfolio (Profile → portfolio tab), AI Mentor, Profile. Icons from `lucide-react`, active state highlighted in navy/gold. Sits above content with `pb-24` on mobile page wrappers.
+- **Landing**: hero + sections restacked; floating cards become a single column carousel-like stack on mobile.
+- **Onboarding**: one question per screen on mobile with a top progress bar, large tappable option cards, big Next/Back buttons pinned to the bottom.
+- **Dashboard**: single vertical scroll with cards for Welcome, Progress, Recommendations, Next Steps, AI Mentor shortcut, Portfolio progress.
+- **Opportunities**: filter bar becomes a sticky top pill row + collapsible sheet; cards full-width.
+- **Profile**: tabs collapse into a horizontally scrollable pill row; editable fields stack.
+- **Mentor**: chat fills viewport minus bottom nav; composer sticky, textarea auto-grows.
+- **Apply guide**: checklist stacks; steps become large tappable rows.
 
-- `src/routes/_authenticated/opportunities.$id.tsx` — detail view with match breakdown + "Open Apply Guide" button.
-- `src/routes/_authenticated/apply-guide.$id.tsx` — checklist page:
-  - Requirements checklist
-  - Timeline (relative to deadline)
-  - Preparation steps
-  - Required documents
-  - Tips
-  - Common mistakes
-  - Personal checklist (checkboxes persisted to `application_progress`)
-- Progress ring at top; "Mark as applied" button flips `saved_opportunities.status`.
+## 6. Technical notes
 
-## 6. Profile page
+- Files added:
+  - `src/lib/i18n/index.tsx` (provider + hook + types)
+  - `src/lib/i18n/en.ts`, `ru.ts`, `kk.ts`
+  - `src/components/MobileNav.tsx`
+  - `src/routes/welcome.tsx`
+- Files updated: `__root.tsx` (provider + `<html lang>`), `Navbar.tsx`, `Footer.tsx`, all route pages, `profile.tsx` (add language section), `mentor.tsx` (i18n replies).
+- Migration: `alter table profiles add column preferred_lang text;` with proper grant (already covered by existing profile policies).
+- No new npm dependencies; keeps bundle small.
 
-Rework `src/routes/_authenticated/portfolio.tsx` → `/profile`:
-- Header card: avatar placeholder (initials), name, grade/age/country, "edit profile" drawer.
-- Sections: About me, Interests, Direction (dream), Strengths, Goals, Achievements, Projects, Research, Leadership, Skills.
-- Growth timeline (portfolio items sorted by date).
-- Progress stats (opportunities saved, applied, accepted; portfolio item count).
-- "Recommended next steps" panel using matching engine's top 3.
-
-## 7. Logo & branding
-
-- Enlarge Logo across navbar (`h-11`), auth pages (`h-12`), dashboard header (`h-10`).
-- Add a subtle brand tag ("MyPath — Your journey, your path") under logo on auth and landing.
-- Ensure logo appears in mobile nav drawer.
-
-## 8. Preserve premium feel
-
-All new pages reuse existing tokens (`gradient-hero`, `bg-white/80 backdrop-blur`, `rounded-3xl`, `font-display`, animated progress bars, chip buttons). No visual downgrades.
-
-## Technical notes
-
-- All Supabase reads/writes go through `createServerFn` with `requireSupabaseAuth`, or the browser client for realtime-safe things (auth flows).
-- Migrations: enum types for `app_role` not needed here; RLS with `auth.uid() = user_id`.
-- Delete `src/lib/store.ts` after migration; replace call sites.
-- Update `__root.tsx` head metadata (title, description, og tags).
-
----
-
-**One question before I build:** onboarding collects grade + optional avatar/about text — should I also let users **edit** all onboarding answers later from the profile page (recommended), or lock them after first completion?
+## Out of scope
+- Translating opportunity long-form descriptions (kept in English for MVP accuracy; UI chrome, categories, and CTAs are fully localized). Can be added later per-entry.
