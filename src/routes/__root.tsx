@@ -17,6 +17,8 @@ import logoAsset from "../assets/mypath-logo.png.asset.json";
 import { LanguageProvider, useI18n, hasStoredLang } from "@/lib/i18n";
 import { MobileNav } from "@/components/MobileNav";
 
+import { en } from "@/lib/i18n/en";
+
 function NotFoundComponent() {
   return <NotFoundInner />;
 }
@@ -40,7 +42,7 @@ function NotFoundInner() {
 
 // Safe i18n hook for boundaries (falls back to English if provider missing)
 function useSafeI18n() {
-  try { return useI18n(); } catch { const { en } = require("@/lib/i18n/en"); return { dict: en, lang: "en" as const, setLang: () => {}, t: () => "" as never }; }
+  try { return useI18n(); } catch { return { dict: en, lang: "en" as const, setLang: () => {}, t: () => "" as never }; }
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
