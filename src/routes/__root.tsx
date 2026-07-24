@@ -16,6 +16,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import logoAsset from "../assets/mypath-logo.png.asset.json";
 import { LanguageProvider, useI18n, hasStoredLang } from "@/lib/i18n";
 import { MobileNav } from "@/components/MobileNav";
+import { ProProvider } from "@/lib/pro";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 import { en } from "@/lib/i18n/en";
 
@@ -105,9 +107,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <WelcomeRedirect />
-        <Outlet />
-        <MobileNav />
+        <ProProvider>
+          <WelcomeRedirect />
+          <Outlet />
+          <MobileNav />
+          <UpgradeModal />
+        </ProProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );

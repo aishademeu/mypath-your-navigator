@@ -4,6 +4,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useSession, useProfile, useOnboarding, useChat, useAddChat } from "@/lib/supabase-hooks";
 import { useI18n, type Lang } from "@/lib/i18n";
+import { usePro } from "@/lib/pro";
+import { ProBadge } from "@/components/ProBadge";
 
 export const Route = createFileRoute("/_authenticated/mentor")({ component: MentorPage });
 
@@ -14,6 +16,7 @@ function MentorPage() {
   const { data: chat } = useChat(user);
   const addChat = useAddChat(user?.id);
   const { dict, lang } = useI18n();
+  const { isPro, openUpgrade } = usePro();
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -24,6 +27,11 @@ function MentorPage() {
 
   const send = async (text: string) => {
     if (!text.trim()) return;
+    // Gate premium prompts for free users
+    if (!isPro && isProPrompt(text)) {
+      openUpgrade(matchProFeature(text, dict));
+      return;
+    }
     setInput("");
     await addChat.mutateAsync({ role: "user", content: text });
     setThinking(true);
@@ -39,6 +47,7 @@ function MentorPage() {
       setThinking(false);
     }, 900 + Math.random() * 700);
   };
+
 
   return (
     <div className="min-h-screen pb-24 md:pb-0">
@@ -66,6 +75,27 @@ function MentorPage() {
                   {dict.mentor.prompts.map((p) => (
                     <button key={p} onClick={() => send(p)} className="min-h-[40px] rounded-full border border-navy/15 bg-ivory px-4 py-2 text-sm hover:border-navy/40">{p}</button>
                   ))}
+                </div>
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-navy/50">
+                    <span>Pro prompts</span>
+                    <ProBadge />
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {dict.pro.mentorProPrompts.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => {
+                          if (!isPro) openUpgrade(p);
+                          else send(p);
+                        }}
+                        className="group inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-lavender/60 bg-gradient-to-r from-lavender/25 to-gold/20 px-4 py-2 text-sm text-navy hover:border-navy/40"
+                      >
+                        {!isPro && <span className="text-navy/60">🔒</span>}
+                        <span>{p}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -98,6 +128,37 @@ function MentorPage() {
       <Footer />
     </div>
   );
+}
+
+// Keywords that signal a premium/Pro-only request across EN/RU/KK.
+const PRO_KEYWORDS = [
+  // essay / cv / resume
+  "essay","эссе",
+  "cv","резюме","резуме",
+  // admission probability
+  "admission","admit","chances","шанс","поступлен","түсу","ықтимал",
+  // roadmap
+  "roadmap","дорожн","карт","жол карта",
+  // deep analysis
+  "deep analysis","deep profile","глубок","терең",
+  // portfolio analysis
+  "portfolio analysis","анализ портфолио","портфолио талда",
+];
+
+function isProPrompt(text: string): boolean {
+  const low = text.toLowerCase();
+  return PRO_KEYWORDS.some((k) => low.includes(k));
+}
+
+function matchProFeature(text: string, dict: { pro: { lockedFeatureEssay: string; lockedFeatureCV: string; lockedFeatureAdmission: string; lockedFeatureRoadmap: string; lockedFeatureDeepAnalysis: string; lockedFeaturePortfolio: string; lockedFeatureAdvancedMentor: string } }): string {
+  const low = text.toLowerCase();
+  if (/(essay|эссе)/i.test(low)) return dict.pro.lockedFeatureEssay;
+  if (/(cv|резюме|резуме)/i.test(low)) return dict.pro.lockedFeatureCV;
+  if (/(admission|admit|chance|шанс|поступлен|түсу|ықтимал)/i.test(low)) return dict.pro.lockedFeatureAdmission;
+  if (/(roadmap|дорожн|жол карта|карт)/i.test(low)) return dict.pro.lockedFeatureRoadmap;
+  if (/(portfolio|портфолио)/i.test(low)) return dict.pro.lockedFeaturePortfolio;
+  if (/(deep|глубок|терең)/i.test(low)) return dict.pro.lockedFeatureDeepAnalysis;
+  return dict.pro.lockedFeatureAdvancedMentor;
 }
 
 type MentorCtx = { name: string; interests: string[]; strengths: string[]; goals: string[]; dream: string };

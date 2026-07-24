@@ -9,6 +9,7 @@ import {
 } from "@/lib/supabase-hooks";
 import { OPPORTUNITIES } from "@/lib/opportunities";
 import { useI18n, LANGS, type Lang } from "@/lib/i18n";
+import { usePro } from "@/lib/pro";
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: ProfilePage });
 
@@ -26,6 +27,7 @@ function ProfilePage() {
   const remove = useRemovePortfolio(user?.id);
   const update = useUpdatePortfolio(user?.id);
   const { dict, lang, setLang } = useI18n();
+  const { isPro, setPro } = usePro();
 
   const [preview, setPreview] = useState(false);
   const [editing, setEditing] = useState<PortfolioRow | null>(null);
@@ -96,6 +98,36 @@ function ProfilePage() {
           </div>
           <button onClick={() => setPreview(true)} className="min-h-[44px] rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-ivory">{dict.profile.preview}</button>
         </div>
+
+        {/* Current plan */}
+        <section className={`mt-6 rounded-3xl border p-5 md:p-6 ${isPro ? "border-transparent bg-gradient-to-br from-navy via-[#1a2e5c] to-[#22417a] text-ivory shadow-[0_20px_50px_-25px_rgba(11,31,58,0.55)]" : "border-navy/10 bg-white"}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className={`text-[11px] font-semibold uppercase tracking-widest ${isPro ? "text-ivory/60" : "text-navy/50"}`}>{dict.pro.currentPlan}</div>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="font-display text-2xl md:text-3xl">{isPro ? dict.pro.proMember : dict.pro.freePlan}</span>
+                {isPro && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-gold to-lavender px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-navy">✦ Pro</span>
+                )}
+              </div>
+            </div>
+            {isPro ? (
+              <button
+                onClick={() => setPro(false)}
+                className="min-h-[40px] rounded-full border border-ivory/25 bg-white/10 px-4 py-2 text-xs font-medium text-ivory hover:bg-white/15"
+              >
+                {dict.pro.downgradeToFree}
+              </button>
+            ) : (
+              <Link
+                to="/pricing"
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-gradient-to-r from-gold to-lavender px-5 py-2.5 text-sm font-bold text-navy shadow-sm hover:opacity-95"
+              >
+                ✦ {dict.pro.upgradeCta}
+              </Link>
+            )}
+          </div>
+        </section>
 
         {/* Language settings */}
         <section className="mt-6 rounded-3xl border border-navy/10 bg-white p-5 md:p-6">

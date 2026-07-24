@@ -3,6 +3,7 @@ import { Logo } from "./Logo";
 import { useSession, useProfile } from "@/lib/supabase-hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, LANGS, type Lang } from "@/lib/i18n";
+import { usePro } from "@/lib/pro";
 import { useState } from "react";
 
 export function Navbar() {
@@ -10,6 +11,7 @@ export function Navbar() {
   const { user } = useSession();
   const { data: profile } = useProfile(user);
   const { lang, setLang, dict } = useI18n();
+  const { isPro } = usePro();
   const [langOpen, setLangOpen] = useState(false);
 
   const nav = [
@@ -41,6 +43,12 @@ export function Navbar() {
                 {n.label}
               </Link>
             ))}
+            <Link
+              to="/pricing"
+              className="ml-1 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-gold to-lavender px-3 py-1.5 text-xs font-bold text-navy shadow-sm hover:opacity-90"
+            >
+              ✦ {isPro ? "Pro" : "Pro"}
+            </Link>
           </nav>
           <div className="flex flex-none items-center gap-1.5 md:gap-2">
             <div className="relative">
