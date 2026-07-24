@@ -76,6 +76,27 @@ function MentorPage() {
                     <button key={p} onClick={() => send(p)} className="min-h-[40px] rounded-full border border-navy/15 bg-ivory px-4 py-2 text-sm hover:border-navy/40">{p}</button>
                   ))}
                 </div>
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-navy/50">
+                    <span>Pro prompts</span>
+                    <ProBadge />
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {dict.pro.mentorProPrompts.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => {
+                          if (!isPro) openUpgrade(p);
+                          else send(p);
+                        }}
+                        className="group inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-lavender/60 bg-gradient-to-r from-lavender/25 to-gold/20 px-4 py-2 text-sm text-navy hover:border-navy/40"
+                      >
+                        {!isPro && <span className="text-navy/60">🔒</span>}
+                        <span>{p}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
             {(chat ?? []).map((m) => (
