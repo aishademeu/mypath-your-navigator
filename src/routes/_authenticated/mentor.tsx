@@ -27,6 +27,11 @@ function MentorPage() {
 
   const send = async (text: string) => {
     if (!text.trim()) return;
+    // Gate premium prompts for free users
+    if (!isPro && isProPrompt(text)) {
+      openUpgrade(matchProFeature(text, dict));
+      return;
+    }
     setInput("");
     await addChat.mutateAsync({ role: "user", content: text });
     setThinking(true);
@@ -42,6 +47,7 @@ function MentorPage() {
       setThinking(false);
     }, 900 + Math.random() * 700);
   };
+
 
   return (
     <div className="min-h-screen pb-24 md:pb-0">
