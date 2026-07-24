@@ -9,6 +9,7 @@ import {
 } from "@/lib/supabase-hooks";
 import { OPPORTUNITIES } from "@/lib/opportunities";
 import { useI18n, LANGS, type Lang } from "@/lib/i18n";
+import { usePro } from "@/lib/pro";
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: ProfilePage });
 
@@ -26,6 +27,7 @@ function ProfilePage() {
   const remove = useRemovePortfolio(user?.id);
   const update = useUpdatePortfolio(user?.id);
   const { dict, lang, setLang } = useI18n();
+  const { isPro, setPro } = usePro();
 
   const [preview, setPreview] = useState(false);
   const [editing, setEditing] = useState<PortfolioRow | null>(null);
