@@ -130,6 +130,37 @@ function MentorPage() {
   );
 }
 
+// Keywords that signal a premium/Pro-only request across EN/RU/KK.
+const PRO_KEYWORDS = [
+  // essay / cv / resume
+  "essay","эссе",
+  "cv","резюме","резуме",
+  // admission probability
+  "admission","admit","chances","шанс","поступлен","түсу","ықтимал",
+  // roadmap
+  "roadmap","дорожн","карт","жол карта",
+  // deep analysis
+  "deep analysis","deep profile","глубок","терең",
+  // portfolio analysis
+  "portfolio analysis","анализ портфолио","портфолио талда",
+];
+
+function isProPrompt(text: string): boolean {
+  const low = text.toLowerCase();
+  return PRO_KEYWORDS.some((k) => low.includes(k));
+}
+
+function matchProFeature(text: string, dict: { pro: { lockedFeatureEssay: string; lockedFeatureCV: string; lockedFeatureAdmission: string; lockedFeatureRoadmap: string; lockedFeatureDeepAnalysis: string; lockedFeaturePortfolio: string; lockedFeatureAdvancedMentor: string } }): string {
+  const low = text.toLowerCase();
+  if (/(essay|эссе)/i.test(low)) return dict.pro.lockedFeatureEssay;
+  if (/(cv|резюме|резуме)/i.test(low)) return dict.pro.lockedFeatureCV;
+  if (/(admission|admit|chance|шанс|поступлен|түсу|ықтимал)/i.test(low)) return dict.pro.lockedFeatureAdmission;
+  if (/(roadmap|дорожн|жол карта|карт)/i.test(low)) return dict.pro.lockedFeatureRoadmap;
+  if (/(portfolio|портфолио)/i.test(low)) return dict.pro.lockedFeaturePortfolio;
+  if (/(deep|глубок|терең)/i.test(low)) return dict.pro.lockedFeatureDeepAnalysis;
+  return dict.pro.lockedFeatureAdvancedMentor;
+}
+
 type MentorCtx = { name: string; interests: string[]; strengths: string[]; goals: string[]; dream: string };
 
 function mentorReply(q: string, lang: Lang, p: MentorCtx): string {
