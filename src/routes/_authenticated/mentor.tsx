@@ -16,6 +16,7 @@ function MentorPage() {
   const { data: chat } = useChat(user);
   const addChat = useAddChat(user?.id);
   const { dict, lang } = useI18n();
+  const { isPro, openUpgrade } = usePro();
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
