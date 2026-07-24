@@ -4,6 +4,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useSession, useProfile, useOnboarding, useChat, useAddChat } from "@/lib/supabase-hooks";
 import { useI18n, type Lang } from "@/lib/i18n";
+import { usePro } from "@/lib/pro";
+import { ProBadge } from "@/components/ProBadge";
 
 export const Route = createFileRoute("/_authenticated/mentor")({ component: MentorPage });
 
