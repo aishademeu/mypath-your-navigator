@@ -27,7 +27,7 @@ function ProfilePage() {
   const remove = useRemovePortfolio(user?.id);
   const update = useUpdatePortfolio(user?.id);
   const { dict, lang, setLang } = useI18n();
-  const { isPro, setPro } = usePro();
+  const { isPro } = usePro();
 
   const [preview, setPreview] = useState(false);
   const [editing, setEditing] = useState<PortfolioRow | null>(null);
@@ -112,12 +112,10 @@ function ProfilePage() {
               </div>
             </div>
             {isPro ? (
-              <button
-                onClick={() => setPro(false)}
-                className="min-h-[40px] rounded-full border border-ivory/25 bg-white/10 px-4 py-2 text-xs font-medium text-ivory hover:bg-white/15"
-              >
-                {dict.pro.downgradeToFree}
-              </button>
+              <span className="min-h-[40px] inline-flex items-center rounded-full border border-ivory/25 bg-white/10 px-4 py-2 text-xs font-medium text-ivory">
+                {dict.pro.manageBilling}
+              </span>
+
             ) : (
               <Link
                 to="/pricing"
