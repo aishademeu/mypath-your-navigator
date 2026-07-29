@@ -112,12 +112,10 @@ function ProfilePage() {
               </div>
             </div>
             {isPro ? (
-              <button
-                onClick={() => setPro(false)}
-                className="min-h-[40px] rounded-full border border-ivory/25 bg-white/10 px-4 py-2 text-xs font-medium text-ivory hover:bg-white/15"
-              >
-                {dict.pro.downgradeToFree}
-              </button>
+              <span className="min-h-[40px] inline-flex items-center rounded-full border border-ivory/25 bg-white/10 px-4 py-2 text-xs font-medium text-ivory">
+                {dict.pro.manageBilling}
+              </span>
+
             ) : (
               <Link
                 to="/pricing"
