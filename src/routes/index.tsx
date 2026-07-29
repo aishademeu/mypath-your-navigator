@@ -8,9 +8,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "MyPath — Find your path. Build your future." },
-      { name: "description", content: "The premium growth platform for ambitious students 13–18 — in English, Русский and Қазақша." },
+      { name: "description", content: "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ" },
       { property: "og:title", content: "MyPath — Find your path. Build your future." },
-      { property: "og:description", content: "Discover, explore, build and grow with MyPath — a warm, intelligent guide for ambitious students." },
+      { property: "og:description", content: "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
