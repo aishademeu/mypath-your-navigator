@@ -27,7 +27,7 @@ function ProfilePage() {
   const remove = useRemovePortfolio(user?.id);
   const update = useUpdatePortfolio(user?.id);
   const { dict, lang, setLang } = useI18n();
-  const { isPro, setPro } = usePro();
+  const { isPro } = usePro();
 
   const [preview, setPreview] = useState(false);
   const [editing, setEditing] = useState<PortfolioRow | null>(null);
