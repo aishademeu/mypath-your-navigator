@@ -5,6 +5,8 @@ import { Footer } from "@/components/Footer";
 import { OPPORTUNITIES, CATEGORIES, type Category, type Opportunity } from "@/lib/opportunities";
 import { rankOpportunities } from "@/lib/matching";
 import { useSession, useProfile, useOnboarding, useSavedOpportunities, useToggleSaved } from "@/lib/supabase-hooks";
+import { useUnlocks } from "@/lib/unlocks";
+import { UnlockPlanCard } from "@/components/UnlockPlanCard";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/opportunities")({
@@ -30,6 +32,12 @@ function OpportunitiesPage() {
   const { data: onboarding } = useOnboarding(user);
   const { data: saved } = useSavedOpportunities(user);
   const toggleSaved = useToggleSaved(user?.id);
+  const { data: unlocks } = useUnlocks(user);
+  const unlockMap = useMemo(
+    () => new Map((unlocks ?? []).map((u) => [u.opportunity_id, u.plan])),
+    [unlocks],
+  );
+
 
   const ctx = useMemo(() => ({
     age: profile?.age ?? null,
@@ -107,6 +115,7 @@ function OpportunitiesPage() {
                   {savedIds.has(o.id) ? "★" : "☆"}
                 </button>
               </div>
+              <UnlockPlanCard opp={o} score={score} plan={unlockMap.get(o.id) ?? null} unlocked={unlockMap.has(o.id)} />
             </div>
           ))}
           {filtered.length === 0 && (

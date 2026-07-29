@@ -98,6 +98,36 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunity_unlocks: {
+        Row: {
+          created_at: string
+          id: string
+          opportunity_id: string
+          plan: Json | null
+          price_kzt: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          opportunity_id: string
+          plan?: Json | null
+          price_kzt?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          opportunity_id?: string
+          plan?: Json | null
+          price_kzt?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       portfolio_items: {
         Row: {
           created_at: string

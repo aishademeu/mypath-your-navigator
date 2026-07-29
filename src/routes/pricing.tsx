@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { usePro } from "@/lib/pro";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/supabase-hooks";
+import { UNLOCK_PRICE_KZT } from "@/lib/unlock-plan";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
@@ -158,6 +159,24 @@ function PricingPage() {
             </div>
           </div>
         </section>
+
+        {/* Pay-per-opportunity note */}
+        <section className="mt-8 rounded-[2rem] border border-gold/40 bg-gradient-to-r from-gold/15 to-lavender/15 p-6 text-center md:p-7">
+          <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">🔓 Pay as you go</div>
+          <h3 className="mt-2 font-display text-2xl">Don't need a subscription yet?</h3>
+          <p className="mx-auto mt-2 max-w-2xl text-sm text-navy/70">
+            Browsing every opportunity is always free. You can also unlock a personal AI application plan
+            for a single opportunity — assessment, checklist, tips and essay guidance — for{" "}
+            <strong>{UNLOCK_PRICE_KZT} KZT</strong> each, right from the Opportunities page. No subscription required.
+          </p>
+          <Link
+            to="/opportunities"
+            className="mt-4 inline-flex items-center justify-center rounded-full bg-navy px-6 py-3 text-sm font-semibold text-ivory"
+          >
+            Browse opportunities →
+          </Link>
+        </section>
+
 
         {/* FAQ / reassurance */}
         <section className="mt-14 grid gap-5 md:grid-cols-3">
