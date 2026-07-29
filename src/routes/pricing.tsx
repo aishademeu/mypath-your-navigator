@@ -141,14 +141,20 @@ function PricingPage() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => setPro(true)}
+                    onClick={() => setCheckoutNote(true)}
                     className="inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-gold to-lavender px-6 py-3 text-sm font-bold text-navy shadow-lg hover:opacity-95"
                   >
                     {dict.pro.upgradeCta} →
                   </button>
                 )}
+                {checkoutNote && !isPro && (
+                  <p className="mt-3 rounded-2xl bg-white/10 px-4 py-3 text-center text-xs text-ivory/80">
+                    Secure checkout is coming soon — Pro access is activated only after a verified payment.
+                  </p>
+                )}
                 <p className="mt-3 text-center text-[11px] text-ivory/50">{dict.pro.trustLine}</p>
               </div>
+
             </div>
           </div>
         </section>
