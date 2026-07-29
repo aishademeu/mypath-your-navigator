@@ -24,9 +24,11 @@ export const Route = createFileRoute("/pricing")({
 
 function PricingPage() {
   const { dict } = useI18n();
-  const { isPro, setPro } = usePro();
+  const { isPro } = usePro();
   const { user } = useSession();
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
+  const [checkoutNote, setCheckoutNote] = useState(false);
+
 
   const monthly = 9;
   const yearly = 7; // per month, billed yearly = ~$84/yr (20% off)
