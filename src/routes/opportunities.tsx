@@ -7,6 +7,7 @@ import { rankOpportunities } from "@/lib/matching";
 import { useSession, useProfile, useOnboarding, useSavedOpportunities, useToggleSaved } from "@/lib/supabase-hooks";
 import { useUnlocks } from "@/lib/unlocks";
 import { UnlockPlanCard } from "@/components/UnlockPlanCard";
+import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/opportunities")({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/opportunities")({
 
 function OpportunitiesPage() {
   const navigate = useNavigate();
-  const { dict } = useI18n();
+  const { dict, lang } = useI18n();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>("All");
   const [active, setActive] = useState<Opportunity | null>(null);
@@ -108,7 +109,7 @@ function OpportunitiesPage() {
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {o.tags.slice(0, 4).map((t) => <span key={t} className="rounded-full bg-ivory px-2 py-0.5 text-[10px] text-navy/60">#{t}</span>)}
               </div>
-              <div className="mt-3 text-xs text-navy/60">{dict.dashboard.deadline} · {new Date(o.deadline).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div>
+              <div className="mt-3 text-xs text-navy/60">{dict.dashboard.deadline} · {formatDate(o.deadline, lang)}</div>
               <div className="mt-4 flex gap-2">
                 <button onClick={() => setActive(o)} className="min-h-[44px] flex-1 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-ivory">{dict.dashboard.view}</button>
                 <button onClick={() => onSave(o)} className={`min-h-[44px] min-w-[44px] rounded-full border border-navy/15 px-3 py-2 text-sm ${savedIds.has(o.id) ? "bg-gold/40" : "bg-white"}`}>
@@ -137,7 +138,7 @@ function OpportunitiesPage() {
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <div className="rounded-2xl bg-ivory p-4">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{dict.dashboard.deadline}</div>
-                <div className="mt-1 font-display text-xl">{new Date(active.deadline).toLocaleDateString(undefined, { dateStyle: "long" })}</div>
+                <div className="mt-1 font-display text-xl">{formatDate(active.deadline, lang, { dateStyle: "long" })}</div>
               </div>
               <div className="rounded-2xl bg-ivory p-4">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{dict.opportunities.requirements}</div>

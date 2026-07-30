@@ -8,6 +8,7 @@ import {
   type PortfolioRow,
 } from "@/lib/supabase-hooks";
 import { OPPORTUNITIES } from "@/lib/opportunities";
+import { formatDate } from "@/lib/format";
 import { useI18n, LANGS, type Lang } from "@/lib/i18n";
 import { usePro } from "@/lib/pro";
 
@@ -234,7 +235,7 @@ function ProfilePage() {
                 <Link key={o.id} to="/apply-guide/$id" params={{ id: o.id }} className="rounded-2xl bg-ivory p-4 hover:bg-lavender/20">
                   <div className="text-[11px] text-navy/60">{dict.categories[o.category]}</div>
                   <div className="font-semibold">{o.title}</div>
-                  <div className="text-xs text-navy/60">{dict.dashboard.deadline} · {new Date(o.deadline).toLocaleDateString()}</div>
+                  <div className="text-xs text-navy/60">{dict.dashboard.deadline} · {formatDate(o.deadline, lang)}</div>
                 </Link>
               ))}
             </div>
