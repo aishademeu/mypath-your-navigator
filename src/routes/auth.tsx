@@ -70,7 +70,14 @@ function AuthPage() {
             grade: r.data.grade, email: r.data.email,
           }).eq("id", authData.user.id);
         }
-        if (!authData.session) { setBanner(dict.auth.checkEmail); return; }
+        if (!authData.session) {
+          // Fallback: auto-confirm is on, but sign in explicitly if no session came back.
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: r.data.email,
+            password: r.data.password,
+          });
+          if (signInErr) throw signInErr;
+        }
         navigate({ to: "/onboarding" });
       } else {
         const r = loginSchema.safeParse(data);
