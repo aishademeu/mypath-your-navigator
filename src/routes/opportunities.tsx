@@ -22,7 +22,7 @@ export const Route = createFileRoute("/opportunities")({
 
 function OpportunitiesPage() {
   const navigate = useNavigate();
-  const { dict } = useI18n();
+  const { dict, lang } = useI18n();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>("All");
   const [active, setActive] = useState<Opportunity | null>(null);

@@ -52,7 +52,7 @@ function ApplyGuide() {
   const toggleStep = useToggleStep(user?.id, id);
   const { data: saved } = useSavedOpportunities(user);
   const toggleSaved = useToggleSaved(user?.id);
-  const { dict } = useI18n();
+  const { dict, lang } = useI18n();
 
   const steps = useMemo(() => applyGuideFor(opp), [opp]);
   const completedMap = useMemo(() => {

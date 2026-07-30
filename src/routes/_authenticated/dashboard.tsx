@@ -19,7 +19,7 @@ function Dashboard() {
   const { data: onboarding } = useOnboarding(user);
   const { data: portfolio } = usePortfolio(user);
   const { data: chat } = useChat(user);
-  const { dict } = useI18n();
+  const { dict, lang } = useI18n();
 
   const ctx = useMemo(() => ({
     age: profile?.age ?? null,
