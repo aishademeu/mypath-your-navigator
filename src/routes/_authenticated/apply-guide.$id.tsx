@@ -8,6 +8,7 @@ import {
   useSession, useProfile, useOnboarding, useApplicationProgress, useToggleStep,
   useSavedOpportunities, useToggleSaved,
 } from "@/lib/supabase-hooks";
+import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/apply-guide/$id")({
@@ -91,7 +92,7 @@ function ApplyGuide() {
             <div className="text-ivory/70">{opp.org}</div>
             <p className="mt-4 max-w-3xl text-sm text-ivory/80 md:text-base">{opp.description}</p>
             <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <InfoTile label={dict.dashboard.deadline}>{new Date(opp.deadline).toLocaleDateString(undefined, { dateStyle: "long" })}</InfoTile>
+              <InfoTile label={dict.dashboard.deadline}>{formatDate(opp.deadline, lang, { dateStyle: "long" })}</InfoTile>
               <InfoTile label={dict.opportunities.eligibility}>
                 {opp.minAge && `${dict.opportunities.ages} ${opp.minAge}–${opp.maxAge ?? "18+"}`}
                 {opp.minGrade && ` · ${dict.opportunities.grades} ${opp.minGrade}–${opp.maxGrade ?? 12}`}

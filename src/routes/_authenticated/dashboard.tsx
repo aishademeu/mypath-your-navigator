@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { useSession, useProfile, useOnboarding, usePortfolio, useChat } from "@/lib/supabase-hooks";
 import { OPPORTUNITIES, type Category } from "@/lib/opportunities";
 import { rankOpportunities } from "@/lib/matching";
+import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -115,7 +116,7 @@ function Dashboard() {
                 <div className="text-xs text-navy/50">{o.org}</div>
                 <p className="mt-3 text-sm text-navy/70 line-clamp-3">{o.description}</p>
                 {!eligible && <div className="mt-2 rounded-lg bg-destructive/10 px-2 py-1 text-[10px] text-destructive">{dict.dashboard.checkEligibility}</div>}
-                <div className="mt-4 text-xs text-navy/60">{dict.dashboard.deadline} · {new Date(o.deadline).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div>
+                <div className="mt-4 text-xs text-navy/60">{dict.dashboard.deadline} · {formatDate(o.deadline, lang)}</div>
                 {reasons[0] && <div className="mt-3 rounded-xl bg-lavender/20 px-3 py-2 text-xs text-navy/70"><b>{dict.dashboard.why}:</b> {reasons[0]}</div>}
                 <div className="mt-4 flex gap-2">
                   <Link to="/opportunities" className="flex-1 rounded-full border border-navy/15 px-4 py-2 text-center text-sm font-medium">{dict.dashboard.view}</Link>
