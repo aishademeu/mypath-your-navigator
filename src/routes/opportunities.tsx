@@ -115,10 +115,11 @@ function OpportunitiesPage() {
       .filter((r) => !q || (r.opp.title + r.opp.description + r.opp.org + r.opp.tags.join(" ")).toLowerCase().includes(q.toLowerCase()));
   }, [q, cat, eligibleOnly, ctx]);
 
-  const onSave = (opp: Opportunity) => {
+  const onSave = useCallback((opp: Opportunity) => {
     if (!user) { navigate({ to: "/auth", search: { mode: "signup" } }); return; }
     toggleSaved.mutate({ opportunityId: opp.id, currentlySaved: savedIds.has(opp.id) });
-  };
+  }, [user, navigate, toggleSaved, savedIds]);
+
 
   const catLabel = (c: string) => c === "All" ? dict.opportunities.all : (dict.categories[c as Category] ?? c);
 
