@@ -136,7 +136,7 @@ function OpportunitiesPage() {
             <span className="text-navy/40">🔍</span>
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={dict.opportunities.search} className="w-full bg-transparent text-sm outline-none" />
           </div>
-          {user && (
+          {hydrated && user && (
             <label className="flex min-h-[44px] items-center gap-2 rounded-full border border-navy/15 bg-white px-4 py-2 text-xs">
               <input type="checkbox" checked={eligibleOnly} onChange={(e) => setEligibleOnly(e.target.checked)} />
               {dict.opportunities.eligibleOnly}
