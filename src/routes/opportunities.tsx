@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OPPORTUNITIES, CATEGORIES, type Category, type Opportunity } from "@/lib/opportunities";
@@ -8,7 +8,9 @@ import { useSession, useProfile, useOnboarding, useSavedOpportunities, useToggle
 import { useUnlocks } from "@/lib/unlocks";
 import { UnlockPlanCard } from "@/components/UnlockPlanCard";
 import { formatDate } from "@/lib/format";
+import { useHydrated } from "@/lib/use-hydrated";
 import { useI18n } from "@/lib/i18n";
+
 
 export const Route = createFileRoute("/opportunities")({
   component: OpportunitiesPage,
