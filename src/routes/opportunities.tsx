@@ -96,31 +96,22 @@ function OpportunitiesPage() {
 
         <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
           {filtered.map(({ opp: o, score, eligible, reasons }) => (
-            <div key={o.id} className="group flex flex-col rounded-3xl border border-navy/10 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-xl md:p-6">
-              <div className="flex items-center justify-between gap-2">
-                <span className="rounded-full bg-navy/5 px-3 py-1 text-[11px] font-medium text-navy/70">{dict.categories[o.category as Category]}</span>
-                <div className="flex items-center gap-1.5">
-                  {!eligible && <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">{dict.opportunities.checkFit}</span>}
-                  <span className="rounded-full bg-gradient-to-r from-growth/20 to-lavender/30 px-3 py-1 text-[11px] font-semibold">{dict.dashboard.match.replace("{n}", String(score))}</span>
-                </div>
-              </div>
-              <div className="mt-4 font-display text-lg leading-snug md:text-xl">{o.title}</div>
-              <div className="text-xs text-navy/50">{o.org}</div>
-              <p className="mt-3 text-sm text-navy/70 line-clamp-3">{o.description}</p>
-              {reasons[0] && <div className="mt-3 rounded-xl bg-lavender/15 px-3 py-2 text-[11px] text-navy/70">{reasons[0]}</div>}
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {o.tags.slice(0, 4).map((t) => <span key={t} className="rounded-full bg-ivory px-2 py-0.5 text-[10px] text-navy/60">#{t}</span>)}
-              </div>
-              <div className="mt-3 text-xs text-navy/60">{dict.dashboard.deadline} · {formatDate(o.deadline, lang)}</div>
-              <div className="mt-4 flex gap-2">
-                <button onClick={() => setActive(o)} className="min-h-[44px] flex-1 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-ivory">{dict.dashboard.view}</button>
-                <button onClick={() => onSave(o)} className={`min-h-[44px] min-w-[44px] rounded-full border border-navy/15 px-3 py-2 text-sm ${savedIds.has(o.id) ? "bg-gold/40" : "bg-white"}`}>
-                  {savedIds.has(o.id) ? "★" : "☆"}
-                </button>
-              </div>
-              <UnlockPlanCard opp={o} score={score} plan={unlockMap.get(o.id) ?? null} unlocked={unlockMap.has(o.id)} />
-            </div>
+            <OpportunityCard
+              key={o.id}
+              opp={o}
+              score={score}
+              eligible={eligible}
+              reason={reasons[0] ?? null}
+              deadline={formatDate(o.deadline, lang)}
+              saved={savedIds.has(o.id)}
+              plan={unlockMap.get(o.id) ?? null}
+              unlocked={unlockMap.has(o.id)}
+              hydrated={hydrated}
+              onView={setActive}
+              onSave={onSave}
+            />
           ))}
+
           {filtered.length === 0 && (
             <div className="col-span-full rounded-3xl border border-dashed border-navy/20 p-10 text-center text-navy/60">{dict.opportunities.empty}</div>
           )}
