@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { measureElement, useVirtualizer } from "@tanstack/react-virtual";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { OPPORTUNITIES, CATEGORIES, type Category, type Opportunity } from "@/lib/opportunities";
@@ -123,6 +124,39 @@ function OpportunitiesPage() {
 
   const catLabel = (c: string) => c === "All" ? dict.opportunities.all : (dict.categories[c as Category] ?? c);
 
+  // Virtualized grid state. Column count follows Tailwind breakpoints so the
+  // JS row grouping matches the CSS grid layout.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [cols, setCols] = useState(1);
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateCols = () => {
+      setCols(window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1);
+    };
+    updateCols();
+    window.addEventListener("resize", updateCols);
+    return () => window.removeEventListener("resize", updateCols);
+  }, []);
+
+  const rows = useMemo(() => {
+    const result: typeof filtered[] = [];
+    for (let i = 0; i < filtered.length; i += cols) {
+      result.push(filtered.slice(i, i + cols));
+    }
+    return result;
+  }, [filtered, cols]);
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => gridRef.current,
+    estimateSize: () => 360,
+    measureElement,
+    overscan: 3,
+  });
+
+  const gridColsClass = cols === 3 ? "grid-cols-3" : cols === 2 ? "grid-cols-2" : "grid-cols-1";
+
   return (
     <div className="min-h-screen pb-24 md:pb-0">
       <Navbar />
@@ -149,26 +183,49 @@ function OpportunitiesPage() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
-          {filtered.map(({ opp: o, score, eligible, reasons }) => (
-            <OpportunityCard
-              key={o.id}
-              opp={o}
-              score={score}
-              eligible={eligible}
-              reason={reasons[0] ?? null}
-              deadline={formatDate(o.deadline, lang)}
-              saved={savedIds.has(o.id)}
-              plan={unlockMap.get(o.id) ?? null}
-              unlocked={unlockMap.has(o.id)}
-              hydrated={hydrated}
-              onView={setActive}
-              onSave={onSave}
-            />
-          ))}
-
-          {filtered.length === 0 && (
-            <div className="col-span-full rounded-3xl border border-dashed border-navy/20 p-10 text-center text-navy/60">{dict.opportunities.empty}</div>
+        {/* Virtualized opportunity grid. Only visible rows are rendered, so scrolling
+            stays smooth even with hundreds of cards. */}
+        <div
+          ref={gridRef}
+          className="mt-6 h-[calc(100vh-260px)] overflow-y-auto scroll-smooth md:h-[65vh] md:max-h-[800px]"
+        >
+          {filtered.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-navy/20 p-10 text-center text-navy/60">{dict.opportunities.empty}</div>
+          ) : (
+            <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+              {virtualizer.getVirtualItems().map((virtualRow) => (
+                <div
+                  key={virtualRow.key}
+                  ref={virtualizer.measureElement}
+                  data-index={virtualRow.index}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    transform: `translateY(${virtualRow.start}px)`,
+                    width: "100%",
+                  }}
+                  className={`grid ${gridColsClass} gap-4 pb-4 md:gap-5 md:pb-5`}
+                >
+                  {rows[virtualRow.index]?.map(({ opp: o, score, eligible, reasons }) => (
+                    <OpportunityCard
+                      key={o.id}
+                      opp={o}
+                      score={score}
+                      eligible={eligible}
+                      reason={reasons[0] ?? null}
+                      deadline={formatDate(o.deadline, lang)}
+                      saved={savedIds.has(o.id)}
+                      plan={unlockMap.get(o.id) ?? null}
+                      unlocked={unlockMap.has(o.id)}
+                      hydrated={hydrated}
+                      onView={setActive}
+                      onSave={onSave}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </main>
