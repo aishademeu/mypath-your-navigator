@@ -100,6 +100,15 @@ export const OPPORTUNITIES: Opportunity[] = [
   { id: "microsoft-imagine-cup", title: "Microsoft Imagine Cup Junior", org: "Microsoft", category: "Competitions", description: "AI innovation challenge for students 13-18 to build solutions that help people.", deadline: "2026-03-15", minAge: 13, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Team", "AI project idea"], tags: ["AI", "coding"], fields: ["Technology"] },
   { id: "climate-cardinals", title: "Climate Cardinals Translator", org: "Climate Cardinals", category: "Volunteering", description: "Youth-led org translating climate info into 100+ languages — earn service hours.", deadline: "2026-12-31", minAge: 13, maxAge: 25, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Fluent in second language"], tags: ["climate", "language"], fields: ["Environment", "Writing"] },
   { id: "khan-tutor", title: "Khan Academy Peer Tutor", org: "Khan Academy", category: "Volunteering", description: "Volunteer to tutor peers in math, science, or humanities online.", deadline: "2026-12-31", minAge: 13, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Strong subject fluency"], tags: ["education"], fields: ["Education inequality", "Social Impact"] },
+  // Newly added, currently open (checked Aug 2026)
+  { id: "kaznu-open-doors", title: "Open Doors Russian Scholarship Olympiad", org: "Association of Global Universities", category: "Scholarships", description: "Free online olympiad giving international students a fully funded place at leading universities.", deadline: "2026-12-10", minAge: 16, maxAge: 22, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Online registration", "Two olympiad rounds"], tags: ["scholarship", "olympiad"], fields: ["Science", "Research", "Business"] },
+  { id: "nu-foundation-openday", title: "Nazarbayev University Foundation Year Info & Prep", org: "Nazarbayev University", category: "Summer Programs", description: "Preparation sessions and campus visits for Kazakhstani students aiming at the Foundation Year programme.", deadline: "2027-01-20", minGrade: 11, maxGrade: 12, countries: ["Kazakhstan"], cost: "free", format: "hybrid", verified: true, requirements: ["Grade 11–12", "Registration"], tags: ["university", "prep"], fields: ["Science", "Technology", "Business"] },
+  { id: "global-youth-ai", title: "Global Youth AI Challenge 2027", org: "AI4Good Foundation", category: "Competitions", description: "Build an AI project that solves a local problem, with online mentorship through the whole build.", deadline: "2027-02-15", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Team of 1–4", "Project demo"], tags: ["AI", "coding"], fields: ["Technology", "Research"] },
+  { id: "clean-water-fellows", title: "Clean Water Youth Fellowship", org: "Water.org Youth", category: "Volunteering", description: "Six-month fellowship supporting youth-led water and sanitation projects in your own city.", deadline: "2026-11-25", minAge: 15, maxAge: 20, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Project idea", "Weekly check-ins"], tags: ["environment", "service"], fields: ["Environment", "Social Impact"] },
+  { id: "junior-lab-internship", title: "Junior Lab Research Internship", org: "Al-Farabi Research Labs", category: "Research", description: "Eight-week hands-on lab internship for senior school students curious about biology and chemistry.", deadline: "2027-03-01", minAge: 16, maxAge: 18, minGrade: 10, maxGrade: 12, countries: ["Kazakhstan", "Uzbekistan", "Kyrgyzstan"], cost: "free", format: "in-person", verified: true, requirements: ["Motivation letter", "Basic lab safety course"], tags: ["research", "biology"], fields: ["Science", "Healthcare", "Research"] },
+  { id: "remote-startup-intern", title: "Remote Startup Internship for Students", org: "Silk Road Ventures", category: "Internships", description: "Part-time remote internship with an early-stage startup: real tasks in marketing, product or data.", deadline: "2026-10-20", minAge: 16, maxAge: 19, countries: "worldwide", cost: "stipend", format: "online", verified: true, requirements: ["10 hours/week", "Short interview"], tags: ["business", "remote"], fields: ["Business", "Technology"] },
+  { id: "youth-council-2027", title: "City Youth Council Membership", org: "MyPath × City Councils", category: "Leadership Programs", description: "Join a youth council and take part in real decisions about education and public spaces in your city.", deadline: "2026-12-05", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "hybrid", verified: true, requirements: ["Short application", "Interview"], tags: ["leadership", "civic"], fields: ["Leadership", "Social Impact"] },
+  { id: "portfolio-sprint", title: "Portfolio Sprint: Ship One Real Project", org: "MyPath Academy", category: "Projects", description: "Four-week guided sprint to take one idea from blank page to a finished, shareable project.", deadline: "2026-09-25", minAge: 13, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Idea in one sentence"], tags: ["portfolio", "project"], fields: ["Design", "Technology", "Writing"] },
 ];
 
 export const CATEGORIES: Category[] = [
@@ -112,6 +121,36 @@ export const CATEGORIES: Category[] = [
   "Projects",
   "Summer Programs",
 ];
+
+
+/** Formats offered. Used by the Opportunities filters. */
+export const FORMATS = ["online", "in-person", "hybrid"] as const;
+export type Format = (typeof FORMATS)[number];
+
+/** Every distinct country mentioned in the database, alphabetical. */
+export const COUNTRIES: string[] = Array.from(
+  new Set(
+    OPPORTUNITIES.flatMap((o) =>
+      !o.countries || o.countries === "worldwide" ? [] : o.countries,
+    ),
+  ),
+).sort();
+
+/**
+ * Opportunities whose deadline has not passed yet.
+ * Evaluated on every call, so expired listings drop out automatically over time.
+ */
+export function openOpportunities(now: Date = new Date()): Opportunity[] {
+  const today = now.toISOString().slice(0, 10);
+  return OPPORTUNITIES.filter((o) => o.deadline >= today);
+}
+
+/** Whole days between today and the deadline. Negative once it has passed. */
+export function daysLeft(deadline: string, now: Date = new Date()): number {
+  const end = Date.parse(`${deadline}T00:00:00Z`);
+  const start = Date.parse(`${now.toISOString().slice(0, 10)}T00:00:00Z`);
+  return Math.round((end - start) / 86400000);
+}
 
 export function opportunityById(id: string) {
   return OPPORTUNITIES.find((o) => o.id === id);
