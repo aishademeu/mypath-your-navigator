@@ -3,49 +3,56 @@ import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from "r
 import { measureElement, useVirtualizer } from "@tanstack/react-virtual";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { OPPORTUNITIES, CATEGORIES, type Category, type Opportunity } from "@/lib/opportunities";
+import {
+  CATEGORIES,
+  COUNTRIES,
+  FORMATS,
+  daysLeft,
+  openOpportunities,
+  type Category,
+  type Opportunity,
+} from "@/lib/opportunities";
 import { rankOpportunities } from "@/lib/matching";
 import { useSession, useProfile, useOnboarding, useSavedOpportunities, useToggleSaved } from "@/lib/supabase-hooks";
-import { useUnlocks } from "@/lib/unlocks";
-import { UnlockPlanCard } from "@/components/UnlockPlanCard";
 import { formatDate } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
 import { useI18n } from "@/lib/i18n";
-
 
 export const Route = createFileRoute("/opportunities")({
   component: OpportunitiesPage,
   head: () => ({ meta: [
     { title: "MyPath — Opportunities" },
-    { name: "description", content: "50+ curated scholarships, research, competitions and programs, ranked by fit with your profile." },
+    { name: "description", content: "Verified scholarships, research, competitions and programs — always open, always free to browse, ranked by fit with your profile." },
     { property: "og:title", content: "MyPath Opportunities" },
-    { property: "og:description", content: "Scholarships, research, and programs for ambitious students." },
+    { property: "og:description", content: "Verified scholarships, research, and programs for ambitious students." },
   ]}),
 });
 
+const GRADES = [6, 7, 8, 9, 10, 11, 12];
+const COSTS = ["free", "paid", "stipend"] as const;
+
 /**
- * Card is memoized and animation-free: typing in the search box, session
- * changes or an unlock elsewhere no longer re-render (or visually "blink")
- * every other card.
+ * Card is memoized and animation-free: typing in the search box or a session
+ * change no longer re-renders (or visually "blinks") every other card.
  */
 type CardProps = {
   opp: Opportunity;
   score: number;
   eligible: boolean;
   reason: string | null;
-  deadline: string;
+  days: number;
   saved: boolean;
-  plan: Parameters<typeof UnlockPlanCard>[0]["plan"];
-  unlocked: boolean;
   hydrated: boolean;
   onView: (opp: Opportunity) => void;
   onSave: (opp: Opportunity) => void;
 };
 
 const OpportunityCard = memo(function OpportunityCard({
-  opp: o, score, eligible, reason, deadline, saved, plan, unlocked, hydrated, onView, onSave,
+  opp: o, score, eligible, reason, days, saved, hydrated, onView, onSave,
 }: CardProps) {
   const { dict } = useI18n();
+  const urgent = days <= 7;
+  const countdown = days <= 0 ? dict.opportunities.lastDay : dict.opportunities.daysLeft.replace("{n}", String(days));
   return (
     <div className="flex flex-col rounded-3xl border border-navy/10 bg-white p-5 md:p-6">
       <div className="flex items-center justify-between gap-2">
@@ -56,21 +63,37 @@ const OpportunityCard = memo(function OpportunityCard({
         </div>
       </div>
       <div className="mt-4 font-display text-lg leading-snug md:text-xl">{o.title}</div>
-      <div className="text-xs text-navy/50">{o.org}</div>
+      <div className="flex items-center gap-2 text-xs text-navy/50">
+        <span className="min-w-0 truncate">{o.org}</span>
+        {o.verified && (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-growth/12 px-2 py-0.5 text-[10px] font-semibold text-growth">
+            ✓ {dict.opportunities.verified}
+          </span>
+        )}
+      </div>
       <p className="mt-3 text-sm text-navy/70 line-clamp-3">{o.description}</p>
       {reason && <div className="mt-3 rounded-xl bg-lavender/15 px-3 py-2 text-[11px] text-navy/70">{reason}</div>}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {o.tags.slice(0, 4).map((t) => <span key={t} className="rounded-full bg-ivory px-2 py-0.5 text-[10px] text-navy/60">#{t}</span>)}
       </div>
-      <div className="mt-3 text-xs text-navy/60">{dict.dashboard.deadline} · {deadline}</div>
+      <div className="mt-3">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+            urgent ? "bg-[#F14635]/10 text-[#C23524]" : "bg-navy/5 text-navy/70"
+          }`}
+        >
+          ⏳ {countdown}
+        </span>
+      </div>
       <div className="mt-4 flex gap-2">
         <button onClick={() => onView(o)} className="min-h-[44px] flex-1 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-ivory">{dict.dashboard.view}</button>
-        <button onClick={() => onSave(o)} className={`min-h-[44px] min-w-[44px] rounded-full border border-navy/15 px-3 py-2 text-sm ${saved ? "bg-gold/40" : "bg-white"}`}>
-          {saved ? "★" : "☆"}
-        </button>
+        {/* Session-dependent: rendered only after hydration so SSR markup matches. */}
+        {hydrated && (
+          <button onClick={() => onSave(o)} className={`min-h-[44px] min-w-[44px] rounded-full border border-navy/15 px-3 py-2 text-sm ${saved ? "bg-gold/40" : "bg-white"}`}>
+            {saved ? "★" : "☆"}
+          </button>
+        )}
       </div>
-      {/* Session-dependent: render only after hydration so SSR markup matches. */}
-      {hydrated && <UnlockPlanCard opp={o} score={score} plan={plan} unlocked={unlocked} />}
     </div>
   );
 });
@@ -81,6 +104,10 @@ function OpportunitiesPage() {
   const hydrated = useHydrated();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>("All");
+  const [grade, setGrade] = useState("");
+  const [country, setCountry] = useState("");
+  const [format, setFormat] = useState("");
+  const [cost, setCost] = useState("");
   const [active, setActive] = useState<Opportunity | null>(null);
   const [eligibleOnly, setEligibleOnly] = useState(false);
 
@@ -90,12 +117,9 @@ function OpportunitiesPage() {
   const { data: onboarding } = useOnboarding(user);
   const { data: saved } = useSavedOpportunities(user);
   const toggleSaved = useToggleSaved(user?.id);
-  const { data: unlocks } = useUnlocks(user);
-  const unlockMap = useMemo(
-    () => new Map((unlocks ?? []).map((u) => [u.opportunity_id, u.plan])),
-    [unlocks],
-  );
 
+  // Expired listings drop out automatically: the deadline is compared to today.
+  const openList = useMemo(() => openOpportunities(), []);
 
   const ctx = useMemo(() => ({
     age: profile?.age ?? null,
@@ -109,20 +133,36 @@ function OpportunitiesPage() {
   const savedIds = useMemo(() => new Set((saved ?? []).map((s) => s.opportunity_id)), [saved]);
 
   const filtered = useMemo(() => {
-    const ranked = rankOpportunities(OPPORTUNITIES, ctx);
+    const ranked = rankOpportunities(openList, ctx);
+    const g = grade ? parseInt(grade, 10) : null;
     return ranked
       .filter((r) => cat === "All" || r.opp.category === cat)
       .filter((r) => !eligibleOnly || r.eligible)
+      .filter((r) => g == null || ((r.opp.minGrade ?? 6) <= g && (r.opp.maxGrade ?? 12) >= g))
+      .filter((r) => !country || !r.opp.countries || r.opp.countries === "worldwide" || (r.opp.countries as string[]).includes(country))
+      .filter((r) => !format || r.opp.format === format)
+      .filter((r) => !cost || r.opp.cost === cost)
       .filter((r) => !q || (r.opp.title + r.opp.description + r.opp.org + r.opp.tags.join(" ")).toLowerCase().includes(q.toLowerCase()));
-  }, [q, cat, eligibleOnly, ctx]);
+  }, [q, cat, eligibleOnly, ctx, grade, country, format, cost, openList]);
 
   const onSave = useCallback((opp: Opportunity) => {
     if (!user) { navigate({ to: "/auth", search: { mode: "signup" } }); return; }
     toggleSaved.mutate({ opportunityId: opp.id, currentlySaved: savedIds.has(opp.id) });
   }, [user, navigate, toggleSaved, savedIds]);
 
-
   const catLabel = (c: string) => c === "All" ? dict.opportunities.all : (dict.categories[c as Category] ?? c);
+  const formatLabel = (f: string) =>
+    f === "online" ? dict.opportunities.online : f === "in-person" ? dict.opportunities.inPerson : dict.opportunities.hybrid;
+  const costLabel = (c: string) =>
+    c === "free" ? dict.opportunities.costFree : c === "paid" ? dict.opportunities.costPaid : dict.opportunities.costStipend;
+
+  const anyFilter = !!(grade || country || format || cost || q || cat !== "All" || eligibleOnly);
+  const resetFilters = () => {
+    setGrade(""); setCountry(""); setFormat(""); setCost(""); setQ(""); setCat("All"); setEligibleOnly(false);
+  };
+
+  const selectClass =
+    "min-h-[44px] rounded-full border border-navy/15 bg-white px-4 py-2 text-xs text-navy/80 outline-none focus:border-navy/40";
 
   // Virtualized grid state. Column count follows Tailwind breakpoints so the
   // JS row grouping matches the CSS grid layout.
@@ -177,6 +217,32 @@ function OpportunitiesPage() {
             </label>
           )}
         </div>
+
+        {/* Filters: grade, country, format, cost */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <select aria-label={dict.opportunities.anyGrade} value={grade} onChange={(e) => setGrade(e.target.value)} className={selectClass}>
+            <option value="">{dict.opportunities.anyGrade}</option>
+            {GRADES.map((g) => <option key={g} value={g}>{dict.opportunities.gradeLabel.replace("{n}", String(g))}</option>)}
+          </select>
+          <select aria-label={dict.opportunities.anyCountry} value={country} onChange={(e) => setCountry(e.target.value)} className={selectClass}>
+            <option value="">{dict.opportunities.anyCountry}</option>
+            {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select aria-label={dict.opportunities.anyFormat} value={format} onChange={(e) => setFormat(e.target.value)} className={selectClass}>
+            <option value="">{dict.opportunities.anyFormat}</option>
+            {FORMATS.map((f) => <option key={f} value={f}>{formatLabel(f)}</option>)}
+          </select>
+          <select aria-label={dict.opportunities.anyCost} value={cost} onChange={(e) => setCost(e.target.value)} className={selectClass}>
+            <option value="">{dict.opportunities.anyCost}</option>
+            {COSTS.map((c) => <option key={c} value={c}>{costLabel(c)}</option>)}
+          </select>
+          {anyFilter && (
+            <button onClick={resetFilters} className="min-h-[44px] rounded-full px-3 py-2 text-xs font-medium text-navy/60 underline underline-offset-4 hover:text-navy">
+              {dict.opportunities.reset}
+            </button>
+          )}
+        </div>
+
         <div className="mt-3 -mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
           {(["All", ...CATEGORIES] as const).map((c) => (
             <button key={c} onClick={() => setCat(c)} className={`min-h-[36px] flex-none rounded-full px-4 py-1.5 text-xs font-medium transition ${cat === c ? "bg-navy text-ivory" : "border border-navy/15 bg-white hover:border-navy/40"}`}>{catLabel(c)}</button>
@@ -214,10 +280,8 @@ function OpportunitiesPage() {
                       score={score}
                       eligible={eligible}
                       reason={reasons[0] ?? null}
-                      deadline={formatDate(o.deadline, lang)}
+                      days={daysLeft(o.deadline)}
                       saved={savedIds.has(o.id)}
-                      plan={unlockMap.get(o.id) ?? null}
-                      unlocked={unlockMap.has(o.id)}
                       hydrated={hydrated}
                       onView={setActive}
                       onSave={onSave}
@@ -235,15 +299,27 @@ function OpportunitiesPage() {
           <div onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl md:p-8">
             <div className="flex items-center justify-between">
               <span className="rounded-full bg-navy/5 px-3 py-1 text-xs">{dict.categories[active.category as Category]}</span>
-              <button onClick={() => setActive(null)} className="text-navy/60 hover:text-navy min-h-[36px] min-w-[36px]">✕</button>
+              <button onClick={() => setActive(null)} aria-label={dict.common.close} className="text-navy/60 hover:text-navy min-h-[36px] min-w-[36px]">✕</button>
             </div>
             <h3 className="mt-3 font-display text-2xl md:text-3xl">{active.title}</h3>
-            <div className="text-sm text-navy/60">{active.org}</div>
+            <div className="flex items-center gap-2 text-sm text-navy/60">
+              <span>{active.org}</span>
+              {active.verified && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-growth/12 px-2 py-0.5 text-[10px] font-semibold text-growth">
+                  ✓ {dict.opportunities.verified}
+                </span>
+              )}
+            </div>
             <p className="mt-4 text-navy/80">{active.description}</p>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <div className="rounded-2xl bg-ivory p-4">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{dict.dashboard.deadline}</div>
                 <div className="mt-1 font-display text-xl">{formatDate(active.deadline, lang, { dateStyle: "long" })}</div>
+                <div className="mt-1 text-xs text-navy/60">
+                  ⏳ {daysLeft(active.deadline) <= 0
+                    ? dict.opportunities.lastDay
+                    : dict.opportunities.daysLeft.replace("{n}", String(daysLeft(active.deadline)))}
+                </div>
               </div>
               <div className="rounded-2xl bg-ivory p-4">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{dict.opportunities.requirements}</div>
@@ -255,7 +331,8 @@ function OpportunitiesPage() {
                   {active.minAge && <li>• {dict.opportunities.ages} {active.minAge}–{active.maxAge ?? "18+"}</li>}
                   {active.minGrade && <li>• {dict.opportunities.grades} {active.minGrade}–{active.maxGrade ?? 12}</li>}
                   <li>• {active.countries === "worldwide" || !active.countries ? dict.opportunities.worldwide : (active.countries as string[]).join(", ")}</li>
-                  {active.cost && <li>• {dict.opportunities.cost}: {active.cost}</li>}
+                  {active.format && <li>• {formatLabel(active.format)}</li>}
+                  {active.cost && <li>• {costLabel(active.cost)}</li>}
                 </ul>
               </div>
               <div className="rounded-2xl bg-ivory p-4">
