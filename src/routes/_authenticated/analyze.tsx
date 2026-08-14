@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useSession, useProfile, useOnboarding } from "@/lib/supabase-hooks";
-import { OPPORTUNITIES, type Category } from "@/lib/opportunities";
+import { openOpportunities, type Category } from "@/lib/opportunities";
 import { rankOpportunities } from "@/lib/matching";
 import { useI18n, type Lang } from "@/lib/i18n";
 
@@ -26,7 +26,7 @@ function AnalyzePage() {
     goals: onboarding?.goals ?? [],
   }), [profile, onboarding]);
 
-  const recs = useMemo(() => rankOpportunities(OPPORTUNITIES, ctx).slice(0, 4), [ctx]);
+  const recs = useMemo(() => rankOpportunities(openOpportunities(), ctx).slice(0, 4), [ctx]);
 
   const run = () => {
     setStage("running"); setStep(0);
