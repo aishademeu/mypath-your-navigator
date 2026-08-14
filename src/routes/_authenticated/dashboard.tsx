@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useSession, useProfile, useOnboarding, usePortfolio, useChat } from "@/lib/supabase-hooks";
-import { OPPORTUNITIES, type Category } from "@/lib/opportunities";
+import { openOpportunities, type Category } from "@/lib/opportunities";
 import { rankOpportunities } from "@/lib/matching";
 import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
@@ -30,7 +30,7 @@ function Dashboard() {
     goals: onboarding?.goals ?? [],
   }), [profile, onboarding]);
 
-  const recs = useMemo(() => rankOpportunities(OPPORTUNITIES, ctx).slice(0, 6), [ctx]);
+  const recs = useMemo(() => rankOpportunities(openOpportunities(), ctx).slice(0, 6), [ctx]);
 
   const done = !!onboarding?.completed_at;
   const firstName = (profile?.name ?? user?.email?.split("@")[0] ?? "friend").split(" ")[0];
