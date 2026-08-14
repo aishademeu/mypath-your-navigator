@@ -339,7 +339,7 @@ export const en = {
     downgradeToFree: "Return to Free",
     faq: [
       { q: "Do I need Pro to find opportunities?", a: "No. Browsing, saving and applying to all opportunities is completely free — forever." },
-      { q: "What does Pro unlock?", a: "Advanced AI features: deep analysis, personalized roadmap, essay & CV review, admission probability, and more." },
+      { q: "What does Pro unlock?", a: "4–5 hand-picked opportunities each month, deadline reminders, a portfolio roadmap, priority access to new listings, and direct support when you have questions." },
       { q: "Can I cancel anytime?", a: "Yes. One click, no fees, no dark patterns. You keep everything you built on Free." },
     ],
     lockedFeatureAdvancedMentor: "Advanced AI Mentor",
