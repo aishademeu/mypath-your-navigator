@@ -253,3 +253,61 @@ export function useAddChat(userId: string | undefined) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["chat", userId] }),
   });
 }
+
+// ---- Dynamic Opportunities ----
+import { OPPORTUNITIES, type Opportunity, type Category } from "@/lib/opportunities";
+
+export function useOpportunities() {
+  return useQuery({
+    queryKey: ["opportunities"],
+    queryFn: async () => {
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const { data, error } = await (supabase as any)
+          .from("opportunities")
+          .select("*")
+          .eq("status", "approved")
+          .or(`deadline.is.null,deadline.gte.${today}`)
+          .order("created_at", { ascending: false });
+
+        if (error || !data || data.length === 0) {
+          return OPPORTUNITIES;
+        }
+
+        const dbMapped: Opportunity[] = data.map((row: any) => ({
+          id: String(row.id),
+          title: row.title,
+          org: row.org,
+          category: (row.category || "Scholarships") as Category,
+          description: row.description,
+          deadline: row.deadline || "2026-12-31",
+          minAge: row.min_age || undefined,
+          maxAge: row.max_age || undefined,
+          minGrade: row.min_grade || undefined,
+          maxGrade: row.max_grade || undefined,
+          countries: row.countries || "worldwide",
+          cost: row.cost || "free",
+          format: row.format || "online",
+          verified: row.verified || false,
+          requirements: row.requirements || [],
+          tags: row.tags || [],
+          fields: row.fields || [],
+          url: row.url || undefined,
+          sourceUrl: row.source_channel && row.source_message_id
+            ? `https://t.me/${row.source_channel}/${row.source_message_id}`
+            : (row.url || undefined),
+          sourceChannel: row.source_channel ? `@${row.source_channel}` : undefined,
+        }));
+
+        const existingTitles = new Set(dbMapped.map((o) => o.title.toLowerCase().trim()));
+        const uniqueStatic = OPPORTUNITIES.filter((o) => !existingTitles.has(o.title.toLowerCase().trim()));
+
+        return [...dbMapped, ...uniqueStatic];
+      } catch (err) {
+        console.warn("Failed to load DB opportunities, falling back to static:", err);
+        return OPPORTUNITIES;
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}

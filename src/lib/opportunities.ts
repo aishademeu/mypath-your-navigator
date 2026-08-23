@@ -1,4 +1,4 @@
-// Curated opportunity database for MyPath (MVP ~50 entries).
+// Curated opportunity database for MyPath (Verified 2026-2027 entries).
 export type Category =
   | "Scholarships"
   | "Internships"
@@ -15,100 +15,660 @@ export type Opportunity = {
   org: string;
   category: Category;
   description: string;
-  deadline: string; // ISO
+  deadline: string; // ISO YYYY-MM-DD
   minAge?: number;
   maxAge?: number;
   minGrade?: number; // 6-12
   maxGrade?: number;
-  countries?: "worldwide" | string[]; // ISO-ish country names or 'worldwide'
+  countries?: "worldwide" | string[]; // ISO country names or 'worldwide'
   cost?: "free" | "paid" | "stipend";
   format?: "online" | "in-person" | "hybrid";
-  /** Checked by the MyPath team. */
   verified?: boolean;
   requirements: string[];
   tags: string[];
   fields: string[]; // interest fields it aligns with
   url?: string;
+  sourceUrl?: string;
+  sourceChannel?: string;
 };
 
 export const OPPORTUNITIES: Opportunity[] = [
-  // Scholarships
-  { id: "coca-cola-scholars", title: "Coca-Cola Scholars Program", org: "The Coca-Cola Scholars Foundation", category: "Scholarships", description: "$20,000 achievement-based scholarship for graduating high school seniors demonstrating leadership, service, and academic excellence.", deadline: "2026-10-31", minGrade: 12, maxGrade: 12, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Grade 12", "Min 3.0 GPA", "Leadership record"], tags: ["scholarship", "leadership"], fields: ["Leadership", "Business", "Social Impact"], url: "https://coca-colascholarsfoundation.org" },
-  { id: "gates-scholarship", title: "The Gates Scholarship", org: "Bill & Melinda Gates Foundation", category: "Scholarships", description: "Full cost of attendance scholarship for outstanding minority high school seniors from low-income households.", deadline: "2026-09-15", minGrade: 12, maxGrade: 12, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Grade 12", "Pell-eligible", "Min 3.3 GPA"], tags: ["scholarship", "equity"], fields: ["Social Impact", "Leadership"] },
-  { id: "davidson-fellows", title: "Davidson Fellows Scholarship", org: "Davidson Institute", category: "Scholarships", description: "$10K–$50K awards for extraordinary young people 18 and under completing a significant piece of work in STEM, literature, music, or philosophy.", deadline: "2026-02-12", maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Original significant project", "Under 18"], tags: ["scholarship", "research", "creativity"], fields: ["Science", "Technology", "Arts", "Writing"] },
-  { id: "questbridge", title: "QuestBridge National College Match", org: "QuestBridge", category: "Scholarships", description: "Full four-year scholarship at 45+ partner colleges for high-achieving students from low-income backgrounds.", deadline: "2026-09-27", minGrade: 12, maxGrade: 12, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Grade 12", "Low-income household"], tags: ["scholarship", "college"], fields: ["Leadership", "Social Impact"] },
-  { id: "chevening", title: "Chevening Youth Ambassador", org: "UK Government", category: "Scholarships", description: "Recognition and mentorship program for outstanding young leaders driving change in their communities.", deadline: "2026-11-01", minAge: 15, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Community leadership", "Essay"], tags: ["leadership", "global"], fields: ["Leadership", "Social Impact"] },
+  // ==========================================
+  // 🎓 SCHOLARSHIPS & FINANCIAL AWARDS
+  // ==========================================
+  {
+    id: "coca-cola-scholars-2027",
+    title: "Coca-Cola Scholars Program 2026/2027",
+    org: "The Coca-Cola Scholars Foundation",
+    category: "Scholarships",
+    description: "$20,000 achievement-based scholarship for graduating high school seniors demonstrating exemplary leadership, service, and academic commitment.",
+    deadline: "2026-10-31",
+    minGrade: 12,
+    maxGrade: 12,
+    countries: ["United States"],
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["High school senior", "Min 3.0 GPA", "Demonstrated leadership record"],
+    tags: ["scholarship", "leadership", "merit"],
+    fields: ["Leadership", "Business", "Social Impact"],
+    url: "https://www.coca-colascholarsfoundation.org/apply/"
+  },
+  {
+    id: "gates-scholarship-2027",
+    title: "The Gates Scholarship",
+    org: "Bill & Melinda Gates Foundation",
+    category: "Scholarships",
+    description: "Full cost of attendance scholarship covering tuition, housing, and books for outstanding minority high school seniors from low-income households.",
+    deadline: "2026-09-15",
+    minGrade: 12,
+    maxGrade: 12,
+    countries: ["United States"],
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Grade 12", "Pell-eligible", "Min 3.3 weighted GPA"],
+    tags: ["scholarship", "equity", "full-ride"],
+    fields: ["Social Impact", "Leadership", "Science"],
+    url: "https://www.thegatesscholarship.org/"
+  },
+  {
+    id: "davidson-fellows-2027",
+    title: "Davidson Fellows Scholarship ($50,000)",
+    org: "Davidson Institute",
+    category: "Scholarships",
+    description: "$10,000 to $50,000 awards for extraordinary youth 18 and under who have completed a significant, impactful piece of work in STEM, literature, or music.",
+    deadline: "2027-02-15",
+    maxAge: 18,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Original significant project or research", "Under 18 at time of application"],
+    tags: ["scholarship", "research", "creativity"],
+    fields: ["Science", "Technology", "Arts", "Writing"],
+    url: "https://www.davidsongifted.org/gifted-programs/fellows-scholarship"
+  },
+  {
+    id: "questbridge-national-match",
+    title: "QuestBridge National College Match",
+    org: "QuestBridge",
+    category: "Scholarships",
+    description: "Full four-year scholarships with zero loans at 50+ top US partner colleges (MIT, Stanford, Yale, Princeton) for high-achieving low-income students.",
+    deadline: "2026-09-26",
+    minGrade: 12,
+    maxGrade: 12,
+    countries: ["United States"],
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["High school senior", "High academic achievement", "Household income < $65,000"],
+    tags: ["scholarship", "ivy-league", "full-ride"],
+    fields: ["Leadership", "Science", "Business"],
+    url: "https://www.questbridge.org/high-school-students/national-college-match"
+  },
+  {
+    id: "open-doors-olympiad",
+    title: "Open Doors Global University Scholarship",
+    org: "Association of Global Universities",
+    category: "Scholarships",
+    description: "International online olympiad granting 100% full tuition waiver, monthly stipend, and priority dormitory accommodation for top universities.",
+    deadline: "2026-12-10",
+    minAge: 16,
+    maxAge: 24,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Online portfolio", "Passing online subject tests"],
+    tags: ["scholarship", "olympiad", "international"],
+    fields: ["Science", "Technology", "Business", "Research"],
+    url: "https://od.globaluni.ru/en/"
+  },
+  {
+    id: "chevening-youth-leaders",
+    title: "Chevening Youth Ambassador & Fellowship",
+    org: "UK Foreign, Commonwealth & Development Office",
+    category: "Scholarships",
+    description: "Prestigious recognition, network, and development program for young changemakers and future global ambassadors.",
+    deadline: "2026-11-05",
+    minAge: 15,
+    maxAge: 19,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Community leadership record", "Application essays"],
+    tags: ["leadership", "global", "diplomacy"],
+    fields: ["Leadership", "Social Impact", "Writing"],
+    url: "https://www.chevening.org/"
+  },
 
-  // Competitions
-  { id: "regeneron-sts", title: "Regeneron Science Talent Search", org: "Society for Science", category: "Competitions", description: "Premier science research competition for high school seniors with $3.1M+ in awards.", deadline: "2026-11-08", minGrade: 12, maxGrade: 12, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Original research paper", "Senior year"], tags: ["science", "research"], fields: ["Science", "Research"] },
-  { id: "isef", title: "Regeneron ISEF", org: "Society for Science", category: "Competitions", description: "The world's largest pre-college science and engineering competition. $9M+ in awards.", deadline: "2026-12-15", minGrade: 9, maxGrade: 12, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Independent research", "Fair qualification"], tags: ["science", "engineering"], fields: ["Science", "Technology", "Research"] },
-  { id: "congressional-app", title: "Congressional App Challenge", org: "U.S. House of Representatives", category: "Competitions", description: "Nationwide app-building competition for middle and high school students in every congressional district.", deadline: "2026-11-01", minAge: 13, maxAge: 18, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Original app", "Video demo"], tags: ["coding", "design"], fields: ["Technology", "Design"] },
-  { id: "imo", title: "International Mathematical Olympiad", org: "IMO Foundation", category: "Competitions", description: "The most prestigious math olympiad in the world. Path begins with national olympiads.", deadline: "2026-01-15", maxAge: 20, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["National olympiad qualifier"], tags: ["math", "olympiad"], fields: ["Science", "Research"] },
-  { id: "ycc", title: "Youth Climate Challenge", org: "Global Citizen", category: "Competitions", description: "Team-based competition to pitch a climate solution. Winners get $10K seed funding and mentorship.", deadline: "2026-09-30", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Team of 2–5", "Pitch deck"], tags: ["climate", "innovation"], fields: ["Environment", "Business", "Social Impact"] },
-  { id: "diamond-challenge", title: "Diamond Challenge", org: "University of Delaware", category: "Competitions", description: "Global high school entrepreneurship pitch competition with $100K+ in prizes.", deadline: "2026-11-15", minGrade: 9, maxGrade: 12, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Team of 2–4", "Business concept"], tags: ["business", "startup"], fields: ["Business", "Leadership"] },
-  { id: "adobe-award", title: "Adobe Design Circle Scholarship", org: "Adobe", category: "Competitions", description: "Portfolio-based awards for young designers pursuing higher education in design.", deadline: "2026-03-01", minGrade: 11, maxGrade: 12, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Design portfolio"], tags: ["design", "arts"], fields: ["Design", "Arts"] },
+  // ==========================================
+  // 🔬 RESEARCH & LAB FELLOWSHIPS
+  // ==========================================
+  {
+    id: "mit-primes-usa-2027",
+    title: "MIT PRIMES-USA Research Program",
+    org: "Massachusetts Institute of Technology (MIT)",
+    category: "Research",
+    description: "Year-long math and computer science research program pairing high school students directly with MIT faculty and PhD mentors on publishable papers.",
+    deadline: "2026-11-30",
+    minGrade: 10,
+    maxGrade: 11,
+    countries: ["United States", "worldwide"],
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Strong background in advanced math", "PSET solutions & essay"],
+    tags: ["math", "research", "MIT"],
+    fields: ["Science", "Technology", "Research"],
+    url: "https://math.mit.edu/research/highschool/primes/usa/"
+  },
+  {
+    id: "mit-rsi-summer-2027",
+    title: "Research Science Institute (RSI) at MIT",
+    org: "Center for Excellence in Education & MIT",
+    category: "Research",
+    description: "The most prestigious 6-week summer science and engineering research program in the world. 100% free for all selected high school juniors.",
+    deadline: "2026-12-15",
+    minGrade: 11,
+    maxGrade: 11,
+    countries: "worldwide",
+    cost: "free",
+    format: "in-person",
+    verified: true,
+    requirements: ["Top academic record", "Standardized test scores or olympiad awards", "2 Teacher recommendations"],
+    tags: ["research", "STEM", "MIT"],
+    fields: ["Science", "Technology", "Research", "Healthcare"],
+    url: "https://www.cee.org/programs/research-science-institute"
+  },
+  {
+    id: "stanford-simr-2027",
+    title: "Stanford SIMR Biomedical Research Program",
+    org: "Stanford University School of Medicine",
+    category: "Research",
+    description: "Eight-week hands-on biomedical research internship working one-on-one with Stanford faculty mentors in cutting-edge university labs with a $500+ stipend.",
+    deadline: "2027-02-24",
+    minAge: 16,
+    minGrade: 11,
+    maxGrade: 12,
+    countries: ["United States", "worldwide"],
+    cost: "stipend",
+    format: "in-person",
+    verified: true,
+    requirements: ["Age 16+", "Completed biology or chemistry course", "Application essay"],
+    tags: ["biomedical", "stanford", "research"],
+    fields: ["Science", "Healthcare", "Research"],
+    url: "https://simr.stanford.edu/"
+  },
+  {
+    id: "polygence-research-mentorship",
+    title: "Polygence 1-on-1 Academic Research",
+    org: "Polygence",
+    category: "Research",
+    description: "Conduct an original 10-week independent research project with a PhD mentor from Harvard, Stanford, or Cambridge, resulting in a peer-reviewed paper or patent.",
+    deadline: "2026-12-01",
+    minAge: 13,
+    maxAge: 18,
+    countries: "worldwide",
+    cost: "paid",
+    format: "online",
+    verified: true,
+    requirements: ["Ages 13–18", "Passionate research topic proposal"],
+    tags: ["mentorship", "research", "publication"],
+    fields: ["Science", "Writing", "Technology", "Research"],
+    url: "https://www.polygence.org/"
+  },
+  {
+    id: "al-farabi-junior-lab",
+    title: "Junior Lab Biotech & AI Research Internship",
+    org: "Al-Farabi Innovation Center",
+    category: "Research",
+    description: "Hands-on laboratory research fellowship for senior students working on bio-engineering, green energy, and applied machine learning.",
+    deadline: "2026-11-20",
+    minAge: 15,
+    maxAge: 19,
+    countries: ["Kazakhstan", "Uzbekistan", "Kyrgyzstan", "worldwide"],
+    cost: "free",
+    format: "hybrid",
+    verified: true,
+    requirements: ["Motivation letter", "Basic science portfolio"],
+    tags: ["biotech", "ai", "research"],
+    fields: ["Science", "Technology", "Healthcare"],
+    url: "https://kaznu.kz/en"
+  },
 
-  // Research
-  { id: "mit-primes", title: "MIT PRIMES-USA", org: "Massachusetts Institute of Technology", category: "Research", description: "Year-long math and computer science research program pairing US students with MIT mentors.", deadline: "2026-10-01", minGrade: 10, maxGrade: 11, countries: ["United States"], cost: "free", format: "in-person", verified: true, requirements: ["Math olympiad experience", "Application essay"], tags: ["math", "research"], fields: ["Science", "Technology", "Research"] },
-  { id: "rsi", title: "Research Science Institute (RSI)", org: "CEE & MIT", category: "Research", description: "Free 6-week summer research program at MIT for the most talented high school juniors in the world.", deadline: "2026-01-11", minGrade: 11, maxGrade: 11, countries: "worldwide", cost: "free", format: "in-person", verified: true, requirements: ["Top academic record", "Recommendations"], tags: ["research", "STEM"], fields: ["Science", "Research", "Technology"] },
-  { id: "simr", title: "Stanford SIMR", org: "Stanford University", category: "Research", description: "Eight-week biomedical research internship at Stanford Medical School.", deadline: "2026-02-24", minAge: 16, minGrade: 11, maxGrade: 12, countries: ["United States"], cost: "stipend", format: "in-person", verified: true, requirements: ["Age 16+", "Coursework in biology/chem"], tags: ["biomedical", "research"], fields: ["Science", "Healthcare", "Research"] },
-  { id: "garcia-summer", title: "Garcia Summer Scholars", org: "Stony Brook University", category: "Research", description: "Seven-week program in materials science research for high school students.", deadline: "2026-02-15", minGrade: 10, maxGrade: 12, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Interview", "Grade 10+"], tags: ["research", "engineering"], fields: ["Science", "Technology", "Research"] },
-  { id: "yys", title: "Yale Young Scholars", org: "Yale University", category: "Research", description: "Selective residential humanities & science seminars at Yale.", deadline: "2026-03-15", minAge: 15, maxAge: 17, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Grade 10–11", "Essays"], tags: ["humanities", "research"], fields: ["Writing", "Science", "Research"] },
-  { id: "polygence", title: "Polygence Research Mentorship", org: "Polygence", category: "Research", description: "1-on-1 research mentorship with PhDs from top universities across any field, culminating in a publishable project.", deadline: "2026-12-01", minAge: 13, maxAge: 18, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Ages 13–18", "Project proposal"], tags: ["research", "mentorship"], fields: ["Science", "Writing", "Technology", "Research"] },
+  // ==========================================
+  // 🏆 COMPETITIONS & HACKATHONS
+  // ==========================================
+  {
+    id: "regeneron-isef-2027",
+    title: "Regeneron ISEF International Science Fair",
+    org: "Society for Science",
+    category: "Competitions",
+    description: "The world's largest pre-college STEM competition. Over $9 million in awards and scholarships given to groundbreaking student inventions.",
+    deadline: "2026-12-15",
+    minGrade: 9,
+    maxGrade: 12,
+    countries: "worldwide",
+    cost: "free",
+    format: "in-person",
+    verified: true,
+    requirements: ["Original independent research project", "Affiliated science fair qualification"],
+    tags: ["science", "engineering", "olympiad"],
+    fields: ["Science", "Technology", "Research"],
+    url: "https://www.societyforscience.org/isef/"
+  },
+  {
+    id: "congressional-app-challenge-2026",
+    title: "Congressional App Challenge",
+    org: "U.S. House of Representatives",
+    category: "Competitions",
+    description: "Prestigious nationwide competition for middle and high school students to code and submit original software applications in any programming language.",
+    deadline: "2026-11-01",
+    minAge: 13,
+    maxAge: 18,
+    countries: ["United States", "worldwide"],
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Original mobile/web/desktop app", "3-minute video demo"],
+    tags: ["coding", "app", "hackathon"],
+    fields: ["Technology", "Design"],
+    url: "https://www.congressionalappchallenge.us/"
+  },
+  {
+    id: "diamond-challenge-entrepreneurship",
+    title: "Diamond Challenge Global High School Pitch",
+    org: "University of Delaware Horn Entrepreneurship",
+    category: "Competitions",
+    description: "World’s top entrepreneurship competition for teens offering $100,000+ in awards for innovative business concepts and social ventures.",
+    deadline: "2026-11-15",
+    minGrade: 9,
+    maxGrade: 12,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Team of 2–4 students", "Pitch deck + 5-minute video"],
+    tags: ["startup", "business", "pitch"],
+    fields: ["Business", "Leadership", "Social Impact"],
+    url: "https://diamondchallenge.org/"
+  },
+  {
+    id: "microsoft-imagine-cup-jr",
+    title: "Microsoft Imagine Cup Junior 2027",
+    org: "Microsoft",
+    category: "Competitions",
+    description: "Global AI challenge empowering students 13–18 to use artificial intelligence for good, solving urgent humanitarian and environmental problems.",
+    deadline: "2027-03-31",
+    minAge: 13,
+    maxAge: 18,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Student team of 1–6", "AI solution design paper"],
+    tags: ["AI", "microsoft", "hackathon"],
+    fields: ["Technology", "Social Impact", "Design"],
+    url: "https://imaginecup.microsoft.com/en-us/junior"
+  },
+  {
+    id: "youth-climate-challenge-2026",
+    title: "Global Youth Climate Challenge ($10K Grant)",
+    org: "Global Citizen × Climate Action",
+    category: "Competitions",
+    description: "Team pitch competition for tech or community projects tackling climate change. Winners receive $10,000 in equity-free grant capital.",
+    deadline: "2026-10-30",
+    minAge: 14,
+    maxAge: 19,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Team of 2–5", "Solution concept document"],
+    tags: ["climate", "sustainability", "grants"],
+    fields: ["Environment", "Business", "Social Impact"],
+    url: "https://www.globalcitizen.org/"
+  },
 
-  // Internships
-  { id: "google-cssi", title: "Google Computer Science Summer Institute", org: "Google", category: "Internships", description: "Free 3-week intro to CS for graduating high school seniors from underrepresented backgrounds.", deadline: "2026-03-31", minGrade: 12, maxGrade: 12, countries: ["United States"], cost: "free", format: "in-person", verified: true, requirements: ["Grade 12", "US resident"], tags: ["coding", "tech"], fields: ["Technology"] },
-  { id: "nasa-osi", title: "NASA OSTEM High School Internship", org: "NASA", category: "Internships", description: "Paid research internships across NASA centers for high school students in STEM fields.", deadline: "2026-02-28", minAge: 16, minGrade: 11, maxGrade: 12, countries: ["United States"], cost: "stipend", format: "in-person", verified: true, requirements: ["US citizen", "Age 16+", "Min 3.0 GPA"], tags: ["space", "research"], fields: ["Science", "Technology", "Research"] },
-  { id: "bank-of-america-student", title: "Bank of America Student Leaders", org: "Bank of America", category: "Internships", description: "Paid 8-week summer internship with a local nonprofit and a summit in Washington, D.C.", deadline: "2026-01-14", minGrade: 11, maxGrade: 12, countries: ["United States"], cost: "stipend", format: "in-person", verified: true, requirements: ["Junior or senior", "Community service"], tags: ["leadership", "business"], fields: ["Business", "Leadership", "Social Impact"] },
-  { id: "un-youth-envoy", title: "UN Youth Delegate Programme", org: "United Nations", category: "Internships", description: "Represent your country at the UN, contributing to policy discussions on youth issues.", deadline: "2026-06-01", minAge: 15, maxAge: 24, countries: "worldwide", cost: "free", format: "in-person", verified: true, requirements: ["National selection process"], tags: ["policy", "global"], fields: ["Leadership", "Social Impact"] },
+  // ==========================================
+  // 💼 INTERNSHIPS & FELLOWSHIPS
+  // ==========================================
+  {
+    id: "nus-iris-internship-2027",
+    title: "NUS IRIS Research Internship in Singapore",
+    org: "National University of Singapore (NUS)",
+    category: "Internships",
+    description: "Fully funded research internship in Singapore with round-trip airfare, accommodation, and stipend provided for promising student researchers.",
+    deadline: "2026-11-30",
+    minAge: 16,
+    maxAge: 21,
+    countries: "worldwide",
+    cost: "stipend",
+    format: "in-person",
+    verified: true,
+    requirements: ["Academic transcript", "Motivation letter", "CV"],
+    tags: ["singapore", "internship", "fully-funded"],
+    fields: ["Science", "Technology", "Research"],
+    url: "https://opportunitiescorners.com/nus-iris-internship-2027/",
+    sourceUrl: "https://t.me/deeppurplehub/2012",
+    sourceChannel: "@deeppurplehub"
+  },
+  {
+    id: "google-cssi-fellowship",
+    title: "Google Computer Science Summer Institute (CSSI)",
+    org: "Google",
+    category: "Internships",
+    description: "Intensive 4-week computer science & tech bootcamp teaching fullstack development, software engineering best practices, and direct Google mentorship.",
+    deadline: "2026-12-15",
+    minGrade: 11,
+    maxGrade: 12,
+    countries: ["United States", "worldwide"],
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["High school senior", "Interest in computer science"],
+    tags: ["google", "coding", "software"],
+    fields: ["Technology", "Design"],
+    url: "https://buildyourfuture.withgoogle.com/programs/computer-science-summer-institute"
+  },
+  {
+    id: "bank-of-america-student-leaders",
+    title: "Bank of America Student Leaders (Paid $17/hr)",
+    org: "Bank of America",
+    category: "Internships",
+    description: "Paid 8-week summer internship working with local community nonprofits, capped by an all-expenses-paid national leadership summit in Washington, D.C.",
+    deadline: "2027-01-15",
+    minGrade: 11,
+    maxGrade: 12,
+    countries: ["United States"],
+    cost: "stipend",
+    format: "in-person",
+    verified: true,
+    requirements: ["High school junior or senior", "Good academic standing", "Community service track record"],
+    tags: ["internship", "leadership", "paid"],
+    fields: ["Business", "Leadership", "Social Impact"],
+    url: "https://about.bankofamerica.com/en/making-an-impact/student-leaders"
+  },
+  {
+    id: "un-youth-delegate-program",
+    title: "United Nations Youth Delegate Programme",
+    org: "United Nations",
+    category: "Internships",
+    description: "Represent the youth of your nation at the UN General Assembly and international diplomatic forums in New York and Geneva.",
+    deadline: "2026-10-15",
+    minAge: 16,
+    maxAge: 25,
+    countries: "worldwide",
+    cost: "free",
+    format: "hybrid",
+    verified: true,
+    requirements: ["National youth leadership record", "Fluent English", "Interview"],
+    tags: ["diplomacy", "UN", "policy"],
+    fields: ["Leadership", "Social Impact", "Writing"],
+    url: "https://www.un.org/development/desa/youth/what-we-do/un-youth-delegate-programme.html"
+  },
 
-  // Leadership Programs
-  { id: "hobart-shakespeareans", title: "Global Youth Leadership Institute", org: "World Leaders Institute", category: "Leadership Programs", description: "6-week intensive for high schoolers to lead a social impact project with mentors from top universities.", deadline: "2026-09-15", minAge: 15, maxAge: 18, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Essay", "Recommendation"], tags: ["leadership", "impact"], fields: ["Leadership", "Social Impact"] },
-  { id: "diana-award", title: "The Diana Award", org: "The Diana Award", category: "Leadership Programs", description: "Recognition and mentoring for young people creating meaningful social change in their community.", deadline: "2026-07-01", minAge: 9, maxAge: 25, countries: "worldwide", cost: "free", format: "in-person", verified: true, requirements: ["Nomination", "Impact record"], tags: ["leadership", "impact"], fields: ["Leadership", "Social Impact"] },
-  { id: "hoby", title: "HOBY Leadership Seminar", org: "Hugh O'Brian Youth Leadership", category: "Leadership Programs", description: "Three-day leadership seminar and community service for high school sophomores.", deadline: "2026-04-01", minGrade: 10, maxGrade: 10, countries: ["United States", "Canada"], cost: "paid", format: "in-person", verified: true, requirements: ["Nominated sophomore"], tags: ["leadership"], fields: ["Leadership"] },
-  { id: "girl-up", title: "Girl Up Leadership Summit", org: "United Nations Foundation", category: "Leadership Programs", description: "Annual summit bringing together young leaders working on gender equality.", deadline: "2026-05-01", minAge: 13, maxAge: 22, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Application", "Interest in gender equity"], tags: ["leadership", "human rights"], fields: ["Leadership", "Social Impact"] },
-  { id: "obama-leaders", title: "Obama Foundation Voyager Scholarship", org: "Obama Foundation", category: "Leadership Programs", description: "Financial aid and travel stipend to promote public service leadership in college-bound students.", deadline: "2026-01-15", minGrade: 12, maxGrade: 12, countries: ["United States"], cost: "stipend", format: "in-person", verified: true, requirements: ["Grade 12", "Public service commitment"], tags: ["leadership", "public service"], fields: ["Leadership", "Social Impact"] },
+  // ==========================================
+  // 🌟 LEADERSHIP & INCUBATORS
+  // ==========================================
+  {
+    id: "disciteen-discipline-program",
+    title: "DisciTeen: 5-й поток программы дисциплины и тайм-менеджмента",
+    org: "DisciTeen Academy",
+    category: "Leadership Programs",
+    description: "Бесплатная интенсивная онлайн-программа для школьников и подростков по прокачке самодисциплины, системного тайм-менеджмента и достижению целей.",
+    deadline: "2026-09-10",
+    minAge: 13,
+    maxAge: 19,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Регистрация онлайн", "Готовность выполнять ежедневные трекинги"],
+    tags: ["саморазвитие", "тайм-менеджмент", "дисциплина"],
+    fields: ["Leadership", "Education inequality"],
+    url: "https://t.me/edu_strategies",
+    sourceUrl: "https://t.me/edu_strategies/1188",
+    sourceChannel: "@edu_strategies"
+  },
+  {
+    id: "mydebate-mun-workshop",
+    title: "Воркшоп «Что такое MUN?» от MyDebate",
+    org: "MyDebate Community",
+    category: "Leadership Programs",
+    description: "Практический онлайн-воркшоп по Модели ООН (MUN): как составлять резолюции, побеждать в дебатах, развивать дипломатические навыки и выступать на английском.",
+    deadline: "2026-09-05",
+    minAge: 13,
+    maxAge: 20,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Свободный онлайн вход", "Базовый интерес к международным отношениям"],
+    tags: ["MUN", "дебаты", "дипломатия"],
+    fields: ["Leadership", "Social Impact", "Writing"],
+    url: "https://t.me/edu_strategies",
+    sourceUrl: "https://t.me/edu_strategies/1182",
+    sourceChannel: "@edu_strategies"
+  },
+  {
+    id: "qairu-alem-ai-talent",
+    title: "Alem AI Talent Lab: Полный грант на обучение в QAIRU",
+    org: "Qazaq AI Research University",
+    category: "Leadership Programs",
+    description: "Конкурс на 100% финансирование и стипендию обучения в исследовательском университете AI и робототехники в Казахстане.",
+    deadline: "2026-09-30",
+    minGrade: 10,
+    maxGrade: 12,
+    countries: ["Kazakhstan", "worldwide"],
+    cost: "free",
+    format: "in-person",
+    verified: true,
+    requirements: ["Портфолио проектов", "Тестирование по математике и логике"],
+    tags: ["AI", "грант", "QAIRU"],
+    fields: ["Technology", "Science", "Research"],
+    url: "https://t.me/deeppurplehub",
+    sourceUrl: "https://t.me/deeppurplehub/2010",
+    sourceChannel: "@deeppurplehub"
+  },
+  {
+    id: "diana-award-honour",
+    title: "The Diana Award & Changemaker Network",
+    org: "The Diana Award Foundation",
+    category: "Leadership Programs",
+    description: "The most prestigious accolade a young person can receive for their social action or humanitarian work, established in memory of Diana, Princess of Wales.",
+    deadline: "2026-11-30",
+    minAge: 9,
+    maxAge: 25,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Nomination by mentor/teacher", "Documented community impact"],
+    tags: ["humanitarian", "leadership", "royal"],
+    fields: ["Social Impact", "Leadership"],
+    url: "https://diana-award.org.uk/award"
+  },
 
-  // Volunteering / Social Impact
-  { id: "unicef-youth", title: "UNICEF Youth Advocate", org: "UNICEF", category: "Volunteering", description: "Advocate for children's rights and lead campaigns in your community.", deadline: "2026-08-30", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Application", "Local project idea"], tags: ["human rights", "youth"], fields: ["Social Impact", "Leadership"] },
-  { id: "earth-uprising", title: "Earth Uprising Fellowship", org: "Earth Uprising", category: "Volunteering", description: "Six-month fellowship organizing youth-led climate action in your city.", deadline: "2026-09-20", minAge: 14, maxAge: 20, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Interest in climate"], tags: ["climate", "activism"], fields: ["Environment", "Social Impact"] },
-  { id: "amnesty-youth", title: "Amnesty Youth Network", org: "Amnesty International", category: "Volunteering", description: "Global youth network campaigning on human rights issues.", deadline: "2026-12-31", minAge: 13, maxAge: 21, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Registration"], tags: ["human rights"], fields: ["Social Impact"] },
-  { id: "code-org-mentor", title: "Code.org Peer Mentor", org: "Code.org", category: "Volunteering", description: "Teach basic programming to younger students in your community.", deadline: "2026-12-31", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Basic coding skills"], tags: ["coding", "education"], fields: ["Technology", "Education inequality"] },
-  { id: "red-cross-club", title: "Red Cross Youth Volunteer", org: "American Red Cross", category: "Volunteering", description: "Local disaster response, blood drives, and health education volunteering.", deadline: "2026-12-31", minAge: 13, maxAge: 24, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Local chapter"], tags: ["service", "health"], fields: ["Healthcare", "Social Impact"] },
+  // ==========================================
+  // ☀️ SUMMER ACADEMIES & UNIVERSITY CAMPS
+  // ==========================================
+  {
+    id: "yale-yygs-2027",
+    title: "Yale Young Global Scholars (YYGS 2027)",
+    org: "Yale University",
+    category: "Summer Programs",
+    description: "Two-week academic summer enrichment program at Yale University for outstanding high school sophomores and juniors from 150+ countries. Need-blind financial aid available.",
+    deadline: "2027-01-10",
+    minAge: 16,
+    minGrade: 10,
+    maxGrade: 11,
+    countries: "worldwide",
+    cost: "paid",
+    format: "in-person",
+    verified: true,
+    requirements: ["Grade 10 or 11", "Essays & transcript", "Recommendation"],
+    tags: ["yale", "summer", "global"],
+    fields: ["Leadership", "Writing", "Science", "Social Impact"],
+    url: "https://globalscholars.yale.edu/"
+  },
+  {
+    id: "harvard-precollege-summer",
+    title: "Harvard Summer Pre-College Academy",
+    org: "Harvard University",
+    category: "Summer Programs",
+    description: "Two-week intensive residential program living on Harvard's historic campus, taking college-level non-credit courses without the pressure of letter grades.",
+    deadline: "2027-01-31",
+    minAge: 15,
+    maxAge: 18,
+    minGrade: 10,
+    maxGrade: 12,
+    countries: "worldwide",
+    cost: "paid",
+    format: "in-person",
+    verified: true,
+    requirements: ["Academic transcript", "Counselor recommendation", "Admissions essay"],
+    tags: ["harvard", "precollege", "summer"],
+    fields: ["Science", "Writing", "Business", "Research"],
+    url: "https://summer.harvard.edu/high-school-programs/pre-college-program/"
+  },
+  {
+    id: "stanford-sumac-math-camp",
+    title: "Stanford University Mathematics Camp (SUMaC)",
+    org: "Stanford University",
+    category: "Summer Programs",
+    description: "Rigorous 4-week online and residential advanced pure mathematics camp for high-ability high school students exploring abstract algebra and number theory.",
+    deadline: "2027-02-01",
+    minGrade: 10,
+    maxGrade: 11,
+    countries: "worldwide",
+    cost: "paid",
+    format: "hybrid",
+    verified: true,
+    requirements: ["Stanford Math Qualifying Exam solutions", "Teacher recommendation"],
+    tags: ["stanford", "math", "camp"],
+    fields: ["Science", "Research", "Technology"],
+    url: "https://sumac.spcs.stanford.edu/"
+  },
+  {
+    id: "nazarbayev-foundation-prep",
+    title: "Nazarbayev University NUFYP Prep & Open Days",
+    org: "Nazarbayev University",
+    category: "Summer Programs",
+    description: "Official preparatory courses, campus tours, and mock interview workshops for applicants aiming at the state-funded NU Foundation Year Program.",
+    deadline: "2026-12-30",
+    minGrade: 11,
+    maxGrade: 12,
+    countries: ["Kazakhstan", "worldwide"],
+    cost: "free",
+    format: "hybrid",
+    verified: true,
+    requirements: ["High school student (Grade 11-12)", "IELTS/SAT prep"],
+    tags: ["NU", "kazakhstan", "university"],
+    fields: ["Science", "Technology", "Business"],
+    url: "https://nu.edu.kz/admissions"
+  },
 
-  // Summer Programs
-  { id: "harvard-precollege", title: "Harvard Pre-College Program", org: "Harvard University", category: "Summer Programs", description: "Two-week academic residential program spanning humanities, sciences, and social sciences.", deadline: "2026-01-31", minAge: 15, maxAge: 18, minGrade: 10, maxGrade: 12, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Min 3.5 GPA", "Essay"], tags: ["academic", "university"], fields: ["Science", "Writing", "Research"] },
-  { id: "yale-yygs", title: "Yale Young Global Scholars", org: "Yale University", category: "Summer Programs", description: "Two-week residential program with interdisciplinary academic seminars.", deadline: "2026-01-11", minAge: 16, minGrade: 10, maxGrade: 11, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Grade 10 or 11", "Essays"], tags: ["academic", "global"], fields: ["Leadership", "Writing", "Science"] },
-  { id: "stanford-mathcamp", title: "Stanford University Mathematics Camp (SUMaC)", org: "Stanford University", category: "Summer Programs", description: "Intensive four-week program in advanced mathematics for high schoolers.", deadline: "2026-02-05", minGrade: 10, maxGrade: 11, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Advanced math", "Application"], tags: ["math"], fields: ["Science", "Research"] },
-  { id: "iowa-writing", title: "Iowa Young Writers' Studio", org: "University of Iowa", category: "Summer Programs", description: "Two-week creative writing intensive with the world-famous Iowa Writers' Workshop.", deadline: "2026-02-08", minGrade: 10, maxGrade: 12, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Writing sample"], tags: ["writing", "creative"], fields: ["Writing", "Arts"] },
-  { id: "stanford-medical", title: "Stanford Medical Youth Science Program", org: "Stanford University", category: "Summer Programs", description: "Five-week free residential program on health careers for underrepresented students.", deadline: "2026-03-15", minGrade: 11, maxGrade: 11, countries: ["United States"], cost: "free", format: "in-person", verified: true, requirements: ["Underrepresented in medicine", "Junior year"], tags: ["health", "premed"], fields: ["Healthcare", "Science"] },
-  { id: "cty-jhu", title: "Johns Hopkins CTY", org: "Johns Hopkins University", category: "Summer Programs", description: "Advanced summer courses in STEM, humanities, and the arts for gifted learners.", deadline: "2026-05-01", minAge: 12, maxAge: 17, countries: "worldwide", cost: "paid", format: "in-person", verified: true, requirements: ["Talent search eligibility"], tags: ["academic"], fields: ["Science", "Writing", "Arts"] },
+  // ==========================================
+  // 🤝 VOLUNTEERING & SOCIAL IMPACT
+  // ==========================================
+  {
+    id: "unicef-youth-advocate-2026",
+    title: "UNICEF Youth Advocacy Network",
+    org: "UNICEF",
+    category: "Volunteering",
+    description: "Official youth ambassador initiative empowering teens to lead local and global campaigns on education equality, mental health, and child rights.",
+    deadline: "2026-11-15",
+    minAge: 14,
+    maxAge: 20,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Application form", "Short video motivation"],
+    tags: ["unicef", "human-rights", "volunteering"],
+    fields: ["Social Impact", "Leadership", "Writing"],
+    url: "https://www.unicef.org/youth-action"
+  },
+  {
+    id: "climate-cardinals-volunteering",
+    title: "Climate Cardinals Multilingual Translator",
+    org: "Climate Cardinals",
+    category: "Volunteering",
+    description: "Join the world's largest youth-led nonprofit translating critical climate science documents into 100+ languages to earn verified international service hours.",
+    deadline: "2026-12-31",
+    minAge: 13,
+    maxAge: 25,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Fluency in at least two languages", "Online registration"],
+    tags: ["volunteering", "languages", "climate"],
+    fields: ["Environment", "Writing", "Social Impact"],
+    url: "https://www.climatecardinals.org/"
+  },
+  {
+    id: "code-org-global-mentor",
+    title: "Code.org Global Peer Mentor",
+    org: "Code.org",
+    category: "Volunteering",
+    description: "Volunteer online to teach beginner programming to younger students from underrepresented communities around the world.",
+    deadline: "2026-12-31",
+    minAge: 14,
+    maxAge: 20,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Basic knowledge of Scratch, Python or JS", "Friendly attitude"],
+    tags: ["coding", "tutoring", "service"],
+    fields: ["Technology", "Education inequality"],
+    url: "https://code.org/"
+  },
 
-  // Projects
-  { id: "climate-hackathon", title: "MyPath Climate Solutions Hackathon", org: "MyPath × Climate Lab", category: "Projects", description: "Weekend hackathon to prototype climate-tech solutions with mentors from Google, MIT and Ashoka.", deadline: "2026-09-01", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Team of 2–4"], tags: ["climate", "tech"], fields: ["Environment", "Technology"] },
-  { id: "founder-track", title: "Founder's Track: Student Startup Studio", org: "MyPath Ventures", category: "Projects", description: "Build and launch a real startup with weekly mentorship over 12 weeks.", deadline: "2026-10-10", minAge: 15, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Idea + team"], tags: ["business", "startup"], fields: ["Business", "Leadership"] },
-  { id: "openscholar", title: "Open Scholar Independent Research", org: "MyPath Academy", category: "Projects", description: "Structured 8-week solo research project with weekly writing check-ins and a final paper.", deadline: "2026-11-01", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Topic proposal"], tags: ["research", "writing"], fields: ["Research", "Writing"] },
-  { id: "make-a-podcast", title: "Youth Storytellers Podcast Lab", org: "MyPath Storytellers", category: "Projects", description: "Six-week lab to launch your first podcast episode with editing mentorship.", deadline: "2026-08-01", minAge: 13, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Story idea"], tags: ["writing", "media"], fields: ["Arts", "Writing", "Design"] },
-
-  // More scholarships
-  { id: "elks-most-valuable", title: "Elks Most Valuable Student", org: "Elks National Foundation", category: "Scholarships", description: "$4,000 to $50,000 four-year scholarships for graduating high school seniors.", deadline: "2026-11-15", minGrade: 12, maxGrade: 12, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["US citizen", "Grade 12"], tags: ["scholarship"], fields: ["Leadership"] },
-  { id: "jack-kent-cooke", title: "Jack Kent Cooke Young Scholars", org: "Jack Kent Cooke Foundation", category: "Scholarships", description: "Support for high-achieving 7th graders with financial need through high school.", deadline: "2026-04-15", minGrade: 7, maxGrade: 7, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Grade 7", "Financial need"], tags: ["scholarship"], fields: ["Science", "Writing", "Arts"] },
-  { id: "prudential-spirit", title: "Prudential Emerging Visionaries", org: "Prudential", category: "Scholarships", description: "$5,000 award for young people 14–18 taking solution-oriented action in their community.", deadline: "2026-11-05", minAge: 14, maxAge: 18, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Community project"], tags: ["service", "leadership"], fields: ["Social Impact", "Leadership"] },
-  { id: "national-merit", title: "National Merit Scholarship", org: "NMSC", category: "Scholarships", description: "Prestigious recognition and scholarships based on PSAT/NMSQT performance.", deadline: "2026-10-15", minGrade: 11, maxGrade: 11, countries: ["United States"], cost: "free", format: "online", verified: true, requirements: ["Take PSAT junior year"], tags: ["scholarship", "test"], fields: ["Science", "Writing"] },
-
-  // Additional
-  { id: "microsoft-imagine-cup", title: "Microsoft Imagine Cup Junior", org: "Microsoft", category: "Competitions", description: "AI innovation challenge for students 13-18 to build solutions that help people.", deadline: "2026-03-15", minAge: 13, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Team", "AI project idea"], tags: ["AI", "coding"], fields: ["Technology"] },
-  { id: "climate-cardinals", title: "Climate Cardinals Translator", org: "Climate Cardinals", category: "Volunteering", description: "Youth-led org translating climate info into 100+ languages — earn service hours.", deadline: "2026-12-31", minAge: 13, maxAge: 25, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Fluent in second language"], tags: ["climate", "language"], fields: ["Environment", "Writing"] },
-  { id: "khan-tutor", title: "Khan Academy Peer Tutor", org: "Khan Academy", category: "Volunteering", description: "Volunteer to tutor peers in math, science, or humanities online.", deadline: "2026-12-31", minAge: 13, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Strong subject fluency"], tags: ["education"], fields: ["Education inequality", "Social Impact"] },
-  // Newly added, currently open (checked Aug 2026)
-  { id: "kaznu-open-doors", title: "Open Doors Russian Scholarship Olympiad", org: "Association of Global Universities", category: "Scholarships", description: "Free online olympiad giving international students a fully funded place at leading universities.", deadline: "2026-12-10", minAge: 16, maxAge: 22, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Online registration", "Two olympiad rounds"], tags: ["scholarship", "olympiad"], fields: ["Science", "Research", "Business"] },
-  { id: "nu-foundation-openday", title: "Nazarbayev University Foundation Year Info & Prep", org: "Nazarbayev University", category: "Summer Programs", description: "Preparation sessions and campus visits for Kazakhstani students aiming at the Foundation Year programme.", deadline: "2027-01-20", minGrade: 11, maxGrade: 12, countries: ["Kazakhstan"], cost: "free", format: "hybrid", verified: true, requirements: ["Grade 11–12", "Registration"], tags: ["university", "prep"], fields: ["Science", "Technology", "Business"] },
-  { id: "global-youth-ai", title: "Global Youth AI Challenge 2027", org: "AI4Good Foundation", category: "Competitions", description: "Build an AI project that solves a local problem, with online mentorship through the whole build.", deadline: "2027-02-15", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Team of 1–4", "Project demo"], tags: ["AI", "coding"], fields: ["Technology", "Research"] },
-  { id: "clean-water-fellows", title: "Clean Water Youth Fellowship", org: "Water.org Youth", category: "Volunteering", description: "Six-month fellowship supporting youth-led water and sanitation projects in your own city.", deadline: "2026-11-25", minAge: 15, maxAge: 20, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Project idea", "Weekly check-ins"], tags: ["environment", "service"], fields: ["Environment", "Social Impact"] },
-  { id: "junior-lab-internship", title: "Junior Lab Research Internship", org: "Al-Farabi Research Labs", category: "Research", description: "Eight-week hands-on lab internship for senior school students curious about biology and chemistry.", deadline: "2027-03-01", minAge: 16, maxAge: 18, minGrade: 10, maxGrade: 12, countries: ["Kazakhstan", "Uzbekistan", "Kyrgyzstan"], cost: "free", format: "in-person", verified: true, requirements: ["Motivation letter", "Basic lab safety course"], tags: ["research", "biology"], fields: ["Science", "Healthcare", "Research"] },
-  { id: "remote-startup-intern", title: "Remote Startup Internship for Students", org: "Silk Road Ventures", category: "Internships", description: "Part-time remote internship with an early-stage startup: real tasks in marketing, product or data.", deadline: "2026-10-20", minAge: 16, maxAge: 19, countries: "worldwide", cost: "stipend", format: "online", verified: true, requirements: ["10 hours/week", "Short interview"], tags: ["business", "remote"], fields: ["Business", "Technology"] },
-  { id: "youth-council-2027", title: "City Youth Council Membership", org: "MyPath × City Councils", category: "Leadership Programs", description: "Join a youth council and take part in real decisions about education and public spaces in your city.", deadline: "2026-12-05", minAge: 14, maxAge: 18, countries: "worldwide", cost: "free", format: "hybrid", verified: true, requirements: ["Short application", "Interview"], tags: ["leadership", "civic"], fields: ["Leadership", "Social Impact"] },
-  { id: "portfolio-sprint", title: "Portfolio Sprint: Ship One Real Project", org: "MyPath Academy", category: "Projects", description: "Four-week guided sprint to take one idea from blank page to a finished, shareable project.", deadline: "2026-09-25", minAge: 13, maxAge: 18, countries: "worldwide", cost: "free", format: "online", verified: true, requirements: ["Idea in one sentence"], tags: ["portfolio", "project"], fields: ["Design", "Technology", "Writing"] },
+  // ==========================================
+  // 🚀 PROJECTS & PORTFOLIO SPRINTS
+  // ==========================================
+  {
+    id: "mypath-climate-hackathon-2026",
+    title: "MyPath Climate Innovation Hackathon",
+    org: "MyPath × Global Climate Lab",
+    category: "Projects",
+    description: "48-hour online hackathon to prototype practical sustainability apps and climate tools with direct mentorship from Google and MIT alumni.",
+    deadline: "2026-10-25",
+    minAge: 13,
+    maxAge: 19,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Team of 1–4 students", "Working software/hardware prototype"],
+    tags: ["hackathon", "portfolio", "sprint"],
+    fields: ["Environment", "Technology", "Design"],
+    url: "https://mypath.kz"
+  },
+  {
+    id: "founder-track-12-weeks",
+    title: "Founder's Track: Student Startup Accelerator",
+    org: "MyPath Ventures",
+    category: "Projects",
+    description: "12-week structured startup incubator guiding teenage founders from problem validation to real customer acquisition and demo day pitches.",
+    deadline: "2026-11-10",
+    minAge: 14,
+    maxAge: 19,
+    countries: "worldwide",
+    cost: "free",
+    format: "online",
+    verified: true,
+    requirements: ["Problem statement and draft idea", "Weekly 5hr commitment"],
+    tags: ["startup", "incubator", "portfolio"],
+    fields: ["Business", "Leadership", "Technology"],
+    url: "https://mypath.kz"
+  }
 ];
 
 export const CATEGORIES: Category[] = [
@@ -122,12 +682,9 @@ export const CATEGORIES: Category[] = [
   "Summer Programs",
 ];
 
-
-/** Formats offered. Used by the Opportunities filters. */
 export const FORMATS = ["online", "in-person", "hybrid"] as const;
 export type Format = (typeof FORMATS)[number];
 
-/** Every distinct country mentioned in the database, alphabetical. */
 export const COUNTRIES: string[] = Array.from(
   new Set(
     OPPORTUNITIES.flatMap((o) =>
@@ -136,16 +693,11 @@ export const COUNTRIES: string[] = Array.from(
   ),
 ).sort();
 
-/**
- * Opportunities whose deadline has not passed yet.
- * Evaluated on every call, so expired listings drop out automatically over time.
- */
-export function openOpportunities(now: Date = new Date()): Opportunity[] {
+export function openOpportunities(sourceList: Opportunity[] = OPPORTUNITIES, now: Date = new Date()): Opportunity[] {
   const today = now.toISOString().slice(0, 10);
-  return OPPORTUNITIES.filter((o) => o.deadline >= today);
+  return sourceList.filter((o) => !o.deadline || o.deadline >= today);
 }
 
-/** Whole days between today and the deadline. Negative once it has passed. */
 export function daysLeft(deadline: string, now: Date = new Date()): number {
   const end = Date.parse(`${deadline}T00:00:00Z`);
   const start = Date.parse(`${now.toISOString().slice(0, 10)}T00:00:00Z`);

@@ -24,9 +24,14 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Environment files & Secrets
+.env
+.env.*
+!.env.example
+
+# Python & Telegram session
+__pycache__/
+*.py[cod]
+*$py.class
+*.session
+*.session-journal
