@@ -34,6 +34,7 @@ function AuthPage() {
   const signupSchema = z.object({
     name: z.string().trim().min(2, dict.auth.errName).max(80),
     email: z.string().trim().email(dict.auth.errEmail).max(255),
+    phone: z.string().trim().min(9, dict.auth.errPhone).max(25).regex(/^[+()\-\s\d]+$/, dict.auth.errPhone),
     password: z.string().min(6, dict.auth.errPassword).max(100),
     age: z.coerce.number().int().min(13, dict.auth.errAgeMin).max(18, dict.auth.errAgeMax),
     country: z.string().trim().min(2, dict.auth.errCountry).max(80),
@@ -61,13 +62,13 @@ function AuthPage() {
         const { error, data: authData } = await supabase.auth.signUp({
           email: r.data.email,
           password: r.data.password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { name: r.data.name } },
+          options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { name: r.data.name, phone: r.data.phone } },
         });
         if (error) throw error;
         if (authData.user) {
           await supabase.from("profiles").update({
             name: r.data.name, age: r.data.age, country: r.data.country,
-            grade: r.data.grade, email: r.data.email,
+            grade: r.data.grade, email: r.data.email, phone: r.data.phone,
           }).eq("id", authData.user.id);
         }
         if (!authData.session) {
