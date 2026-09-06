@@ -170,6 +170,7 @@ export type Database = {
           grade: string | null
           id: string
           name: string | null
+          phone: string | null
           preferred_lang: string | null
           updated_at: string
           world_change: string | null
@@ -185,6 +186,7 @@ export type Database = {
           grade?: string | null
           id: string
           name?: string | null
+          phone?: string | null
           preferred_lang?: string | null
           updated_at?: string
           world_change?: string | null
@@ -200,6 +202,7 @@ export type Database = {
           grade?: string | null
           id?: string
           name?: string | null
+          phone?: string | null
           preferred_lang?: string | null
           updated_at?: string
           world_change?: string | null
