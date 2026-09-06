@@ -88,6 +88,8 @@ export const en = {
     createAccount: "Create an account",
     fullName: "Full name",
     email: "Email",
+    phone: "Phone (Telegram / WhatsApp)",
+    phoneHint: "We reach out through Telegram or WhatsApp.",
     password: "Password",
     age: "Age",
     grade: "Grade",
@@ -102,6 +104,7 @@ export const en = {
     errEmail: "Invalid email",
     errPassword: "At least 6 characters",
     errCountry: "Please add your country",
+    errPhone: "Please enter a valid phone number",
     somethingWrong: "Something went wrong.",
   },
   onboarding: {

@@ -90,6 +90,8 @@ export const kk: Dict = {
     createAccount: "Аккаунт ашу",
     fullName: "Аты-жөні",
     email: "Email",
+    phone: "Телефон (Telegram / WhatsApp)",
+    phoneHint: "Telegram немесе WhatsApp арқылы хабарласамыз.",
     password: "Құпиясөз",
     age: "Жасы",
     grade: "Сынып",
@@ -104,6 +106,7 @@ export const kk: Dict = {
     errEmail: "Email дұрыс емес",
     errPassword: "Кемінде 6 таңба",
     errCountry: "Еліңді көрсет",
+    errPhone: "Дұрыс телефон нөмірін жаз",
     somethingWrong: "Бір нәрсе дұрыс болмады.",
   },
   onboarding: {
