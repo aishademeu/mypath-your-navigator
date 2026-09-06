@@ -90,6 +90,8 @@ export const ru: Dict = {
     createAccount: "Создать аккаунт",
     fullName: "Имя и фамилия",
     email: "Email",
+    phone: "Телефон (Telegram / WhatsApp)",
+    phoneHint: "Свяжемся с тобой в Telegram или WhatsApp.",
     password: "Пароль",
     age: "Возраст",
     grade: "Класс",
@@ -104,6 +106,7 @@ export const ru: Dict = {
     errEmail: "Некорректный email",
     errPassword: "Минимум 6 символов",
     errCountry: "Пожалуйста, укажи страну",
+    errPhone: "Укажи корректный номер телефона",
     somethingWrong: "Что-то пошло не так.",
   },
   onboarding: {
