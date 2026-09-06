@@ -129,6 +129,9 @@ function AuthPage() {
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               {isSignup && <Field name="name" label={dict.auth.fullName} error={errors.name} />}
               <Field name="email" label={dict.auth.email} type="email" error={errors.email} />
+              {isSignup && (
+                <Field name="phone" label={dict.auth.phone} type="tel" error={errors.phone} placeholder="+7 775 229 66 31" hint={dict.auth.phoneHint} />
+              )}
               <Field name="password" label={dict.auth.password} type="password" error={errors.password} />
               {isSignup && (
                 <>
@@ -151,15 +154,17 @@ function AuthPage() {
   );
 }
 
-function Field({ name, label, error, type = "text" }: { name: string; label: string; error?: string; type?: string }) {
+function Field({ name, label, error, type = "text", placeholder, hint }: { name: string; label: string; error?: string; type?: string; placeholder?: string; hint?: string }) {
   return (
     <label className="block">
       <span className="text-xs font-semibold uppercase tracking-wider text-navy/60">{label}</span>
       <input
         name={name}
         type={type}
+        placeholder={placeholder}
         className={`mt-1.5 min-h-[48px] w-full rounded-2xl border bg-white px-4 py-3 text-base outline-none transition focus:border-navy focus:ring-2 focus:ring-lavender/40 ${error ? "border-destructive" : "border-navy/15"}`}
       />
+      {hint && !error && <span className="mt-1 block text-xs text-navy/50">{hint}</span>}
       {error && <span className="mt-1 block text-xs text-destructive">{error}</span>}
     </label>
   );
