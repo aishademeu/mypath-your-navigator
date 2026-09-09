@@ -36,6 +36,16 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* Warm MyPath palette */
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-clay: var(--clay);
+  --color-clay-deep: var(--clay-deep);
+  --color-brown: var(--brown);
+  --color-sand: var(--sand);
+  --color-sage: var(--sage);
+
+  /* Legacy aliases kept so existing screens re-skin without rewrites */
   --color-navy: var(--navy);
   --color-ivory: var(--ivory);
   --color-lavender: var(--lavender);
@@ -46,63 +56,72 @@
 :root {
   --radius: 1rem;
 
-  --navy: #0B1F3A;
-  --ivory: #FFF8F0;
-  --lavender: #C8B6FF;
-  --growth: #4CAF8A;
-  --gold: #F4C95D;
+  /* Warm palette */
+  --ink: #2E211A;
+  --paper: #FBF7EC;
+  --clay: #CA907E;
+  --clay-deep: #994636;
+  --brown: #895B1E;
+  --sand: #DBD8AE;
+  --sage: #EAF4D3;
 
-  --background: #FFF8F0;
-  --foreground: #0B1F3A;
-  --card: #FFFFFF;
-  --card-foreground: #0B1F3A;
-  --popover: #FFFFFF;
-  --popover-foreground: #0B1F3A;
-  --primary: #0B1F3A;
-  --primary-foreground: #FFF8F0;
-  --secondary: #F1E9DA;
-  --secondary-foreground: #0B1F3A;
-  --muted: #F1E9DA;
-  --muted-foreground: #6B6558;
-  --accent: #C8B6FF;
-  --accent-foreground: #0B1F3A;
-  --destructive: #E5484D;
-  --destructive-foreground: #FFF8F0;
-  --border: rgba(11, 31, 58, 0.10);
-  --input: rgba(11, 31, 58, 0.14);
-  --ring: #C8B6FF;
+  /* Aliases → warm values */
+  --navy: #2E211A;
+  --ivory: #FBF7EC;
+  --lavender: #CA907E;
+  --growth: #A9BE7C;
+  --gold: #DBD8AE;
+
+  --background: #FBF7EC;
+  --foreground: #2E211A;
+  --card: #FFFDF7;
+  --card-foreground: #2E211A;
+  --popover: #FFFDF7;
+  --popover-foreground: #2E211A;
+  --primary: #994636;
+  --primary-foreground: #FBF7EC;
+  --secondary: #EFE6D2;
+  --secondary-foreground: #2E211A;
+  --muted: #EFE6D2;
+  --muted-foreground: #7C6A5A;
+  --accent: #EAF4D3;
+  --accent-foreground: #2E211A;
+  --destructive: #B4442E;
+  --destructive-foreground: #FBF7EC;
+  --border: rgba(46, 33, 26, 0.12);
+  --input: rgba(46, 33, 26, 0.18);
+  --ring: #CA907E;
 }
 
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  :focus-visible { outline: 2px solid var(--clay-deep); outline-offset: 2px; }
 }
 
+/* Editorial warm surface: no blur, no glassmorphism. */
 @utility glass {
-  background: color-mix(in oklab, white 70%, transparent);
-  backdrop-filter: saturate(1.4) blur(14px);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
-  border: 1px solid color-mix(in oklab, var(--navy) 8%, transparent);
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
 }
 
 @utility glass-dark {
-  background: color-mix(in oklab, var(--navy) 70%, transparent);
-  backdrop-filter: saturate(1.4) blur(14px);
-  border: 1px solid color-mix(in oklab, white 10%, transparent);
-  color: var(--ivory);
+  background: var(--ink);
+  border: 1px solid color-mix(in oklab, var(--sand) 22%, transparent);
+  color: var(--paper);
 }
 
 @utility gradient-hero {
   background:
-    radial-gradient(60% 60% at 20% 10%, color-mix(in oklab, var(--lavender) 55%, transparent), transparent 70%),
-    radial-gradient(50% 50% at 90% 20%, color-mix(in oklab, var(--gold) 40%, transparent), transparent 70%),
-    radial-gradient(60% 60% at 70% 90%, color-mix(in oklab, var(--growth) 30%, transparent), transparent 70%),
-    var(--ivory);
+    radial-gradient(60% 60% at 20% 10%, color-mix(in oklab, var(--sage) 85%, transparent), transparent 70%),
+    radial-gradient(50% 50% at 90% 20%, color-mix(in oklab, var(--sand) 70%, transparent), transparent 70%),
+    radial-gradient(60% 60% at 70% 90%, color-mix(in oklab, var(--clay) 35%, transparent), transparent 70%),
+    var(--paper);
 }
 
 @utility gradient-navy {
-  background: linear-gradient(135deg, #0B1F3A 0%, #142a52 60%, #1d3a72 100%);
+  background: linear-gradient(135deg, #2E211A 0%, #4A2E22 55%, #994636 100%);
 }
 
 @utility text-balance { text-wrap: balance; }
@@ -134,3 +153,10 @@
 }
 @utility animate-pulse-glow { animation: pulse-glow 2.4s ease-in-out infinite; }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
