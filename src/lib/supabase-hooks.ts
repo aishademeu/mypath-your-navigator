@@ -36,9 +36,15 @@ export type ProfileRow = {
   grade: string | null;
   country: string | null;
   avatar_url: string | null;
+  banner_url: string | null;
+  mini_bio: string | null;
   about: string | null;
   curious_about: string | null;
   world_change: string | null;
+  role: "student" | "parent" | "admin";
+  school: string | null;
+  city: string | null;
+  language: string;
 };
 
 export function useProfile(user: User | null) {
@@ -309,5 +315,107 @@ export function useOpportunities() {
       }
     },
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+// ---- Career Hypotheses ----
+export type CareerHypothesisRow = {
+  id: string;
+  user_id: string;
+  direction_name: string;
+  why_it_appeared: string;
+  evidence: string[];
+  relevant_strengths: string[];
+  relevant_interests: string[];
+  unknowns: string[];
+  skills_to_explore: string[];
+  next_experiment: string;
+  status: "active" | "strengthened" | "weakened" | "explored" | "archived";
+  version: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export function useCareerHypotheses(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["career-hypotheses", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) return [] as CareerHypothesisRow[];
+      const { data, error } = await (supabase as any)
+        .from("career_hypotheses")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CareerHypothesisRow[];
+    },
+  });
+}
+
+// ---- My Path Actions ----
+export type MyPathActionRow = {
+  id: string;
+  user_id: string;
+  action: string;
+  why_it_matters: string;
+  expected_outcome: string;
+  supporting_recommendation: string | null;
+  status: "active" | "completed" | "skipped";
+  created_at: string;
+  completed_at: string | null;
+};
+
+export function useMyPathAction(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-path-action", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) return null as MyPathActionRow | null;
+      const { data, error } = await (supabase as any)
+        .from("my_path_actions")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as MyPathActionRow | null;
+    },
+  });
+}
+
+export function useCompleteMyPathAction(userId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (actionId: string) => {
+      if (!userId) throw new Error("No user");
+      const { error } = await (supabase as any)
+        .from("my_path_actions")
+        .update({ status: "completed", completed_at: new Date().toISOString() })
+        .eq("id", actionId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-path-action", userId] }),
+  });
+}
+
+// ---- Parent-Student Links ----
+export function useParentStudentLinks(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["parent-student-links", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await (supabase as any)
+        .from("parent_student_links")
+        .select("*")
+        .or(`parent_id.eq.${userId},student_id.eq.${userId}`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 }

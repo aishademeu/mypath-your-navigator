@@ -11,7 +11,8 @@ export type ProfileContext = {
 };
 
 export type MatchResult = {
-  score: number; // 0-99
+  score: number; // internal rank priority weight only
+  qualitativeBadge: string; // "Top Fit" | "Good Match" | "Explore"
   eligible: boolean;
   reasons: string[]; // why it matches
   blockers: string[]; // why it may not fit
@@ -85,23 +86,25 @@ export function matchOpportunity(opp: Opportunity, ctx: ProfileContext): MatchRe
   if (goals.includes("Meet mentors") && (opp.category === "Research" || opp.category === "Leadership Programs")) reasons.push("Includes mentorship");
   if (goals.includes("Develop skills") && opp.category === "Internships") reasons.push("Hands-on skill building");
 
-  // base score
-  let score = 55;
-  score += interestHits.length * 9;
-  score += Math.min(problemHits, 3) * 5;
-  score += reasons.length > 3 ? 4 : 0;
-  if (!eligible) score = Math.max(30, Math.floor(score * 0.55));
-  // deadline urgency small bump
-  const days = Math.max(0, (new Date(opp.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (days < 60 && days > 0) score += 2;
+  // Qualitative badge determination without fake percentages
+  let qualitativeBadge = "Explore";
+  if (!eligible) {
+    qualitativeBadge = "Check Eligibility";
+  } else if (interestHits.length > 0 && problemHits > 0) {
+    qualitativeBadge = "Top Fit";
+  } else if (interestHits.length > 0 || problemHits > 0) {
+    qualitativeBadge = "Recommended";
+  }
 
-  // stable jitter per opp
-  const jitter = (opp.id.charCodeAt(0) + opp.id.charCodeAt(opp.id.length - 1)) % 5;
-  score = Math.min(99, Math.max(20, score + jitter));
+  // Internal rank score only for sorting
+  let score = 50;
+  score += interestHits.length * 20;
+  score += Math.min(problemHits, 3) * 10;
+  if (!eligible) score -= 40;
 
   if (reasons.length === 0 && eligible) reasons.push("A broad, high-signal opportunity worth considering");
 
-  return { score, eligible, reasons, blockers };
+  return { score, qualitativeBadge, eligible, reasons, blockers };
 }
 
 export function rankOpportunities(all: Opportunity[], ctx: ProfileContext) {

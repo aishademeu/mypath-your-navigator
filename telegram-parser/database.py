@@ -51,7 +51,7 @@ def save_opportunity(
 
     record = {
         "title": opp.title,
-        "org": opp.org or "MyPath Partner",
+        "org": opp.org or (f"@{source_channel}" if source_channel else "Unspecified Organizer"),
         "category": opp.category,
         "description": opp.description,
         "deadline": opp.deadline,

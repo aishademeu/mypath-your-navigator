@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -59,6 +57,306 @@ export type Database = {
           id?: string
           role?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      career_hypotheses: {
+        Row: {
+          id: string
+          user_id: string
+          direction_name: string
+          why_it_appeared: string
+          evidence: string[]
+          relevant_strengths: string[]
+          relevant_interests: string[]
+          unknowns: string[]
+          skills_to_explore: string[]
+          next_experiment: string
+          status: "active" | "strengthened" | "weakened" | "explored" | "archived"
+          version: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          direction_name: string
+          why_it_appeared: string
+          evidence?: string[]
+          relevant_strengths?: string[]
+          relevant_interests?: string[]
+          unknowns?: string[]
+          skills_to_explore?: string[]
+          next_experiment: string
+          status?: "active" | "strengthened" | "weakened" | "explored" | "archived"
+          version?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          direction_name?: string
+          why_it_appeared?: string
+          evidence?: string[]
+          relevant_strengths?: string[]
+          relevant_interests?: string[]
+          unknowns?: string[]
+          skills_to_explore?: string[]
+          next_experiment?: string
+          status?: "active" | "strengthened" | "weakened" | "explored" | "archived"
+          version?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      discovery_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          status: "in_progress" | "completed"
+          current_question: string | null
+          history: Json
+          insights: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          status?: "in_progress" | "completed"
+          current_question?: string | null
+          history?: Json
+          insights?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          status?: "in_progress" | "completed"
+          current_question?: string | null
+          history?: Json
+          insights?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      my_path_actions: {
+        Row: {
+          id: string
+          user_id: string
+          action: string
+          why_it_matters: string
+          expected_outcome: string
+          supporting_recommendation: string | null
+          status: "active" | "completed" | "skipped"
+          created_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          action: string
+          why_it_matters: string
+          expected_outcome: string
+          supporting_recommendation?: string | null
+          status?: "active" | "completed" | "skipped"
+          created_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          action?: string
+          why_it_matters?: string
+          expected_outcome?: string
+          supporting_recommendation?: string | null
+          status?: "active" | "completed" | "skipped"
+          created_at?: string
+          completed_at?: string | null
+        }
+        Relationships: []
+      }
+      parent_student_links: {
+        Row: {
+          id: string
+          parent_id: string
+          student_id: string | null
+          invite_code: string | null
+          student_email: string | null
+          status: "pending" | "approved" | "rejected"
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          parent_id: string
+          student_id?: string | null
+          invite_code?: string | null
+          student_email?: string | null
+          status?: "pending" | "approved" | "rejected"
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          parent_id?: string
+          student_id?: string | null
+          invite_code?: string | null
+          student_email?: string | null
+          status?: "pending" | "approved" | "rejected"
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      manual_payments: {
+        Row: {
+          id: string
+          user_id: string
+          amount_kzt: number
+          receipt_note: string | null
+          receipt_file_url: string | null
+          status: "pending" | "approved" | "rejected"
+          verified_by: string | null
+          verified_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount_kzt?: number
+          receipt_note?: string | null
+          receipt_file_url?: string | null
+          status?: "pending" | "approved" | "rejected"
+          verified_by?: string | null
+          verified_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount_kzt?: number
+          receipt_note?: string | null
+          receipt_file_url?: string | null
+          status?: "pending" | "approved" | "rejected"
+          verified_by?: string | null
+          verified_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      telegram_sources: {
+        Row: {
+          id: string
+          channel_username: string
+          title: string | null
+          enabled: boolean
+          last_scraped_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          channel_username: string
+          title?: string | null
+          enabled?: boolean
+          last_scraped_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          channel_username?: string
+          title?: string | null
+          enabled?: boolean
+          last_scraped_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      opportunities: {
+        Row: {
+          id: string
+          title: string
+          org: string
+          category: string
+          description: string
+          deadline: string | null
+          min_age: number | null
+          max_age: number | null
+          min_grade: number | null
+          max_grade: number | null
+          countries: Json | null
+          cost: string | null
+          format: string | null
+          verified: boolean | null
+          requirements: string[] | null
+          tags: string[] | null
+          fields: string[] | null
+          url: string | null
+          source_url: string | null
+          source_channel: string | null
+          source_message_id: number | null
+          raw_text: string | null
+          status: "approved" | "pending_review" | "rejected" | "expired"
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          org: string
+          category: string
+          description: string
+          deadline?: string | null
+          min_age?: number | null
+          max_age?: number | null
+          min_grade?: number | null
+          max_grade?: number | null
+          countries?: Json | null
+          cost?: string | null
+          format?: string | null
+          verified?: boolean | null
+          requirements?: string[] | null
+          tags?: string[] | null
+          fields?: string[] | null
+          url?: string | null
+          source_url?: string | null
+          source_channel?: string | null
+          source_message_id?: number | null
+          raw_text?: string | null
+          status?: "approved" | "pending_review" | "rejected" | "expired"
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          org?: string
+          category?: string
+          description?: string
+          deadline?: string | null
+          min_age?: number | null
+          max_age?: number | null
+          min_grade?: number | null
+          max_grade?: number | null
+          countries?: Json | null
+          cost?: string | null
+          format?: string | null
+          verified?: boolean | null
+          requirements?: string[] | null
+          tags?: string[] | null
+          fields?: string[] | null
+          url?: string | null
+          source_url?: string | null
+          source_channel?: string | null
+          source_message_id?: number | null
+          raw_text?: string | null
+          status?: "approved" | "pending_review" | "rejected" | "expired"
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -163,15 +461,21 @@ export type Database = {
           about: string | null
           age: number | null
           avatar_url: string | null
+          banner_url: string | null
+          city: string | null
           country: string | null
           created_at: string
           curious_about: string | null
           email: string | null
           grade: string | null
           id: string
+          language: string
+          mini_bio: string | null
           name: string | null
           phone: string | null
           preferred_lang: string | null
+          role: "student" | "parent" | "admin"
+          school: string | null
           updated_at: string
           world_change: string | null
         }
@@ -179,15 +483,21 @@ export type Database = {
           about?: string | null
           age?: number | null
           avatar_url?: string | null
+          banner_url?: string | null
+          city?: string | null
           country?: string | null
           created_at?: string
           curious_about?: string | null
           email?: string | null
           grade?: string | null
           id: string
+          language?: string
+          mini_bio?: string | null
           name?: string | null
           phone?: string | null
           preferred_lang?: string | null
+          role?: "student" | "parent" | "admin"
+          school?: string | null
           updated_at?: string
           world_change?: string | null
         }
@@ -195,15 +505,21 @@ export type Database = {
           about?: string | null
           age?: number | null
           avatar_url?: string | null
+          banner_url?: string | null
+          city?: string | null
           country?: string | null
           created_at?: string
           curious_about?: string | null
           email?: string | null
           grade?: string | null
           id?: string
+          language?: string
+          mini_bio?: string | null
           name?: string | null
           phone?: string | null
           preferred_lang?: string | null
+          role?: "student" | "parent" | "admin"
+          school?: string | null
           updated_at?: string
           world_change?: string | null
         }
@@ -262,7 +578,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_pro: { Args: { _user_id: string }; Returns: boolean }
+      is_pro: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_parent: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_linked_parent: {
+        Args: { _parent_id: string; _student_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
@@ -272,126 +603,3 @@ export type Database = {
     }
   }
 }
-
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const

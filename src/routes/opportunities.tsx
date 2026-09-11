@@ -32,7 +32,7 @@ const COSTS = ["free", "paid", "stipend"] as const;
 
 type CardProps = {
   opp: Opportunity;
-  score: number;
+  qualitativeBadge: string;
   eligible: boolean;
   reason: string | null;
   days: number;
@@ -43,7 +43,7 @@ type CardProps = {
 };
 
 const OpportunityCard = memo(function OpportunityCard({
-  opp: o, score, eligible, reason, days, saved, hydrated, onView, onSave,
+  opp: o, qualitativeBadge, eligible, reason, days, saved, hydrated, onView, onSave,
 }: CardProps) {
   const { dict } = useI18n();
   const urgent = days <= 7;
@@ -64,7 +64,7 @@ const OpportunityCard = memo(function OpportunityCard({
               </span>
             )}
             <span className="rounded-full bg-gradient-to-r from-growth/20 to-lavender/30 px-3 py-1 text-[11px] font-bold text-navy">
-              {dict.dashboard.match.replace("{n}", String(score))}
+              {qualitativeBadge}
             </span>
           </div>
         </div>
@@ -330,11 +330,11 @@ function OpportunitiesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map(({ opp: o, score, eligible, reasons }) => (
+              {filtered.map(({ opp: o, qualitativeBadge, eligible, reasons }) => (
                 <OpportunityCard
                   key={o.id}
                   opp={o}
-                  score={score}
+                  qualitativeBadge={qualitativeBadge}
                   eligible={eligible}
                   reason={reasons[0] ?? null}
                   days={daysLeft(o.deadline)}

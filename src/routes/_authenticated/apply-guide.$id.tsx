@@ -2,19 +2,57 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { opportunityById } from "@/lib/opportunities";
+import { opportunityById, type Opportunity } from "@/lib/opportunities";
 import { applyGuideFor, matchOpportunity } from "@/lib/matching";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  useSession, useProfile, useOnboarding, useApplicationProgress, useToggleStep,
-  useSavedOpportunities, useToggleSaved,
+  useSession,
+  useProfile,
+  useOnboarding,
+  useApplicationProgress,
+  useToggleStep,
+  useSavedOpportunities,
+  useToggleSaved,
 } from "@/lib/supabase-hooks";
 import { formatDate } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/apply-guide/$id")({
   component: ApplyGuide,
-  loader: ({ params }) => {
-    const opp = opportunityById(params.id);
+  loader: async ({ params }) => {
+    let opp = opportunityById(params.id);
+    if (!opp) {
+      const { data } = await (supabase as any)
+        .from("opportunities")
+        .select("*")
+        .eq("id", params.id)
+        .maybeSingle();
+
+      if (data) {
+        opp = {
+          id: String(data.id),
+          title: data.title,
+          org: data.org,
+          category: data.category || "Scholarships",
+          description: data.description,
+          deadline: data.deadline || "2026-12-31",
+          minAge: data.min_age || undefined,
+          maxAge: data.max_age || undefined,
+          minGrade: data.min_grade || undefined,
+          maxGrade: data.max_grade || undefined,
+          countries: data.countries || "worldwide",
+          cost: data.cost || "free",
+          format: data.format || "online",
+          verified: data.verified || false,
+          requirements: data.requirements || [],
+          tags: data.tags || [],
+          fields: data.fields || [],
+          url: data.url || undefined,
+          sourceUrl: data.source_url || undefined,
+          sourceChannel: data.source_channel || undefined,
+        };
+      }
+    }
     if (!opp) throw notFound();
     return { opp };
   },
@@ -44,7 +82,7 @@ function NotFoundInner() {
 
 function ApplyGuide() {
   const { id } = Route.useParams();
-  const opp = opportunityById(id)!;
+  const { opp } = Route.useLoaderData() as { opp: Opportunity };
   const { user } = useSession();
   const { data: profile } = useProfile(user);
   const { data: onboarding } = useOnboarding(user);
@@ -85,7 +123,9 @@ function ApplyGuide() {
           <div className="relative">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-white/10 px-3 py-1 text-[11px]">{dict.categories[opp.category]}</span>
-              <span className="rounded-full bg-gradient-to-r from-growth to-lavender px-3 py-1 text-[11px] font-semibold text-navy">{dict.dashboard.match.replace("{n}", String(match.score))}</span>
+              <span className="rounded-full bg-gradient-to-r from-growth to-lavender px-3 py-1 text-[11px] font-semibold text-navy">
+                {match.qualitativeBadge}
+              </span>
               {!match.eligible && <span className="rounded-full bg-destructive/20 px-3 py-1 text-[11px]">{dict.dashboard.checkEligibility}</span>}
             </div>
             <h1 className="mt-4 font-display text-2xl md:text-4xl">{opp.title}</h1>
@@ -99,66 +139,62 @@ function ApplyGuide() {
               </InfoTile>
               <InfoTile label={dict.apply.region}>{opp.countries === "worldwide" || !opp.countries ? dict.opportunities.worldwide : (opp.countries as string[]).join(", ")}</InfoTile>
             </div>
-            {match.reasons.length > 0 && (
-              <div className="mt-5 rounded-2xl bg-white/10 p-4">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-ivory/60">{dict.apply.whyFits}</div>
-                <ul className="mt-2 text-sm text-ivory/90">{match.reasons.map((r) => <li key={r}>• {r}</li>)}</ul>
-              </div>
-            )}
-            {match.blockers.length > 0 && (
-              <div className="mt-3 rounded-2xl bg-destructive/20 p-4">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-ivory">{dict.apply.headsUp}</div>
-                <ul className="mt-2 text-sm">{match.blockers.map((r) => <li key={r}>• {r}</li>)}</ul>
-              </div>
-            )}
             <div className="mt-6 flex flex-wrap gap-2">
-              <button onClick={() => toggleSaved.mutate({ opportunityId: id, currentlySaved: isSaved })} className="min-h-[40px] rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm">{isSaved ? dict.opportunities.saved : dict.opportunities.save}</button>
-              {opp.url && <a href={opp.url} target="_blank" rel="noreferrer" className="min-h-[40px] rounded-full bg-ivory px-4 py-2 text-sm font-semibold text-navy">{dict.apply.officialPage}</a>}
+              {opp.url && (
+                <a href={opp.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-ivory px-5 py-2.5 text-sm font-semibold text-navy">
+                  {dict.apply.officialSite} ↗
+                </a>
+              )}
+              <button onClick={() => user && toggleSaved.mutate({ opportunityId: id, currentlySaved: isSaved })} className="rounded-full border border-ivory/30 px-5 py-2.5 text-sm font-medium">
+                {isSaved ? dict.apply.savedInProfile : dict.apply.saveAction}
+              </button>
             </div>
           </div>
         </div>
 
-        <section className="mt-8 rounded-3xl border border-navy/10 bg-white p-5 md:p-6">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 className="font-display text-xl md:text-2xl">{dict.apply.checklistTitle}</h2>
-              <p className="mt-1 text-sm text-navy/60">{dict.apply.checklistSub}</p>
-            </div>
-            <div className="text-right">
-              <div className="text-xs uppercase tracking-widest text-navy/50">{dict.apply.progress}</div>
-              <div className="mt-1 font-display text-2xl">{pct}%</div>
-            </div>
+        <section className="mt-10">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-xl md:text-2xl">{dict.apply.stepByStep}</h2>
+            <span className="text-xs text-navy/60">{doneCount} / {steps.length} {dict.apply.done}</span>
           </div>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-navy/10">
-            <div className="h-full rounded-full bg-gradient-to-r from-growth to-lavender transition-all" style={{ width: `${pct}%` }} />
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-navy/10">
+            <div className="h-full bg-growth transition-all" style={{ width: `${pct}%` }} />
           </div>
 
-          <ol className="mt-6 space-y-3">
+          <div className="mt-6 space-y-3">
             {steps.map((s, i) => {
               const done = !!completedMap.get(s.key);
               return (
-                <li key={s.key} className={`flex gap-4 rounded-2xl border p-4 transition ${done ? "border-growth/40 bg-growth/5" : "border-navy/10 bg-ivory"}`}>
-                  <button
-                    onClick={() => toggleStep.mutate({ stepKey: s.key, completed: !done })}
-                    className={`mt-0.5 flex h-10 w-10 flex-none items-center justify-center rounded-full border text-sm font-semibold ${done ? "border-growth bg-growth text-ivory" : "border-navy/20 bg-white"}`}
-                    aria-label={done ? "Mark incomplete" : "Mark complete"}
-                  >
-                    {done ? "✓" : i + 1}
-                  </button>
-                  <div>
-                    <div className={`font-semibold ${done ? "text-navy/50 line-through" : ""}`}>{s.title}</div>
-                    <p className="mt-1 text-sm text-navy/70">{s.description}</p>
+                <div key={s.key} className={`rounded-2xl border p-4 transition ${done ? "border-growth/40 bg-growth/5" : "border-navy/10 bg-white"}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <button
+                        onClick={() => user && toggleStep.mutate({ stepKey: s.key, completed: !done })}
+                        className={`mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-md border text-xs ${done ? "border-growth bg-growth text-ivory" : "border-navy/30"}`}
+                      >
+                        {done && "✓"}
+                      </button>
+                      <div>
+                        <div className="text-xs uppercase tracking-wider text-navy/50">{dict.common.step} {i + 1}</div>
+                        <div className={`font-semibold ${done ? "line-through text-navy/50" : ""}`}>{s.title}</div>
+                        <p className="mt-1 text-sm text-navy/70">{s.desc}</p>
+                      </div>
+                    </div>
                   </div>
-                </li>
+                </div>
               );
             })}
-          </ol>
+          </div>
         </section>
 
-        <div className="mt-6 flex flex-wrap justify-between gap-2">
-          <Link to="/mentor" className="rounded-full border border-navy/15 px-5 py-2.5 text-sm">{dict.apply.askMentor}</Link>
-          <Link to="/opportunities" className="rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-ivory">{dict.apply.exploreMore}</Link>
-        </div>
+        {match.reasons.length > 0 && (
+          <section className="mt-10 rounded-3xl border border-navy/10 bg-white p-6">
+            <h2 className="font-display text-lg">{dict.apply.whyFits}</h2>
+            <ul className="mt-2 space-y-1 text-sm text-navy/75">
+              {match.reasons.map((r, i) => <li key={i}>• {r}</li>)}
+            </ul>
+          </section>
+        )}
       </main>
       <Footer />
     </div>
@@ -167,9 +203,9 @@ function ApplyGuide() {
 
 function InfoTile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white/10 p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-ivory/60">{label}</div>
-      <div className="mt-1 text-sm">{children}</div>
+    <div className="rounded-2xl bg-white/10 p-3">
+      <div className="text-[11px] uppercase tracking-wider text-ivory/60">{label}</div>
+      <div className="mt-1 text-sm font-semibold">{children}</div>
     </div>
   );
 }

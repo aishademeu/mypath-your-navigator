@@ -5,12 +5,13 @@ import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
-type Search = { mode?: "signup" | "login" };
+type Search = { mode?: "signup" | "login"; role?: "student" | "parent" };
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
   validateSearch: (s: Record<string, unknown>): Search => ({
     mode: s.mode === "signup" ? "signup" : "login",
+    role: s.role === "parent" ? "parent" : "student",
   }),
   head: () => ({
     meta: [
@@ -23,15 +24,16 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { mode } = Route.useSearch();
+  const { mode, role: initialRole } = Route.useSearch();
   const isSignup = mode === "signup";
   const navigate = useNavigate();
-  const { dict } = useI18n();
+  const { dict, lang } = useI18n();
+  const [role, setRole] = useState<"student" | "parent">(initialRole || "student");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
 
-  const signupSchema = z.object({
+  const studentSignupSchema = z.object({
     name: z.string().trim().min(2, dict.auth.errName).max(80),
     email: z.string().trim().email(dict.auth.errEmail).max(255),
     phone: z.string().trim().min(9, dict.auth.errPhone).max(25).regex(/^[+()\-\s\d]+$/, dict.auth.errPhone),
@@ -40,6 +42,15 @@ function AuthPage() {
     country: z.string().trim().min(2, dict.auth.errCountry).max(80),
     grade: z.string().trim().min(1).max(20),
   });
+
+  const parentSignupSchema = z.object({
+    name: z.string().trim().min(2, dict.auth.errName).max(80),
+    email: z.string().trim().email(dict.auth.errEmail).max(255),
+    phone: z.string().trim().min(9, dict.auth.errPhone).max(25).regex(/^[+()\-\s\d]+$/, dict.auth.errPhone),
+    password: z.string().min(6, dict.auth.errPassword).max(100),
+    country: z.string().trim().min(2, dict.auth.errCountry).max(80),
+  });
+
   const loginSchema = z.object({
     email: z.string().trim().email(dict.auth.errEmail),
     password: z.string().min(6, dict.auth.errPassword),
@@ -47,40 +58,80 @@ function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true); setErrors({}); setBanner(null);
+    setBusy(true);
+    setErrors({});
+    setBanner(null);
     const fd = new FormData(e.currentTarget);
     const data = Object.fromEntries(fd);
+
     try {
       if (isSignup) {
-        const r = signupSchema.safeParse(data);
-        if (!r.success) {
-          const errs: Record<string, string> = {};
-          r.error.issues.forEach((i) => (errs[i.path[0] as string] = i.message));
-          setErrors(errs);
-          return;
-        }
-        const { error, data: authData } = await supabase.auth.signUp({
-          email: r.data.email,
-          password: r.data.password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { name: r.data.name, phone: r.data.phone } },
-        });
-        if (error) throw error;
-        if (authData.user) {
-          await supabase.from("profiles").update({
-            name: r.data.name, age: r.data.age, country: r.data.country,
-            grade: r.data.grade, email: r.data.email, phone: r.data.phone,
-          }).eq("id", authData.user.id);
-        }
-        if (!authData.session) {
-          // Fallback: auto-confirm is on, but sign in explicitly if no session came back.
-          const { error: signInErr } = await supabase.auth.signInWithPassword({
+        if (role === "parent") {
+          const r = parentSignupSchema.safeParse(data);
+          if (!r.success) {
+            const errs: Record<string, string> = {};
+            r.error.issues.forEach((i) => (errs[i.path[0] as string] = i.message));
+            setErrors(errs);
+            return;
+          }
+
+          const { error, data: authData } = await supabase.auth.signUp({
             email: r.data.email,
             password: r.data.password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/parent`,
+              data: { name: r.data.name, phone: r.data.phone, role: "parent" },
+            },
           });
-          if (signInErr) throw signInErr;
+          if (error) throw error;
+
+          if (authData.user) {
+            await (supabase as any).from("profiles").update({
+              name: r.data.name,
+              email: r.data.email,
+              phone: r.data.phone,
+              country: r.data.country,
+              role: "parent",
+            }).eq("id", authData.user.id);
+          }
+
+          navigate({ to: "/parent" as any });
+        } else {
+          // Student signup
+          const r = studentSignupSchema.safeParse(data);
+          if (!r.success) {
+            const errs: Record<string, string> = {};
+            r.error.issues.forEach((i) => (errs[i.path[0] as string] = i.message));
+            setErrors(errs);
+            return;
+          }
+
+          const { error, data: authData } = await supabase.auth.signUp({
+            email: r.data.email,
+            password: r.data.password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/dashboard`,
+              data: { name: r.data.name, phone: r.data.phone, role: "student" },
+            },
+          });
+          if (error) throw error;
+
+          if (authData.user) {
+            await (supabase as any).from("profiles").update({
+              name: r.data.name,
+              age: r.data.age,
+              country: r.data.country,
+              grade: r.data.grade,
+              email: r.data.email,
+              phone: r.data.phone,
+              role: "student",
+            }).eq("id", authData.user.id);
+          }
+
+          navigate({ to: "/onboarding" });
         }
-        navigate({ to: "/onboarding" });
       } else {
+        // Login
         const r = loginSchema.safeParse(data);
         if (!r.success) {
           const errs: Record<string, string> = {};
@@ -88,13 +139,37 @@ function AuthPage() {
           setErrors(errs);
           return;
         }
-        const { error } = await supabase.auth.signInWithPassword({ email: r.data.email, password: r.data.password });
+
+        const { error, data: loginData } = await supabase.auth.signInWithPassword({
+          email: r.data.email,
+          password: r.data.password,
+        });
         if (error) throw error;
+
+        // Route appropriately based on user role
+        if (loginData.user) {
+          const { data: prof } = await (supabase as any)
+            .from("profiles")
+            .select("role")
+            .eq("id", loginData.user.id)
+            .maybeSingle();
+
+          if (prof?.role === "parent") {
+            navigate({ to: "/parent" as any });
+            return;
+          }
+          if (prof?.role === "admin") {
+            navigate({ to: "/admin" as any });
+            return;
+          }
+        }
         navigate({ to: "/dashboard" });
       }
     } catch (err: unknown) {
       setBanner(err instanceof Error ? err.message : dict.auth.somethingWrong);
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -124,6 +199,31 @@ function AuthPage() {
                 <>{dict.auth.newHere} <Link to="/auth" search={{ mode: "signup" }} className="font-medium text-navy underline">{dict.auth.createAccount}</Link></>
               )}
             </p>
+
+            {/* Role switch on signup */}
+            {isSignup && (
+              <div className="mt-4 flex rounded-2xl bg-navy/5 p-1">
+                <button
+                  type="button"
+                  onClick={() => setRole("student")}
+                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${
+                    role === "student" ? "bg-white text-navy shadow-sm" : "text-navy/60 hover:text-navy"
+                  }`}
+                >
+                  {lang === "ru" ? "Ученик (13–18 лет)" : lang === "kk" ? "Оқушы (13–18 жас)" : "Student (13–18)"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("parent")}
+                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${
+                    role === "parent" ? "bg-white text-navy shadow-sm" : "text-navy/60 hover:text-navy"
+                  }`}
+                >
+                  {lang === "ru" ? "Родитель" : lang === "kk" ? "Ата-ана" : "Parent"}
+                </button>
+              </div>
+            )}
+
             {banner && <div className="mt-4 rounded-xl bg-lavender/20 px-4 py-2 text-sm text-navy">{banner}</div>}
 
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -133,7 +233,7 @@ function AuthPage() {
                 <Field name="phone" label={dict.auth.phone} type="tel" error={errors.phone} placeholder="+7 775 229 66 31" hint={dict.auth.phoneHint} />
               )}
               <Field name="password" label={dict.auth.password} type="password" error={errors.password} />
-              {isSignup && (
+              {isSignup && role === "student" && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <Field name="age" label={dict.auth.age} type="number" error={errors.age} />
@@ -141,6 +241,9 @@ function AuthPage() {
                   </div>
                   <Field name="country" label={dict.auth.country} error={errors.country} />
                 </>
+              )}
+              {isSignup && role === "parent" && (
+                <Field name="country" label={dict.auth.country} error={errors.country} />
               )}
               <button disabled={busy} className="mt-2 w-full rounded-full bg-navy py-3.5 text-sm font-semibold text-ivory hover:opacity-90 disabled:opacity-60">
                 {busy ? dict.common.working : isSignup ? dict.auth.submitSignup : dict.auth.submitLogin}

@@ -82,8 +82,8 @@ def extract_opportunity_from_text(post_text: str) -> Optional[ExtractedOpportuni
         print("[AI] Warning: GEMINI_API_KEY is not set!")
         return None
 
-    # Call Gemini REST API directly for maximum reliability
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
+    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
     
     prompt = f"{SYSTEM_PROMPT}\n\nTelegram Post Text:\n```\n{post_text}\n```\n\nOutput JSON matching the schema."
     

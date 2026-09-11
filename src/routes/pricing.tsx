@@ -1,16 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { usePro } from "@/lib/pro";
 import { useI18n } from "@/lib/i18n";
 import { useSession } from "@/lib/supabase-hooks";
+import { submitPaymentFn } from "@/lib/server-functions";
 
 /** Monthly Pro price. Single source of truth — never hardcode in markup. */
 export const PRO_PRICE_KZT = 5000;
-
-const CONTACT_MESSAGE = "Здравствуйте! Хочу оформить MyPath Pro 🙌";
-const TELEGRAM_URL = `https://t.me/aishademeu2405?text=${encodeURIComponent(CONTACT_MESSAGE)}`;
-const WHATSAPP_URL = `https://wa.me/77752296631?text=${encodeURIComponent(CONTACT_MESSAGE)}`;
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
@@ -20,23 +18,46 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Browsing opportunities is always free. MyPath Pro adds 4–5 personally matched opportunities every month, deadline reminders, a portfolio roadmap and direct support.",
+          "Browsing opportunities is always free. MyPath Pro adds deeper adaptive interview, career hypotheses, priority guidance, and direct AI mentor usage.",
       },
-      { property: "og:title", content: "MyPath Pro — Personal guidance, every month" },
-      {
-        property: "og:description",
-        content: "Hand-picked opportunities, deadline reminders and a portfolio roadmap built around you.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
 
 function PricingPage() {
-  const { dict } = useI18n();
+  const { dict, lang } = useI18n();
   const { isPro } = usePro();
   const { user } = useSession();
+
+  const [manualOpen, setManualOpen] = useState(false);
+  const [receiptNote, setReceiptNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedStatus, setSubmittedStatus] = useState<string | null>(null);
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!receiptNote.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await submitPaymentFn({ note: receiptNote.trim() });
+      if (res?.success) {
+        setSubmittedStatus(
+          lang === "ru"
+            ? "Ваш платёж отправлен на проверку администратором. Статус: В обработке."
+            : lang === "kk"
+            ? "Төлеміңіз әкімші тексеруіне жіберілді. Мәртебесі: Тексерілуде."
+            : "Your payment has been submitted for administrator verification. Status: Pending."
+        );
+        setReceiptNote("");
+      } else {
+        setSubmittedStatus("Error: " + (res?.error || "Submission failed"));
+      }
+    } catch (err: any) {
+      setSubmittedStatus("Error: " + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen pb-24 md:pb-0 gradient-hero">
@@ -81,17 +102,9 @@ function PricingPage() {
             </div>
           </div>
 
-          {/* Pro — glowing gradient border on hover */}
+          {/* Pro */}
           <div className="group relative animate-fade-up rounded-[2rem] p-[1.5px] transition-shadow duration-300 hover:shadow-[0_28px_70px_-24px_color-mix(in_oklab,var(--color-lavender)_55%,transparent)]">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-[2rem] bg-[linear-gradient(120deg,var(--color-gold),var(--color-lavender),var(--color-growth),var(--color-gold))] opacity-0 blur-[6px] transition-opacity duration-300 group-hover:opacity-70 group-hover:animate-pulse-glow"
-            />
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-[2rem] bg-[linear-gradient(120deg,var(--color-gold),var(--color-lavender),var(--color-growth))] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            />
-            <div className="relative flex h-full flex-col overflow-hidden rounded-[2rem] bg-gradient-to-br from-navy via-[#1a2e5c] to-[#22417a] p-7 text-ivory transition-transform duration-300 group-hover:-translate-y-1 md:p-8">
+            <div className="relative flex h-full flex-col overflow-hidden rounded-[2rem] bg-gradient-to-br from-navy via-[#1a2e5c] to-[#22417a] p-7 text-ivory md:p-8">
               <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-lavender/30 blur-3xl" />
               <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-gold/20 blur-3xl" />
               <div className="relative flex h-full flex-col">
@@ -117,7 +130,8 @@ function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-auto pt-7">
+
+                <div className="mt-auto pt-7 space-y-3">
                   {isPro ? (
                     <button
                       disabled
@@ -127,26 +141,21 @@ function PricingPage() {
                     </button>
                   ) : (
                     <>
-                      <a
-                        href={TELEGRAM_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => {
+                          if (!user) {
+                            window.location.href = "/auth?mode=signup";
+                            return;
+                          }
+                          setManualOpen(true);
+                        }}
                         className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-gold to-lavender px-6 py-3 text-sm font-bold text-navy shadow-lg transition hover:opacity-95"
                       >
-                        {dict.pro.ctaTelegram} →
-                      </a>
-                      <div className="mt-2.5 text-center">
-                        <a
-                          href={WHATSAPP_URL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-ivory/70 underline decoration-ivory/30 underline-offset-4 hover:text-ivory"
-                        >
-                          {dict.pro.ctaWhatsapp}
-                        </a>
-                      </div>
-                      <p className="mt-3 text-center text-[11px] text-ivory/60">{dict.pro.contactHint}</p>
-                      <p className="mt-1 text-center text-[11px] text-ivory/50">· {dict.pro.contactNote} ·</p>
+                        {lang === "ru" ? "Оформить подписку (5,000 ₸)" : "Upgrade to Pro (5,000 KZT)"} →
+                      </button>
+                      <p className="text-center text-[11px] text-ivory/60">
+                        {lang === "ru" ? "Мгновенное подтверждение через Kaspi / Карту" : "Supported via Kaspi & Card"}
+                      </p>
                     </>
                   )}
                 </div>
@@ -155,25 +164,74 @@ function PricingPage() {
           </div>
         </section>
 
-        <section className="mt-10 rounded-[2rem] border border-navy/10 bg-white/60 p-6 text-center md:p-7">
-          <h3 className="font-display text-2xl">Everything in the opportunity library stays free</h3>
-          <p className="mx-auto mt-2 max-w-2xl text-sm text-navy/70">
-            Browse, save and prepare for every opportunity without paying anything. Pro exists only for students who
-            want a person and a plan alongside them.
-          </p>
-          <Link
-            to="/opportunities"
-            className="mt-4 inline-flex items-center justify-center rounded-full bg-navy px-6 py-3 text-sm font-semibold text-ivory"
-          >
-            Browse opportunities →
-          </Link>
-        </section>
+        {/* Manual Payment Modal */}
+        {manualOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4 backdrop-blur-sm" onClick={() => setManualOpen(false)}>
+            <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-3xl bg-white p-6 md:p-8 shadow-2xl">
+              <h3 className="font-display text-2xl text-navy">
+                {lang === "ru" ? "Оформление подписки MyPath Pro" : "MyPath Pro Activation"}
+              </h3>
+              <p className="mt-2 text-sm text-navy/70 leading-relaxed">
+                {lang === "ru"
+                  ? "Стоимость: 5,000 ₸ / месяц. Переведите 5,000 ₸ на Kaspi (+7 775 229 66 31, Айша Д.) и укажите имя отправителя или номер квитанции ниже. Администратор проверит перевод и активирует Pro."
+                  : "Price: 5,000 KZT / month. Transfer 5,000 KZT to Kaspi (+7 775 229 66 31, Aisha D.) and provide your sender name or receipt note below. An admin will verify and activate your Pro status."}
+              </p>
+
+              {submittedStatus ? (
+                <div className="mt-6 rounded-2xl bg-growth/15 p-4 text-xs font-semibold text-growth">
+                  {submittedStatus}
+                  <div className="mt-4">
+                    <button
+                      onClick={() => {
+                        setSubmittedStatus(null);
+                        setManualOpen(false);
+                      }}
+                      className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-ivory"
+                    >
+                      {dict.common.close}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleManualSubmit} className="mt-5 space-y-4">
+                  <label className="block">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-navy/60">
+                      {lang === "ru" ? "Имя отправителя / Номер перевода" : "Sender name / Transfer note"}
+                    </span>
+                    <input
+                      value={receiptNote}
+                      onChange={(e) => setReceiptNote(e.target.value)}
+                      placeholder="Например: Алишер К., перевод с Kaspi 19:30"
+                      className="mt-1.5 min-h-[44px] w-full rounded-xl border border-navy/20 bg-white p-3 text-sm outline-none focus:border-navy"
+                    />
+                  </label>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setManualOpen(false)}
+                      className="rounded-full border border-navy/15 px-4 py-2 text-sm text-navy/70"
+                    >
+                      {dict.common.cancel}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting || !receiptNote.trim()}
+                      className="rounded-full bg-navy px-6 py-2 text-sm font-semibold text-ivory hover:bg-navy/90 disabled:opacity-50"
+                    >
+                      {submitting ? "Submitting..." : lang === "ru" ? "Отправить на проверку" : "Submit for Verification"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
 
         <section className="mt-14 grid gap-5 md:grid-cols-3">
           {dict.pro.faq.map((q) => (
             <div key={q.q} className="rounded-3xl border border-navy/10 bg-white/60 p-5">
               <div className="font-semibold text-navy">{q.q}</div>
-              <p className="mt-1.5 text-sm text-navy/65">{q.a}</p>
+              <p className="mt-1.5 text-sm text-navy/65 leading-relaxed">{q.a}</p>
             </div>
           ))}
         </section>

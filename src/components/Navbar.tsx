@@ -15,10 +15,12 @@ export function Navbar() {
   const [langOpen, setLangOpen] = useState(false);
 
   const nav = [
-    { to: "/opportunities" as const, label: dict.nav.opportunities },
-    { to: "/dashboard" as const, label: dict.nav.dashboard },
-    { to: "/profile" as const, label: dict.nav.profile },
-    { to: "/mentor" as const, label: dict.nav.mentor },
+    { to: "/opportunities" as any, label: dict.nav.opportunities },
+    { to: "/dashboard" as any, label: dict.nav.dashboard },
+    { to: "/profile" as any, label: dict.nav.profile },
+    { to: "/mentor" as any, label: dict.nav.mentor },
+    ...(profile?.role === "parent" ? [{ to: "/parent" as any, label: lang === "ru" ? "Родитель" : lang === "kk" ? "Ата-ана" : "Parent" }] : []),
+    ...(profile?.role === "admin" ? [{ to: "/admin" as any, label: "Admin" }] : []),
   ];
 
   const firstName = (profile?.name ?? user?.email?.split("@")[0] ?? "").split(" ")[0];
