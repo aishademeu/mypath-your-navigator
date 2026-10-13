@@ -47,6 +47,7 @@ const OpportunityCard = memo(function OpportunityCard({
 }: CardProps) {
   const { dict } = useI18n();
   const { user } = useSession();
+  const addApplication = useAddApplication(user?.id);
   const urgent = days <= 7;
   const countdown = days <= 0 ? dict.opportunities.lastDay : dict.opportunities.daysLeft.replace("{n}", String(days));
 
@@ -127,36 +128,38 @@ const OpportunityCard = memo(function OpportunityCard({
             onClick={() => onView(o)}
             className="min-h-[44px] flex-1 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-ivory transition hover:bg-navy/90 active:scale-[0.98]"
           >
-            {dict.dashboard.view}ыыы
+            {dict.dashboard.view}
           </button>
-         {hydrated && (
-  <div className="flex gap-2">
-    {/* Кнопка «Save» (оставляем без изменений) */}
-    <button
-      onClick={() => onSave(o)}
-      title={saved ? "Saved" : "Save opportunity"}
-      className={`min-h-[44px] min-w-[44px] rounded-full border border-navy/15 px-3 py-2 text-base transition hover:border-navy/40 active:scale-[0.98] ${
-        saved ? "bg-gold/40 text-navy" : "bg-white text-navy/60"
-      }`}
-    >
-      {saved ? "★" : "☆"}
-    </button>
+          {hydrated && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => onSave(o)}
+                title={saved ? "Saved" : "Save opportunity"}
+                className={`min-h-[44px] min-w-[44px] rounded-full border border-navy/15 px-3 py-2 text-base transition hover:border-navy/40 active:scale-[0.98] ${
+                  saved ? "bg-gold/40 text-navy" : "bg-white text-navy/60"
+                }`}
+              >
+                {saved ? "★" : "☆"}
+              </button>
 
-    {/* Новая кнопка «Add to My Plan» */}
-    <button
-      onClick={async (e) => {
-        e.stopPropagation();               // не закрывать карточку
-        await useAddApplication(user?.id).mutateAsync({
-          opportunityId: o.id,
-          status: "saved",                 // статус «saved», в деталях будет «in_progress»
-        });
-      }}
-      className="min-h-[44px] rounded-full bg-clay-deep px-3 py-2 text-xs font-medium text-ivory hover:opacity-90"
-    >
-      Add to My Plan
-    </button>
-  </div>
-)}
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (!user) {
+                    onSave(o);
+                    return;
+                  }
+                  await addApplication.mutateAsync({
+                    opportunityId: o.id,
+                    status: "saved",
+                  });
+                }}
+                className="min-h-[44px] rounded-full bg-clay-deep px-3 py-2 text-xs font-medium text-ivory transition hover:opacity-90 active:scale-[0.98]"
+              >
+                {dict.opportunities.addToPlan || "Add to My Plan"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
