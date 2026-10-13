@@ -39,7 +39,7 @@ function PricingPage() {
     if (!receiptNote.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const res = await submitPaymentFn({ note: receiptNote.trim() });
+      const res = await (submitPaymentFn as any)({ data: { note: receiptNote.trim() } });
       if (res?.success) {
         setSubmittedStatus(
           lang === "ru"

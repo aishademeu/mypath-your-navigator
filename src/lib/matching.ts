@@ -117,7 +117,7 @@ export function rankOpportunities(all: Opportunity[], ctx: ProfileContext) {
     });
 }
 
-export type ApplyStep = { key: string; title: string; description: string };
+export type ApplyStep = { key: string; title: string; description: string; desc?: string };
 
 export function applyGuideFor(opp: Opportunity): ApplyStep[] {
   const base: ApplyStep[] = [

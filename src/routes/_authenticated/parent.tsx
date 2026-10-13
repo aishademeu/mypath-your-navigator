@@ -28,7 +28,7 @@ function ParentPortalPage() {
     setLinking(true);
     setErrorMsg(null);
     try {
-      const res = await linkStudentFn({ inviteCode: inviteCode.trim() });
+      const res = await (linkStudentFn as any)({ data: { inviteCode: inviteCode.trim() } });
       if (res?.success) {
         setInviteCode("");
         await refetchLinks();

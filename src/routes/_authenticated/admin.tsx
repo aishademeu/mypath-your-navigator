@@ -94,7 +94,7 @@ function AdminPortalPage() {
 
   const handleModerateOpp = async (id: string, status: "approved" | "rejected" | "expired") => {
     try {
-      await moderateOpportunityFn({ id, status });
+      await (moderateOpportunityFn as any)({ data: { id, status } });
       await refetchOpps();
     } catch (err) {
       console.error(err);
@@ -103,7 +103,7 @@ function AdminPortalPage() {
 
   const handleVerifyPayment = async (paymentId: string, decision: "approved" | "rejected") => {
     try {
-      await adminVerifyPaymentFn({ paymentId, decision });
+      await (adminVerifyPaymentFn as any)({ data: { paymentId, decision } });
       await refetchPayments();
     } catch (err) {
       console.error(err);
@@ -115,10 +115,12 @@ function AdminPortalPage() {
     if (!ingestText.trim()) return;
     setIngestStatus("Processing AI extraction & deduplication...");
     try {
-      const res = await ingestTelegramPostFn({
-        channel_username: ingestChannel,
-        message_id: Math.floor(Date.now() / 1000),
-        text: ingestText,
+      const res = await (ingestTelegramPostFn as any)({
+        data: {
+          channel_username: ingestChannel,
+          message_id: Math.floor(Date.now() / 1000),
+          text: ingestText,
+        },
       });
       setIngestStatus(`Status: ${res.status}`);
       setIngestText("");

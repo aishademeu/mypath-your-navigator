@@ -47,16 +47,19 @@ function useSafeI18n() {
   try { return useI18n(); } catch { return { dict: en, lang: "en" as const, setLang: () => {}, t: () => "" as never }; }
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+import type { ErrorComponentProps } from "@tanstack/react-router";
+
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   const { dict } = useSafeI18n();
-  useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
+  const err = error instanceof Error ? error : new Error(String(error));
+  useEffect(() => { reportLovableError(err, { boundary: "tanstack_root_error_component" }); }, [err]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold">{dict.common.somethingWrong}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{err.message}</p>
         <div className="mt-6 flex justify-center gap-2">
           <button onClick={() => { router.invalidate(); reset(); }} className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">{dict.common.tryAgain}</button>
           <a href="/" className="rounded-full border border-input bg-background px-5 py-2.5 text-sm font-medium">{dict.common.home}</a>

@@ -42,9 +42,11 @@ function MentorPage() {
     setThinking(true);
 
     try {
-      await mentorChatFn({
-        message: userMessage,
-        lang,
+      await (mentorChatFn as any)({
+        data: {
+          message: userMessage,
+          lang,
+        },
       });
       // Invalidate chat query to fetch the newly appended message & assistant response
       await qc.invalidateQueries({ queryKey: ["chat", user?.id] });

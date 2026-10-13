@@ -505,11 +505,13 @@ function ItemDialog({
     setPolishing(true);
     setMissingInfoPrompt(null);
     try {
-      const res = await polishPortfolioFn({
-        title,
-        section: initial.section,
-        rawDescription: description,
-        lang,
+      const res = await (polishPortfolioFn as any)({
+        data: {
+          title,
+          section: initial.section,
+          rawDescription: description,
+          lang,
+        },
       });
       if (res.polishedTitle) setTitle(res.polishedTitle);
       if (res.polishedDescription) setDescription(res.polishedDescription);

@@ -31,6 +31,7 @@ export interface AdaptiveInterviewStepResult {
 }
 
 export interface CareerHypothesis {
+  id?: string;
   direction_name: string;
   why_it_appeared: string;
   evidence: string[];

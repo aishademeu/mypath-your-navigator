@@ -118,6 +118,8 @@ export type PortfolioRow = {
   title: string;
   description: string | null;
   date: string | null;
+  organization?: string | null;
+  link?: string | null;
   created_at: string;
 };
 
@@ -137,9 +139,9 @@ export function usePortfolio(user: User | null) {
 export function useAddPortfolio(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { section: string; title: string; description?: string; date?: string | null }) => {
+    mutationFn: async (input: { section: string; title: string; description?: string; date?: string | null; organization?: string; link?: string }) => {
       if (!userId) throw new Error("No user");
-      const { error } = await supabase.from("portfolio_items").insert({ user_id: userId, ...input });
+      const { error } = await (supabase as any).from("portfolio_items").insert({ user_id: userId, ...input });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["portfolio", userId] }),
@@ -149,8 +151,10 @@ export function useAddPortfolio(userId: string | undefined) {
 export function useUpdatePortfolio(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<PortfolioRow> }) => {
-      const { error } = await supabase.from("portfolio_items").update(patch).eq("id", id);
+    mutationFn: async (params: { id: string; patch?: Partial<PortfolioRow>; [key: string]: any }) => {
+      const { id, patch, ...rest } = params;
+      const updateData = patch || rest;
+      const { error } = await (supabase as any).from("portfolio_items").update(updateData).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["portfolio", userId] }),
@@ -167,6 +171,10 @@ export function useRemovePortfolio(userId: string | undefined) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["portfolio", userId] }),
   });
 }
+
+export const useAddPortfolioItem = useAddPortfolio;
+export const useUpdatePortfolioItem = useUpdatePortfolio;
+export const useDeletePortfolioItem = useRemovePortfolio;
 
 // ---- Saved opportunities ----
 export function useSavedOpportunities(user: User | null) {
@@ -416,6 +424,129 @@ export function useParentStudentLinks(userId: string | undefined) {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
+    },
+  });
+}
+
+// ---- Application Tasks ----
+export type ApplicationTaskRow = {
+  id: string;
+  user_id: string;
+  opportunity_id: string;
+  title: string;
+  completed: boolean;
+  due_date: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export function useApplicationTasks(userId: string | undefined, opportunityId?: string) {
+  return useQuery({
+    queryKey: ["app-tasks", userId, opportunityId ?? "all"],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) return [] as ApplicationTaskRow[];
+      let q = (supabase as any)
+        .from("application_tasks")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      if (opportunityId) q = q.eq("opportunity_id", opportunityId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as ApplicationTaskRow[];
+    },
+  });
+}
+
+export function useAddApplicationTask(userId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { opportunity_id: string; title: string; due_date?: string | null; notes?: string | null }) => {
+      if (!userId) throw new Error("No user");
+      const { error } = await (supabase as any).from("application_tasks").insert({ user_id: userId, ...input });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["app-tasks", userId] }),
+  });
+}
+
+export function useToggleApplicationTask(userId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
+      const { error } = await (supabase as any).from("application_tasks").update({ completed, updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["app-tasks", userId] }),
+  });
+}
+
+export function useDeleteApplicationTask(userId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any).from("application_tasks").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["app-tasks", userId] }),
+  });
+}
+
+// ---- Full Applications (saved_opportunities with all lifecycle statuses) ----
+export type ApplicationRow = {
+  id: string;
+  user_id: string;
+  opportunity_id: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+};
+
+export function useApplications(user: User | null) {
+  return useQuery({
+    queryKey: ["applications", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) return [] as ApplicationRow[];
+      const { data, error } = await (supabase as any).from("saved_opportunities").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as ApplicationRow[];
+    },
+  });
+}
+
+export function useUpdateApplicationStatus(userId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ opportunityId, status, notes }: { opportunityId: string; status: string; notes?: string }) => {
+      if (!userId) throw new Error("No user");
+      const patch: Record<string, string> = { status };
+      if (notes !== undefined) patch.notes = notes;
+      const { error } = await (supabase as any).from("saved_opportunities").update(patch).eq("user_id", userId).eq("opportunity_id", opportunityId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["applications", userId] });
+      qc.invalidateQueries({ queryKey: ["saved-opps", userId] });
+    },
+  });
+}
+
+export function useAddApplication(userId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ opportunityId, status = "saved" }: { opportunityId: string; status?: string }) => {
+      if (!userId) throw new Error("No user");
+      const { error } = await (supabase as any)
+        .from("saved_opportunities")
+        .upsert({ user_id: userId, opportunity_id: opportunityId, status }, { onConflict: "user_id,opportunity_id" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["applications", userId] });
+      qc.invalidateQueries({ queryKey: ["saved-opps", userId] });
     },
   });
 }

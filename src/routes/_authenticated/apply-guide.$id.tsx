@@ -56,11 +56,11 @@ export const Route = createFileRoute("/_authenticated/apply-guide/$id")({
     if (!opp) throw notFound();
     return { opp };
   },
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: any }) => (
     <div className="flex min-h-screen items-center justify-center p-6 text-center">
       <div>
         <h1 className="font-display text-2xl">Something went off-path</h1>
-        <p className="mt-2 text-sm text-navy/60">{error.message}</p>
+        <p className="mt-2 text-sm text-navy/60">{error?.message || String(error)}</p>
         <Link to="/opportunities" className="mt-4 inline-block rounded-full bg-navy px-4 py-2 text-sm text-ivory">Back</Link>
       </div>
     </div>

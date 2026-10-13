@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
@@ -7,296 +7,311 @@ import {
   useProfile,
   useOnboarding,
   usePortfolio,
-  useChat,
-  useCareerHypotheses,
-  useMyPathAction,
-  useCompleteMyPathAction,
+  useApplications,
+  useApplicationTasks,
 } from "@/lib/supabase-hooks";
 import { openOpportunities, type Category } from "@/lib/opportunities";
 import { rankOpportunities } from "@/lib/matching";
 import { formatDate } from "@/lib/format";
-import { useI18n } from "@/lib/i18n";
-import { getMyPathActionFn } from "@/lib/server-functions";
+import { useOpportunities } from "@/lib/supabase-hooks";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
   head: () => ({
     meta: [
-      { title: "MyPath — Dashboard" },
-      { name: "description", content: "Your personal MyPath dashboard: direction, growth, and matched opportunities." },
+      { title: "MyPath — Home" },
+      { name: "description", content: "Your MyPath dashboard: upcoming deadlines, applications in progress, and recommended opportunities." },
     ],
   }),
 });
+
+const STATUS_LABELS: Record<string, string> = {
+  saved: "Saved",
+  planning: "Planning",
+  in_progress: "In Progress",
+  submitted: "Submitted",
+  accepted: "Accepted",
+  rejected: "Not accepted",
+  archived: "Archived",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  saved: "bg-navy/8 text-navy",
+  planning: "bg-gold/40 text-navy",
+  in_progress: "bg-lavender/40 text-navy",
+  submitted: "bg-sage text-navy",
+  accepted: "bg-growth/25 text-navy",
+  rejected: "bg-destructive/10 text-destructive",
+  archived: "bg-navy/5 text-navy/50",
+};
+
+function greeting(name: string): string {
+  const h = new Date().getHours();
+  if (h < 12) return `Good morning, ${name}.`;
+  if (h < 17) return `Good afternoon, ${name}.`;
+  return `Good evening, ${name}.`;
+}
 
 function Dashboard() {
   const { user } = useSession();
   const { data: profile } = useProfile(user);
   const { data: onboarding } = useOnboarding(user);
   const { data: portfolio } = usePortfolio(user);
-  const { data: chat } = useChat(user);
-  const { data: hypotheses } = useCareerHypotheses(user?.id);
-  const { data: currentAction, refetch: refetchAction } = useMyPathAction(user?.id);
-  const completeAction = useCompleteMyPathAction(user?.id);
-  const { dict, lang } = useI18n();
+  const { data: applications } = useApplications(user);
+  const { data: allTasks } = useApplicationTasks(user?.id);
+  const { data: rawOpps } = useOpportunities();
 
-  const [generatingAction, setGeneratingAction] = useState(false);
+  const firstName = (profile?.name ?? user?.email?.split("@")[0] ?? "there").split(" ")[0];
+  const done = !!onboarding?.completed_at;
 
-  // Trigger My Path Engine next action if none exists
-  useEffect(() => {
-    if (user && !currentAction && !generatingAction) {
-      setGeneratingAction(true);
-      getMyPathActionFn({ lang })
-        .then(() => refetchAction())
-        .catch((err) => console.error("Failed to compute next action:", err))
-        .finally(() => setGeneratingAction(false));
-    }
-  }, [user, currentAction, generatingAction, lang, refetchAction]);
+  const ctx = useMemo(() => ({
+    age: profile?.age ?? null,
+    grade: profile?.grade ? parseInt(profile.grade, 10) : null,
+    country: profile?.country ?? null,
+    interests: onboarding?.interests ?? [],
+    problems: onboarding?.problems ?? [],
+    goals: onboarding?.goals ?? [],
+  }), [profile, onboarding]);
 
-  const ctx = useMemo(
-    () => ({
-      age: profile?.age ?? null,
-      grade: profile?.grade ? parseInt(profile.grade, 10) : null,
-      country: profile?.country ?? null,
-      interests: onboarding?.interests ?? [],
-      problems: onboarding?.problems ?? [],
-      goals: onboarding?.goals ?? [],
-    }),
-    [profile, onboarding]
+  const recs = useMemo(() =>
+    rankOpportunities(openOpportunities(rawOpps), ctx).slice(0, 6),
+    [ctx, rawOpps]
   );
 
-  const recs = useMemo(() => rankOpportunities(openOpportunities(), ctx).slice(0, 6), [ctx]);
+  // Compute next steps from real data
+  const savedNotApplied = (applications ?? []).filter(
+    (a) => a.status === "saved"
+  ).length;
+  const inProgressApps = (applications ?? []).filter(
+    (a) => ["planning", "in_progress"].includes(a.status)
+  );
+  const portfolioItemCount = (portfolio ?? []).length;
+  const portfolioSections = new Set((portfolio ?? []).map((p) => p.section));
+  const missingPortfolioSections = ["achievements", "projects", "leadership"].filter(
+    (s) => !portfolioSections.has(s)
+  );
+  const overdueTasks = (allTasks ?? []).filter((t) => {
+    if (t.completed || !t.due_date) return false;
+    return new Date(t.due_date) < new Date();
+  });
 
-  const done = !!onboarding?.completed_at;
-  const firstName = (profile?.name ?? user?.email?.split("@")[0] ?? "friend").split(" ")[0];
+  const nextSteps: string[] = [];
+  if (!done) nextSteps.push("Complete your profile setup");
+  if (savedNotApplied > 0) nextSteps.push(`${savedNotApplied} saved opportunit${savedNotApplied === 1 ? "y" : "ies"} — start an application`);
+  if (overdueTasks.length > 0) nextSteps.push(`${overdueTasks.length} task${overdueTasks.length === 1 ? "" : "s"} past due date`);
+  if (missingPortfolioSections.length > 0 && portfolioItemCount < 5)
+    nextSteps.push(`Add ${missingPortfolioSections[0]} to your portfolio`);
+  if (nextSteps.length === 0) nextSteps.push("You're all caught up. Browse opportunities to find your next application.");
 
-  const leadingHypothesis = (hypotheses && hypotheses.length > 0) ? hypotheses[0] : null;
+  // Upcoming deadlines from saved opportunities
+  const savedOppIds = new Set((applications ?? []).map((a) => a.opportunity_id));
+  const upcomingDeadlines = (openOpportunities(rawOpps) ?? [])
+    .filter((o) => savedOppIds.has(o.id))
+    .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
+    .slice(0, 5);
 
-  const directionTitle = leadingHypothesis
-    ? leadingHypothesis.direction_name
-    : (onboarding?.interests ?? []).length
-    ? `${onboarding!.interests[0]} & Innovation`
-    : dict.dashboard.formingDirection;
-
-  const handleCompleteAction = async () => {
-    if (!currentAction) return;
-    await completeAction.mutateAsync(currentAction.id);
-    setGeneratingAction(true);
-    try {
-      await getMyPathActionFn({ lang });
-      refetchAction();
-    } finally {
-      setGeneratingAction(false);
-    }
+  const portfolioSectionCounts = {
+    projects: (portfolio ?? []).filter((p) => p.section === "projects").length,
+    achievements: (portfolio ?? []).filter((p) => p.section === "achievements").length,
+    leadership: (portfolio ?? []).filter((p) => p.section === "leadership").length,
+    skills: (portfolio ?? []).filter((p) => p.section === "skills").length,
   };
+  const maxPortfolioItems = 12; // rough "complete" threshold
+  const portfolioProgress = Math.min(100, Math.round((portfolioItemCount / maxPortfolioItems) * 100));
 
   return (
     <div className="min-h-screen pb-24 md:pb-0">
       <Navbar />
       <main className="mx-auto max-w-7xl px-5 py-8 md:px-6 md:py-10">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 md:flex md:flex-wrap md:justify-between md:gap-4">
-          <div className="min-w-0">
-            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">{dict.dashboard.kicker}</div>
-            <h1 className="mt-2 truncate font-display text-3xl md:text-5xl">
-              {dict.dashboard.welcome.replace("{name}", firstName)}
-            </h1>
-            <p className="mt-2 text-sm text-navy/60 md:text-base">{dict.dashboard.todaySub}</p>
+        {/* Header */}
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl md:text-5xl">{greeting(firstName)}</h1>
+            <p className="mt-1.5 text-sm text-navy/60 md:text-base">Here is what needs your attention.</p>
           </div>
-          <div className="flex flex-none flex-wrap gap-2">
+          {!done && (
             <Link
-              to="/analyze"
-              className="rounded-full bg-gradient-to-r from-navy to-lavender px-4 py-2.5 text-xs font-semibold text-ivory md:px-5 md:text-sm shadow"
+              to="/onboarding"
+              className="rounded-xl border border-navy/15 px-4 py-2 text-sm font-medium hover:bg-navy/5 transition"
             >
-              ✦ {dict.dashboard.analyze}
+              Complete profile setup →
             </Link>
-            {!done && (
+          )}
+        </div>
+
+        {/* TOP GRID: Next Steps + Upcoming Deadlines */}
+        <div className="mt-8 grid gap-5 lg:grid-cols-3">
+
+          {/* Next Steps */}
+          <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-sm">
+            <h2 className="font-semibold text-sm uppercase tracking-wider text-navy/50">Your next steps</h2>
+            <ul className="mt-4 space-y-2.5">
+              {nextSteps.map((step, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-navy">
+                  <span className="mt-0.5 h-4 w-4 flex-none rounded border border-navy/20 bg-white" />
+                  {step}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 flex gap-2 flex-wrap border-t border-navy/5 pt-4">
               <Link
-                to="/onboarding"
-                className="rounded-full border border-navy/15 px-4 py-2.5 text-xs font-medium md:px-5 md:text-sm"
+                to="/opportunities"
+                className="rounded-xl bg-navy px-4 py-2 text-xs font-semibold text-ivory hover:opacity-90"
               >
-                {dict.dashboard.completeProfile}
+                Browse opportunities
               </Link>
+              <Link
+                to="/my-plan"
+                className="rounded-xl border border-navy/15 px-4 py-2 text-xs font-medium hover:bg-navy/5"
+              >
+                My Plan →
+              </Link>
+            </div>
+          </div>
+
+          {/* Upcoming Deadlines */}
+          <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-sm lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-sm uppercase tracking-wider text-navy/50">Upcoming deadlines</h2>
+              <Link to="/my-plan" className="text-xs font-medium underline text-navy/60 hover:text-navy">
+                View all →
+              </Link>
+            </div>
+            {upcomingDeadlines.length === 0 ? (
+              <div className="mt-6 text-center py-6">
+                <p className="text-sm text-navy/50">No upcoming deadlines.</p>
+                <p className="mt-1 text-xs text-navy/40">Save opportunities to track their deadlines here.</p>
+                <Link
+                  to="/opportunities"
+                  className="mt-4 inline-block rounded-xl border border-navy/15 px-4 py-2 text-xs font-medium hover:bg-navy/5"
+                >
+                  Browse opportunities
+                </Link>
+              </div>
+            ) : (
+              <div className="mt-4 space-y-2">
+                {upcomingDeadlines.map((o) => {
+                  const daysLeft = Math.ceil((new Date(o.deadline).getTime() - Date.now()) / 86400000);
+                  const urgent = daysLeft <= 7;
+                  const app = (applications ?? []).find((a) => a.opportunity_id === o.id);
+                  return (
+                    <div key={o.id} className="flex items-center justify-between gap-3 rounded-xl border border-navy/8 bg-ivory/50 px-4 py-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-navy">{o.title}</div>
+                        <div className="text-xs text-navy/50">{o.org}</div>
+                      </div>
+                      <div className="flex flex-none items-center gap-2">
+                        {app && (
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_COLORS[app.status] ?? "bg-navy/5 text-navy"}`}>
+                            {STATUS_LABELS[app.status] ?? app.status}
+                          </span>
+                        )}
+                        <span className={`text-xs font-semibold ${urgent ? "text-destructive" : "text-navy/60"}`}>
+                          {daysLeft <= 0 ? "Today" : daysLeft === 1 ? "1 day" : `${daysLeft} days`}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
 
-        {/* TOP SECTION: My Path Single Priority Action & Working Direction */}
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {/* Working Direction Card */}
-          <div className="rounded-3xl border border-navy/10 bg-gradient-to-br from-navy to-[#1d3a72] p-6 text-ivory flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-widest text-ivory/60">
-                  {lang === "ru" ? "Текущая гипотеза пути" : lang === "kk" ? "Қазіргі жұмыс гипотезасы" : "Working Trajectory"}
-                </span>
-                <Link to="/analyze" className="text-xs text-gold underline hover:text-white">
-                  {lang === "ru" ? "Все гипотезы →" : "All Hypotheses →"}
-                </Link>
-              </div>
-              <div className="mt-3 font-display text-2xl leading-tight md:text-3xl text-balance">
-                {directionTitle}
-              </div>
-              {leadingHypothesis ? (
-                <p className="mt-3 text-xs text-ivory/80 leading-relaxed line-clamp-3">
-                  {leadingHypothesis.why_it_appeared}
-                </p>
-              ) : (
-                <p className="mt-3 text-xs text-ivory/70 leading-relaxed">
-                  {lang === "ru"
-                    ? "Пройди адаптивное интервью, чтобы сформировать 3–5 индивидуальных гипотез направления."
-                    : "Run the adaptive interview to synthesize 3–5 personalized direction hypotheses."}
-                </p>
-              )}
+        {/* Applications In Progress */}
+        {inProgressApps.length > 0 && (
+          <section className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl md:text-2xl">In progress</h2>
+              <Link to="/my-plan" className="text-sm font-medium underline text-navy/60 hover:text-navy">
+                View My Plan →
+              </Link>
             </div>
-
-            <div className="mt-6 border-t border-white/10 pt-4">
-              <div className="text-[11px] uppercase tracking-wider text-ivory/60 font-semibold">
-                {lang === "ru" ? "Базовые сильные стороны:" : "Key Strengths:"}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {(onboarding?.strengths ?? ["Curiosity", "Initiative"]).slice(0, 3).map((s) => (
-                  <span key={s} className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-ivory">
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* MY PATH ENGINE: The Single Primary Next Action */}
-          <div className="rounded-3xl border border-navy/10 bg-white p-6 lg:col-span-2 shadow-sm flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-growth/20 text-xs font-bold text-growth">
-                    1
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-widest text-navy/60">
-                    {lang === "ru" ? "Главное следующее действие (My Path Engine)" : lang === "kk" ? "Басты келесі қадам" : "Primary Next Action"}
-                  </span>
-                </div>
-                <span className="rounded-full bg-lavender/30 px-2.5 py-0.5 text-[10px] font-bold text-navy uppercase tracking-wider">
-                  Highest Leverage
-                </span>
-              </div>
-
-              {currentAction ? (
-                <div className="mt-4 space-y-3">
-                  <h2 className="font-display text-xl md:text-2xl text-navy leading-snug">
-                    {currentAction.action}
-                  </h2>
-                  <div className="rounded-2xl bg-ivory p-4 space-y-2 text-sm text-navy/80 leading-relaxed">
-                    <div>
-                      <b className="text-navy">{lang === "ru" ? "Почему это важно:" : "Why it matters:"}</b>{" "}
-                      {currentAction.why_it_matters}
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {inProgressApps.slice(0, 3).map((app) => {
+                const opp = (openOpportunities(rawOpps) ?? []).find((o) => o.id === app.opportunity_id);
+                const appTasks = (allTasks ?? []).filter((t) => t.opportunity_id === app.opportunity_id);
+                const doneTasks = appTasks.filter((t) => t.completed).length;
+                if (!opp) return null;
+                return (
+                  <Link
+                    key={app.id}
+                    to="/my-plan"
+                    className="block rounded-2xl border border-navy/10 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-navy">{opp.title}</div>
+                        <div className="text-xs text-navy/50 mt-0.5">{opp.org}</div>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold flex-none ${STATUS_COLORS[app.status] ?? ""}`}>
+                        {STATUS_LABELS[app.status] ?? app.status}
+                      </span>
                     </div>
-                    <div>
-                      <b className="text-navy">{lang === "ru" ? "Ожидаемый результат:" : "Expected outcome:"}</b>{" "}
-                      {currentAction.expected_outcome}
-                    </div>
-                    {currentAction.supporting_recommendation && (
-                      <div className="text-xs text-navy/60 pt-1 border-t border-navy/5">
-                        💡 <b>Tip:</b> {currentAction.supporting_recommendation}
+                    {appTasks.length > 0 && (
+                      <div className="mt-3 text-xs text-navy/60">
+                        {doneTasks}/{appTasks.length} tasks done
+                        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-navy/10">
+                          <div className="h-full rounded-full bg-growth transition-all" style={{ width: `${Math.round((doneTasks / appTasks.length) * 100)}%` }} />
+                        </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-6 py-6 text-center text-sm text-navy/60">
-                  <span className="animate-pulse">
-                    {lang === "ru" ? "Вычисляю ключевое следующее действие..." : "Computing your highest-leverage next action..."}
-                  </span>
-                </div>
-              )}
+                    <div className="mt-2 text-xs text-navy/50">
+                      Deadline: {formatDate(opp.deadline, "en")}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
+          </section>
+        )}
 
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-navy/5 pt-4">
-              <span className="text-xs text-navy/50">
-                {lang === "ru" ? "Одна главная задача вместо списка из 10 дел" : "One focal action instead of an overwhelming checklist"}
-              </span>
-              {currentAction && (
-                <button
-                  disabled={completeAction.isPending || generatingAction}
-                  onClick={handleCompleteAction}
-                  className="rounded-full bg-navy px-5 py-2 text-xs font-semibold text-ivory hover:bg-navy/90 transition shadow disabled:opacity-50"
-                >
-                  {completeAction.isPending ? "Updating..." : (lang === "ru" ? "✓ Завершить и обновить шаг" : "✓ Mark Done & Recalculate")}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* FOR YOU RECOMMENDATION SECTION: Qualitative, No Fake Match Percentages */}
-        <section className="mt-12 md:mt-14">
-          <div className="flex items-end justify-between">
+        {/* Recommended Opportunities */}
+        <section className="mt-10 md:mt-12">
+          <div className="flex items-end justify-between mb-5">
             <div>
-              <h2 className="font-display text-2xl md:text-3xl">{dict.dashboard.recommended}</h2>
-              <p className="mt-1 text-xs text-navy/60">
-                {lang === "ru"
-                  ? "Персонально подобранные возможности на основе твоей траектории и интересов."
-                  : "Curated opportunities grounded strictly in your verified profile and direction."}
-              </p>
+              <h2 className="font-display text-xl md:text-2xl">Recommended opportunities</h2>
+              <p className="mt-1 text-xs text-navy/60">Based on your grade, location, and interests.</p>
             </div>
-            <Link to="/opportunities" className="text-sm font-medium underline">
-              {dict.dashboard.browseAll}
+            <Link to="/opportunities" className="text-sm font-medium underline text-navy/60 hover:text-navy">
+              Browse all →
             </Link>
           </div>
 
-          <div className="mt-5 grid gap-4 md:mt-6 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
-            {recs.map(({ opp: o, eligible, reasons, qualitativeBadge }) => (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {recs.slice(0, 6).map(({ opp: o, eligible, reasons }) => (
               <div
                 key={o.id}
-                className="group flex flex-col justify-between rounded-3xl border border-navy/10 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-xl md:p-6"
+                className="flex flex-col justify-between rounded-2xl border border-navy/10 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="rounded-full bg-navy/5 px-3 py-1 text-[11px] font-medium text-navy/70">
-                      {dict.categories[o.category as Category] ?? o.category}
+                      {o.category as Category}
                     </span>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                        eligible
-                          ? "bg-growth/15 text-growth"
-                          : "bg-destructive/10 text-destructive"
-                      }`}
-                    >
-                      {eligible ? qualitativeBadge : dict.dashboard.checkEligibility}
-                    </span>
+                    {!eligible && (
+                      <span className="text-[10px] font-medium text-destructive/80">Check eligibility</span>
+                    )}
                   </div>
-
-                  <div className="mt-4 font-display text-lg leading-snug md:text-xl text-navy group-hover:text-growth transition">
-                    {o.title}
-                  </div>
-                  <div className="text-xs text-navy/50">{o.org}</div>
-
-                  <p className="mt-3 text-sm text-navy/70 line-clamp-3 leading-relaxed">
-                    {o.description}
-                  </p>
-
-                  <div className="mt-4 text-xs text-navy/60">
-                    {dict.dashboard.deadline} · {formatDate(o.deadline, lang)}
-                  </div>
-
+                  <div className="mt-3 font-semibold text-navy leading-snug">{o.title}</div>
+                  <div className="text-xs text-navy/50 mt-0.5">{o.org}</div>
+                  <p className="mt-2.5 text-xs text-navy/70 leading-relaxed line-clamp-2">{o.description}</p>
                   {reasons[0] && (
-                    <div className="mt-3 rounded-xl bg-lavender/20 px-3 py-2 text-xs text-navy/80">
-                      <b>{dict.dashboard.why}:</b> {reasons[0]}
+                    <div className="mt-2.5 rounded-xl bg-sage/80 px-3 py-1.5 text-xs text-navy/80">
+                      {reasons[0]}
                     </div>
                   )}
                 </div>
-
-                <div className="mt-5 flex gap-2 border-t border-navy/5 pt-4">
-                  <Link
-                    to="/opportunities"
-                    className="flex-1 rounded-full border border-navy/15 px-4 py-2 text-center text-sm font-medium hover:bg-navy/5"
-                  >
-                    {dict.dashboard.view}
-                  </Link>
+                <div className="mt-4 flex gap-2 border-t border-navy/5 pt-4">
+                  <div className="flex-1 text-xs text-navy/50 self-center">
+                    Due {formatDate(o.deadline, "en")}
+                  </div>
                   <Link
                     to="/apply-guide/$id"
                     params={{ id: o.id }}
-                    className="flex-1 rounded-full bg-navy px-4 py-2 text-center text-sm font-semibold text-ivory hover:bg-navy/90"
+                    className="rounded-xl bg-navy px-4 py-2 text-xs font-semibold text-ivory hover:opacity-90"
                   >
-                    {dict.dashboard.apply}
+                    View →
                   </Link>
                 </div>
               </div>
@@ -304,42 +319,70 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* BOTTOM SECTION: Portfolio Progress & AI Mentor Shortcut */}
-        <section className="mt-12 grid gap-5 md:mt-16 md:grid-cols-2">
-          <div className="rounded-3xl border border-navy/10 bg-white p-6 shadow-sm">
+        {/* Bottom: Portfolio + AI Mentor */}
+        <section className="mt-10 grid gap-5 md:mt-12 md:grid-cols-2">
+          {/* Portfolio */}
+          <div className="rounded-2xl border border-navy/10 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl">{dict.dashboard.myPortfolio}</h2>
-              <Link to="/profile" className="text-sm font-medium underline">
-                {dict.dashboard.editArrow}
+              <h2 className="font-display text-xl">Portfolio</h2>
+              <Link to="/portfolio" className="text-sm font-medium underline text-navy/60 hover:text-navy">
+                Edit →
               </Link>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              {(["projects", "achievements", "leadership", "skills"] as const).map((k) => {
-                const n = (portfolio ?? []).filter((x) => x.section === k).length;
-                return (
-                  <div key={k} className="rounded-2xl bg-ivory p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-navy/50">
-                      {dict.dashboard.portfolioSections[k]}
-                    </div>
-                    <div className="mt-1 font-display text-3xl text-navy">{n}</div>
-                  </div>
-                );
-              })}
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-xs text-navy/60 mb-1.5">
+                <span>Completeness</span>
+                <span className="font-semibold text-navy">{portfolioProgress}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-navy/10">
+                <div
+                  className="h-full rounded-full bg-growth transition-all"
+                  style={{ width: `${portfolioProgress}%` }}
+                />
+              </div>
             </div>
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
+              {Object.entries(portfolioSectionCounts).map(([k, n]) => (
+                <div key={k} className="rounded-xl bg-ivory p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-navy/50 capitalize">{k}</div>
+                  <div className="mt-0.5 font-display text-2xl text-navy">{n}</div>
+                </div>
+              ))}
+            </div>
+            <Link
+              to="/portfolio"
+              className="mt-4 block rounded-xl border border-navy/15 px-4 py-2.5 text-center text-sm font-medium hover:bg-navy/5 transition"
+            >
+              Go to Portfolio →
+            </Link>
           </div>
 
-          <div className="relative overflow-hidden rounded-3xl border border-navy/10 bg-gradient-to-br from-lavender/60 via-white to-gold/40 p-6 flex flex-col justify-between shadow-sm">
+          {/* AI Mentor */}
+          <div className="relative overflow-hidden rounded-2xl border border-navy/10 bg-navy p-5 shadow-sm text-ivory flex flex-col justify-between">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-navy/60">{dict.mentor.kicker}</div>
-              <div className="mt-2 font-display text-2xl text-navy">{dict.dashboard.mentorCardTitle}</div>
-              <p className="mt-2 max-w-md text-sm text-navy/70 leading-relaxed">{dict.dashboard.mentorCardSub}</p>
+              <div className="text-xs font-semibold uppercase tracking-wider text-ivory/60">AI Mentor</div>
+              <div className="mt-2 font-display text-xl md:text-2xl">Get help with your next step.</div>
+              <p className="mt-2 text-sm text-ivory/70 leading-relaxed">
+                Ask about opportunities, applications, or what's missing from your portfolio.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {["What opportunities should I apply to?", "What's missing from my portfolio?"].map((p) => (
+                  <Link
+                    key={p}
+                    to="/mentor"
+                    className="rounded-xl border border-ivory/20 px-3 py-1.5 text-xs text-ivory/80 hover:bg-white/10 transition"
+                  >
+                    {p}
+                  </Link>
+                ))}
+              </div>
             </div>
-            <div>
+            <div className="mt-6">
               <Link
                 to="/mentor"
-                className="mt-5 inline-flex items-center gap-2 rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-ivory shadow hover:bg-navy/90"
+                className="inline-flex items-center gap-2 rounded-xl bg-ivory px-5 py-2.5 text-sm font-semibold text-navy hover:opacity-90"
               >
-                {dict.dashboard.openMentor} →
+                Open AI Mentor →
               </Link>
             </div>
           </div>

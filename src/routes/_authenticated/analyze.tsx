@@ -32,9 +32,11 @@ function AnalyzePage() {
     setLoading(true);
     setHistory([]);
     try {
-      const res = await discoveryTurnFn({
-        history: [],
-        lang,
+      const res = await (discoveryTurnFn as any)({
+        data: {
+          history: [],
+          lang,
+        },
       });
       if (res.question) {
         setCurrentQuestion(res.question);
@@ -67,9 +69,11 @@ function AnalyzePage() {
     setLoading(true);
 
     try {
-      const res = await discoveryTurnFn({
-        history: updatedHistory,
-        lang,
+      const res = await (discoveryTurnFn as any)({
+        data: {
+          history: updatedHistory,
+          lang,
+        },
       });
 
       if (res.done && res.hypotheses) {
