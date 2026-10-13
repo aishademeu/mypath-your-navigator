@@ -46,7 +46,14 @@ export function ProProvider({ children }: { children: ReactNode }) {
   const closeUpgrade = useCallback(() => setUpgradeOpen(false), []);
 
   const value = useMemo<Ctx>(
-    () => ({ isPro, loading: !!user && isLoading, upgradeOpen, openUpgrade, closeUpgrade, upgradeFeature }),
+    () => ({
+      isPro,
+      loading: !!user && isLoading,
+      upgradeOpen,
+      openUpgrade,
+      closeUpgrade,
+      upgradeFeature,
+    }),
     [isPro, user, isLoading, upgradeOpen, openUpgrade, closeUpgrade, upgradeFeature],
   );
   return <ProContext.Provider value={value}>{children}</ProContext.Provider>;

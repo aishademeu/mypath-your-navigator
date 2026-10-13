@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
-export const Route = createFileRoute("/")(({
+export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
@@ -13,12 +13,15 @@ export const Route = createFileRoute("/")(({
           "MyPath helps students aged 13–18 find scholarships, competitions, research programs and internships, organize applications, and build a strong portfolio — all in one place.",
       },
       { property: "og:title", content: "MyPath — For ambitious students" },
-      { property: "og:description", content: "Find opportunities. Build your portfolio. Plan your next step." },
+      {
+        property: "og:description",
+        content: "Find opportunities. Build your portfolio. Plan your next step.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-} as any));
+} as any);
 
 const STEPS = [
   {
@@ -48,8 +51,15 @@ const STEPS = [
 ];
 
 const CATEGORIES = [
-  "Scholarships", "Competitions", "Research", "Internships",
-  "Summer Programs", "Volunteering", "Hackathons", "Leadership", "Courses",
+  "Scholarships",
+  "Competitions",
+  "Research",
+  "Internships",
+  "Summer Programs",
+  "Volunteering",
+  "Hackathons",
+  "Leadership",
+  "Courses",
 ];
 
 function Landing() {
@@ -66,12 +76,13 @@ function Landing() {
               For students aged 13–18
             </div>
             <h1 className="mt-6 font-display text-4xl leading-[1.05] tracking-tight text-navy sm:text-5xl md:text-6xl text-balance">
-              Find opportunities.<br />
+              Find opportunities.
+              <br />
               <span className="text-clay-deep">Build your portfolio.</span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-navy/70 md:text-lg">
-              MyPath helps students find scholarships, competitions, research programs, and internships —
-              organize applications, and build a strong portfolio, all in one place.
+              MyPath helps students find scholarships, competitions, research programs, and
+              internships — organize applications, and build a strong portfolio, all in one place.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
@@ -122,7 +133,9 @@ function Landing() {
       {/* HOW IT WORKS */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-24">
         <div className="mb-10">
-          <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">How it works</div>
+          <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
+            How it works
+          </div>
           <h2 className="mt-2 font-display text-3xl md:text-4xl text-balance">
             Find → Organize → Build → Plan
           </h2>
@@ -133,7 +146,9 @@ function Landing() {
               key={s.number}
               className="relative overflow-hidden rounded-2xl border border-navy/10 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
-              <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${s.accent} opacity-60`} />
+              <div
+                className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${s.accent} opacity-60`}
+              />
               <div className="relative">
                 <div className="font-mono text-xs font-bold text-navy/30">{s.number}</div>
                 <div className="mt-2 font-display text-xl text-navy">{s.title}</div>
@@ -149,12 +164,16 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-24">
           <div className="grid gap-12 md:grid-cols-2">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">Opportunities</div>
-              <h2 className="mt-2 font-display text-2xl md:text-3xl">Browse 50+ curated programs</h2>
+              <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
+                Opportunities
+              </div>
+              <h2 className="mt-2 font-display text-2xl md:text-3xl">
+                Browse 50+ curated programs
+              </h2>
               <p className="mt-4 text-navy/70 leading-relaxed">
-                Every opportunity is real — scholarships, research programs, competitions, internships,
-                summer programs, volunteering, hackathons, leadership programs, and courses.
-                Filter by grade, location, deadline, and cost.
+                Every opportunity is real — scholarships, research programs, competitions,
+                internships, summer programs, volunteering, hackathons, leadership programs, and
+                courses. Filter by grade, location, deadline, and cost.
               </p>
               <Link
                 to="/opportunities"
@@ -164,14 +183,19 @@ function Landing() {
               </Link>
             </div>
             <div className="rounded-2xl border border-navy/10 bg-ivory p-5 md:p-6">
-              <div className="text-xs font-semibold uppercase tracking-wider text-navy/50 mb-3">Sample opportunities</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-navy/50 mb-3">
+                Sample opportunities
+              </div>
               {[
                 { title: "Lumiere Research Program", cat: "Research", deadline: "Oct 15" },
                 { title: "Google Science Fair", cat: "Competition", deadline: "Nov 1" },
                 { title: "Davis UWC Scholarship", cat: "Scholarship", deadline: "Nov 15" },
                 { title: "MIT PRIMES", cat: "Research", deadline: "Dec 1" },
               ].map((o) => (
-                <div key={o.title} className="flex items-center justify-between py-2.5 border-b border-navy/8 last:border-0">
+                <div
+                  key={o.title}
+                  className="flex items-center justify-between py-2.5 border-b border-navy/8 last:border-0"
+                >
                   <div>
                     <div className="text-sm font-semibold text-navy">{o.title}</div>
                     <div className="text-xs text-navy/50">{o.cat}</div>
@@ -189,15 +213,27 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-5 py-16 md:px-6 md:py-24">
           <div className="grid gap-12 md:grid-cols-2">
             <div className="rounded-2xl border border-navy/10 bg-white p-5 md:p-6">
-              <div className="text-xs font-semibold uppercase tracking-wider text-navy/50 mb-3">Portfolio preview</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-navy/50 mb-3">
+                Portfolio preview
+              </div>
               {[
-                { section: "Achievements", title: "1st Place — Regional Math Olympiad", date: "2024" },
+                {
+                  section: "Achievements",
+                  title: "1st Place — Regional Math Olympiad",
+                  date: "2024",
+                },
                 { section: "Projects", title: "AI Crop Disease Detector", date: "2024" },
-                { section: "Leadership", title: "Model UN President — School Club", date: "2023–2024" },
+                {
+                  section: "Leadership",
+                  title: "Model UN President — School Club",
+                  date: "2023–2024",
+                },
                 { section: "Research", title: "Water Quality Analysis Paper", date: "2024" },
               ].map((item) => (
                 <div key={item.title} className="py-2.5 border-b border-navy/8 last:border-0">
-                  <div className="text-xs text-navy/50 uppercase tracking-wider">{item.section}</div>
+                  <div className="text-xs text-navy/50 uppercase tracking-wider">
+                    {item.section}
+                  </div>
                   <div className="text-sm font-semibold text-navy mt-0.5">{item.title}</div>
                   <div className="text-xs text-navy/50">{item.date}</div>
                 </div>
@@ -208,14 +244,23 @@ function Landing() {
               </div>
             </div>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">Portfolio</div>
-              <h2 className="mt-2 font-display text-2xl md:text-3xl">A portfolio that's actually yours</h2>
+              <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
+                Portfolio
+              </div>
+              <h2 className="mt-2 font-display text-2xl md:text-3xl">
+                A portfolio that's actually yours
+              </h2>
               <p className="mt-4 text-navy/70 leading-relaxed">
-                Add achievements, projects, research, leadership, volunteering, certificates, and skills.
-                See your portfolio completeness and what's missing. Export a clean, professional PDF anytime.
+                Add achievements, projects, research, leadership, volunteering, certificates, and
+                skills. See your portfolio completeness and what's missing. Export a clean,
+                professional PDF anytime.
               </p>
               <div className="mt-6 space-y-2 text-sm text-navy/70">
-                {["Add, edit, delete, and reorder items", "Completeness indicator with specific suggestions", "Export professional PDF — ready for applications"].map((f) => (
+                {[
+                  "Add, edit, delete, and reorder items",
+                  "Completeness indicator with specific suggestions",
+                  "Export professional PDF — ready for applications",
+                ].map((f) => (
                   <div key={f} className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-growth flex-none" />
                     {f}

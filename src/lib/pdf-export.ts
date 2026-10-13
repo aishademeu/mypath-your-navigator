@@ -29,13 +29,23 @@ const SECTION_LABELS: Record<string, string> = {
 };
 
 const SECTION_ORDER = [
-  "achievements", "projects", "research", "leadership",
-  "volunteering", "certificates", "skills", "awards", "about", "story",
+  "achievements",
+  "projects",
+  "research",
+  "leadership",
+  "volunteering",
+  "certificates",
+  "skills",
+  "awards",
+  "about",
+  "story",
 ];
 
 export function exportPortfolioPDF(profile: ProfileData, items: PortfolioRow[]): void {
   const date = new Date().toLocaleDateString("en-US", {
-    year: "numeric", month: "long", day: "numeric",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
   const studentName = profile.name ?? "Student";
 
@@ -47,9 +57,10 @@ export function exportPortfolioPDF(profile: ProfileData, items: PortfolioRow[]):
     sections.set(item.section, list);
   }
 
-  const ordered = SECTION_ORDER
-    .filter((s) => sections.has(s))
-    .map((s) => ({ key: s, items: sections.get(s)! }));
+  const ordered = SECTION_ORDER.filter((s) => sections.has(s)).map((s) => ({
+    key: s,
+    items: sections.get(s)!,
+  }));
 
   // Any unlisted section keys
   for (const [key, sectionItems] of sections.entries()) {
@@ -103,18 +114,28 @@ export function exportPortfolioPDF(profile: ProfileData, items: PortfolioRow[]):
     ${profile.mini_bio ? `<div class="bio">"${esc(profile.mini_bio)}"</div>` : ""}
   </div>
 
-  ${ordered.length === 0
-    ? '<p class="empty-note">No portfolio items added yet.</p>'
-    : ordered.map(({ key, items: si }) => `
+  ${
+    ordered.length === 0
+      ? '<p class="empty-note">No portfolio items added yet.</p>'
+      : ordered
+          .map(
+            ({ key, items: si }) => `
   <div class="section">
     <div class="section-title">${esc(SECTION_LABELS[key] ?? key)}</div>
-    ${si.map((item) => `
+    ${si
+      .map(
+        (item) => `
     <div class="item">
       <div class="item-title">${esc(item.title)}</div>
       ${item.date ? `<div class="item-date">${esc(item.date)}</div>` : ""}
       ${item.description ? `<div class="item-desc">${esc(item.description).replace(/\n/g, "<br/>")}</div>` : ""}
-    </div>`).join("")}
-  </div>`).join("")}
+    </div>`,
+      )
+      .join("")}
+  </div>`,
+          )
+          .join("")
+  }
 
   <div class="footer">
     <span>MyPath Student Portfolio · mypath-your-navigator.lovable.app</span>
@@ -133,7 +154,9 @@ export function exportPortfolioPDF(profile: ProfileData, items: PortfolioRow[]):
   win.document.close();
   win.focus();
   // Give fonts a moment to load before print dialog appears
-  setTimeout(() => { win.print(); }, 700);
+  setTimeout(() => {
+    win.print();
+  }, 700);
 }
 
 function esc(str: string): string {

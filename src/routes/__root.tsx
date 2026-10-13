@@ -33,7 +33,10 @@ function NotFoundInner() {
         <h2 className="mt-4 text-xl font-semibold">{dict.errors.pageNotFound}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{dict.errors.pathDoesntExist}</p>
         <div className="mt-6">
-          <Link to="/" className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+          >
             {dict.common.goHome}
           </Link>
         </div>
@@ -44,7 +47,11 @@ function NotFoundInner() {
 
 // Safe i18n hook for boundaries (falls back to English if provider missing)
 function useSafeI18n() {
-  try { return useI18n(); } catch { return { dict: en, lang: "en" as const, setLang: () => {}, t: () => "" as never }; }
+  try {
+    return useI18n();
+  } catch {
+    return { dict: en, lang: "en" as const, setLang: () => {}, t: () => "" as never };
+  }
 }
 
 import type { ErrorComponentProps } from "@tanstack/react-router";
@@ -54,15 +61,30 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   const { dict } = useSafeI18n();
   const err = error instanceof Error ? error : new Error(String(error));
-  useEffect(() => { reportLovableError(err, { boundary: "tanstack_root_error_component" }); }, [err]);
+  useEffect(() => {
+    reportLovableError(err, { boundary: "tanstack_root_error_component" });
+  }, [err]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold">{dict.common.somethingWrong}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{err.message}</p>
         <div className="mt-6 flex justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">{dict.common.tryAgain}</button>
-          <a href="/" className="rounded-full border border-input bg-background px-5 py-2.5 text-sm font-medium">{dict.common.home}</a>
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+          >
+            {dict.common.tryAgain}
+          </button>
+          <a
+            href="/"
+            className="rounded-full border border-input bg-background px-5 py-2.5 text-sm font-medium"
+          >
+            {dict.common.home}
+          </a>
         </div>
       </div>
     </div>
@@ -76,22 +98,49 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0B1F3A" },
       { title: "MyPath — Find your path. Build your future." },
-      { name: "description", content: "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ" },
+      {
+        name: "description",
+        content:
+          "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ",
+      },
       { property: "og:title", content: "MyPath — Find your path. Build your future." },
-      { property: "og:description", content: "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ" },
+      {
+        property: "og:description",
+        content:
+          "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "MyPath — Find your path. Build your future." },
-      { name: "twitter:description", content: "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e2c9642-5817-4dbc-809d-6512b0c2e379/id-preview-65afdbc0--970948ad-1bce-47d7-8505-b054a251459c.lovable.app-1785321104150.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e2c9642-5817-4dbc-809d-6512b0c2e379/id-preview-65afdbc0--970948ad-1bce-47d7-8505-b054a251459c.lovable.app-1785321104150.png" },
+      {
+        name: "twitter:description",
+        content:
+          "MyPath is an AI-powered platform that helps high school students discover educational opportunities, build competitive portfolios, and plan their academic journ",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e2c9642-5817-4dbc-809d-6512b0c2e379/id-preview-65afdbc0--970948ad-1bce-47d7-8505-b054a251459c.lovable.app-1785321104150.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e2c9642-5817-4dbc-809d-6512b0c2e379/id-preview-65afdbc0--970948ad-1bce-47d7-8505-b054a251459c.lovable.app-1785321104150.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/__l5e/assets-v1/0fcdaa88-2e6b-4693-bab2-70885879dd8b/mypath-logo.png", type: "image/png" },
+      {
+        rel: "icon",
+        href: "/__l5e/assets-v1/0fcdaa88-2e6b-4693-bab2-70885879dd8b/mypath-logo.png",
+        type: "image/png",
+      },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -103,8 +152,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <head><HeadContent /></head>
-      <body>{children}<Scripts /></body>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
     </html>
   );
 }

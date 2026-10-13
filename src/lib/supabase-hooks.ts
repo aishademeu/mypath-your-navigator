@@ -53,7 +53,11 @@ export function useProfile(user: User | null) {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
       if (error) throw error;
       return data as ProfileRow | null;
     },
@@ -65,7 +69,10 @@ export function useUpdateProfile(userId: string | undefined) {
   return useMutation({
     mutationFn: async (patch: Partial<ProfileRow>) => {
       if (!userId) throw new Error("No user");
-      const { error } = await supabase.from("profiles").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", userId);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", userId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["profile", userId] }),
@@ -90,7 +97,11 @@ export function useOnboarding(user: User | null) {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase.from("onboarding").select("*").eq("user_id", user.id).maybeSingle();
+      const { data, error } = await supabase
+        .from("onboarding")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
       if (error) throw error;
       return data as OnboardingRow | null;
     },
@@ -100,10 +111,14 @@ export function useOnboarding(user: User | null) {
 export function useSaveOnboarding(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: Omit<OnboardingRow, "user_id" | "completed_at"> & { completed_at?: string | null }) => {
+    mutationFn: async (
+      row: Omit<OnboardingRow, "user_id" | "completed_at"> & { completed_at?: string | null },
+    ) => {
       if (!userId) throw new Error("No user");
       const payload = { ...row, user_id: userId, updated_at: new Date().toISOString() };
-      const { error } = await supabase.from("onboarding").upsert(payload, { onConflict: "user_id" });
+      const { error } = await supabase
+        .from("onboarding")
+        .upsert(payload, { onConflict: "user_id" });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["onboarding", userId] }),
@@ -129,7 +144,11 @@ export function usePortfolio(user: User | null) {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return [] as PortfolioRow[];
-      const { data, error } = await supabase.from("portfolio_items").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("portfolio_items")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as PortfolioRow[];
     },
@@ -139,9 +158,18 @@ export function usePortfolio(user: User | null) {
 export function useAddPortfolio(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { section: string; title: string; description?: string; date?: string | null; organization?: string; link?: string }) => {
+    mutationFn: async (input: {
+      section: string;
+      title: string;
+      description?: string;
+      date?: string | null;
+      organization?: string;
+      link?: string;
+    }) => {
       if (!userId) throw new Error("No user");
-      const { error } = await (supabase as any).from("portfolio_items").insert({ user_id: userId, ...input });
+      const { error } = await (supabase as any)
+        .from("portfolio_items")
+        .insert({ user_id: userId, ...input });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["portfolio", userId] }),
@@ -151,10 +179,17 @@ export function useAddPortfolio(userId: string | undefined) {
 export function useUpdatePortfolio(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { id: string; patch?: Partial<PortfolioRow>; [key: string]: any }) => {
+    mutationFn: async (params: {
+      id: string;
+      patch?: Partial<PortfolioRow>;
+      [key: string]: any;
+    }) => {
       const { id, patch, ...rest } = params;
       const updateData = patch || rest;
-      const { error } = await (supabase as any).from("portfolio_items").update(updateData).eq("id", id);
+      const { error } = await (supabase as any)
+        .from("portfolio_items")
+        .update(updateData)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["portfolio", userId] }),
@@ -183,7 +218,10 @@ export function useSavedOpportunities(user: User | null) {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return [] as { opportunity_id: string; status: string }[];
-      const { data, error } = await supabase.from("saved_opportunities").select("opportunity_id, status").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("saved_opportunities")
+        .select("opportunity_id, status")
+        .eq("user_id", user.id);
       if (error) throw error;
       return data ?? [];
     },
@@ -193,13 +231,25 @@ export function useSavedOpportunities(user: User | null) {
 export function useToggleSaved(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ opportunityId, currentlySaved }: { opportunityId: string; currentlySaved: boolean }) => {
+    mutationFn: async ({
+      opportunityId,
+      currentlySaved,
+    }: {
+      opportunityId: string;
+      currentlySaved: boolean;
+    }) => {
       if (!userId) throw new Error("No user");
       if (currentlySaved) {
-        const { error } = await supabase.from("saved_opportunities").delete().eq("user_id", userId).eq("opportunity_id", opportunityId);
+        const { error } = await supabase
+          .from("saved_opportunities")
+          .delete()
+          .eq("user_id", userId)
+          .eq("opportunity_id", opportunityId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("saved_opportunities").insert({ user_id: userId, opportunity_id: opportunityId, status: "saved" });
+        const { error } = await supabase
+          .from("saved_opportunities")
+          .insert({ user_id: userId, opportunity_id: opportunityId, status: "saved" });
         if (error) throw error;
       }
     },
@@ -231,8 +281,14 @@ export function useToggleStep(userId: string | undefined, opportunityId: string)
     mutationFn: async ({ stepKey, completed }: { stepKey: string; completed: boolean }) => {
       if (!userId) throw new Error("No user");
       const { error } = await supabase.from("application_progress").upsert(
-        { user_id: userId, opportunity_id: opportunityId, step_key: stepKey, completed, updated_at: new Date().toISOString() },
-        { onConflict: "user_id,opportunity_id,step_key" }
+        {
+          user_id: userId,
+          opportunity_id: opportunityId,
+          step_key: stepKey,
+          completed,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,opportunity_id,step_key" },
       );
       if (error) throw error;
     },
@@ -241,7 +297,12 @@ export function useToggleStep(userId: string | undefined, opportunityId: string)
 }
 
 // ---- Chat ----
-export type ChatRow = { id: string; role: "user" | "assistant"; content: string; created_at: string };
+export type ChatRow = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+};
 
 export function useChat(user: User | null) {
   return useQuery({
@@ -249,7 +310,11 @@ export function useChat(user: User | null) {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return [] as ChatRow[];
-      const { data, error } = await supabase.from("chat_messages").select("id, role, content, created_at").eq("user_id", user.id).order("created_at");
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("id, role, content, created_at")
+        .eq("user_id", user.id)
+        .order("created_at");
       if (error) throw error;
       return (data ?? []) as ChatRow[];
     },
@@ -307,14 +372,17 @@ export function useOpportunities() {
           tags: row.tags || [],
           fields: row.fields || [],
           url: row.url || undefined,
-          sourceUrl: row.source_channel && row.source_message_id
-            ? `https://t.me/${row.source_channel}/${row.source_message_id}`
-            : (row.url || undefined),
+          sourceUrl:
+            row.source_channel && row.source_message_id
+              ? `https://t.me/${row.source_channel}/${row.source_message_id}`
+              : row.url || undefined,
           sourceChannel: row.source_channel ? `@${row.source_channel}` : undefined,
         }));
 
         const existingTitles = new Set(dbMapped.map((o) => o.title.toLowerCase().trim()));
-        const uniqueStatic = OPPORTUNITIES.filter((o) => !existingTitles.has(o.title.toLowerCase().trim()));
+        const uniqueStatic = OPPORTUNITIES.filter(
+          (o) => !existingTitles.has(o.title.toLowerCase().trim()),
+        );
 
         return [...dbMapped, ...uniqueStatic];
       } catch (err) {
@@ -463,9 +531,16 @@ export function useApplicationTasks(userId: string | undefined, opportunityId?: 
 export function useAddApplicationTask(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { opportunity_id: string; title: string; due_date?: string | null; notes?: string | null }) => {
+    mutationFn: async (input: {
+      opportunity_id: string;
+      title: string;
+      due_date?: string | null;
+      notes?: string | null;
+    }) => {
       if (!userId) throw new Error("No user");
-      const { error } = await (supabase as any).from("application_tasks").insert({ user_id: userId, ...input });
+      const { error } = await (supabase as any)
+        .from("application_tasks")
+        .insert({ user_id: userId, ...input });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["app-tasks", userId] }),
@@ -476,7 +551,10 @@ export function useToggleApplicationTask(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const { error } = await (supabase as any).from("application_tasks").update({ completed, updated_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await (supabase as any)
+        .from("application_tasks")
+        .update({ completed, updated_at: new Date().toISOString() })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["app-tasks", userId] }),
@@ -510,7 +588,11 @@ export function useApplications(user: User | null) {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return [] as ApplicationRow[];
-      const { data, error } = await (supabase as any).from("saved_opportunities").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any)
+        .from("saved_opportunities")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ApplicationRow[];
     },
@@ -520,11 +602,23 @@ export function useApplications(user: User | null) {
 export function useUpdateApplicationStatus(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ opportunityId, status, notes }: { opportunityId: string; status: string; notes?: string }) => {
+    mutationFn: async ({
+      opportunityId,
+      status,
+      notes,
+    }: {
+      opportunityId: string;
+      status: string;
+      notes?: string;
+    }) => {
       if (!userId) throw new Error("No user");
       const patch: Record<string, string> = { status };
       if (notes !== undefined) patch.notes = notes;
-      const { error } = await (supabase as any).from("saved_opportunities").update(patch).eq("user_id", userId).eq("opportunity_id", opportunityId);
+      const { error } = await (supabase as any)
+        .from("saved_opportunities")
+        .update(patch)
+        .eq("user_id", userId)
+        .eq("opportunity_id", opportunityId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -537,11 +631,20 @@ export function useUpdateApplicationStatus(userId: string | undefined) {
 export function useAddApplication(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ opportunityId, status = "saved" }: { opportunityId: string; status?: string }) => {
+    mutationFn: async ({
+      opportunityId,
+      status = "saved",
+    }: {
+      opportunityId: string;
+      status?: string;
+    }) => {
       if (!userId) throw new Error("No user");
       const { error } = await (supabase as any)
         .from("saved_opportunities")
-        .upsert({ user_id: userId, opportunity_id: opportunityId, status }, { onConflict: "user_id,opportunity_id" });
+        .upsert(
+          { user_id: userId, opportunity_id: opportunityId, status },
+          { onConflict: "user_id,opportunity_id" },
+        );
       if (error) throw error;
     },
     onSuccess: () => {

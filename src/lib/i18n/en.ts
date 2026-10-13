@@ -53,14 +53,27 @@ export const en = {
     completeness: "Portfolio: 78% complete",
     whyKicker: "What MyPath does",
     whyTitle: "One place for your opportunities, applications, and portfolio.",
-    whySub: "Students spend hours searching different websites for programs, lose track of deadlines, and have no organized place to build their portfolio. MyPath solves all three.",
+    whySub:
+      "Students spend hours searching different websites for programs, lose track of deadlines, and have no organized place to build their portfolio. MyPath solves all three.",
     journeyKicker: "How it works",
     journeyTitle: "Find → Organize → Build → Plan",
     steps: [
-      { t: "Find opportunities", d: "Browse scholarships, competitions, research programs, internships, and more — filtered by grade, location, and deadline." },
-      { t: "Track applications", d: "Move opportunities through stages: Saved → In Progress → Submitted → Accepted. Add tasks and deadlines." },
-      { t: "Build your portfolio", d: "Document achievements, projects, leadership, research, and certificates. Export a clean PDF anytime." },
-      { t: "Plan your next step", d: "Use AI Mentor to find relevant opportunities, prepare applications, and identify what's missing from your profile." },
+      {
+        t: "Find opportunities",
+        d: "Browse scholarships, competitions, research programs, internships, and more — filtered by grade, location, and deadline.",
+      },
+      {
+        t: "Track applications",
+        d: "Move opportunities through stages: Saved → In Progress → Submitted → Accepted. Add tasks and deadlines.",
+      },
+      {
+        t: "Build your portfolio",
+        d: "Document achievements, projects, leadership, research, and certificates. Export a clean PDF anytime.",
+      },
+      {
+        t: "Plan your next step",
+        d: "Use AI Mentor to find relevant opportunities, prepare applications, and identify what's missing from your profile.",
+      },
     ],
     studentsKicker: "Students on MyPath",
     studentsTitle: "A generation of ambitious students.",
@@ -87,7 +100,8 @@ export const en = {
     loginTitle: "Log in",
     heroSignup: "Find opportunities. Build your portfolio. Plan your next step.",
     heroLogin: "Welcome back to MyPath.",
-    heroSub: "MyPath helps students aged 13–18 find scholarships, competitions, research programs, and build a strong portfolio.",
+    heroSub:
+      "MyPath helps students aged 13–18 find scholarships, competitions, research programs, and build a strong portfolio.",
     haveAccount: "Already have an account?",
     newHere: "New to MyPath?",
     createAccount: "Create an account",
@@ -117,12 +131,27 @@ export const en = {
   },
   onboarding: {
     steps: {
-      interests: { title: "What topics interest you?", sub: "Select everything that applies. This helps us find relevant opportunities for you." },
-      opportunityTypes: { title: "What types of opportunities are you looking for?", sub: "Select all that apply. You can change this later in your profile." },
+      interests: {
+        title: "What topics interest you?",
+        sub: "Select everything that applies. This helps us find relevant opportunities for you.",
+      },
+      opportunityTypes: {
+        title: "What types of opportunities are you looking for?",
+        sub: "Select all that apply. You can change this later in your profile.",
+      },
       goals: { title: "What are your goals right now?", sub: "Select all that apply." },
-      problems: { title: "What problems in the world do you care about?", sub: "Your values help us find the right opportunities." },
-      strengths: { title: "What are your strengths?", sub: "Be honest — this helps us find what fits." },
-      experience: { title: "How much have you already built?", sub: "This helps us calibrate recommendations." },
+      problems: {
+        title: "What problems in the world do you care about?",
+        sub: "Your values help us find the right opportunities.",
+      },
+      strengths: {
+        title: "What are your strengths?",
+        sub: "Be honest — this helps us find what fits.",
+      },
+      experience: {
+        title: "How much have you already built?",
+        sub: "This helps us calibrate recommendations.",
+      },
       dream: { title: "What is your dream?", sub: "Write it like you'd tell a close friend." },
     },
     dreamPlaceholder: "In five years, I want to…",
@@ -173,7 +202,8 @@ export const en = {
       awards: "Awards",
     },
     mentorCardTitle: "AI Mentor",
-    mentorCardSub: "Get help finding opportunities, preparing applications, and improving your portfolio.",
+    mentorCardSub:
+      "Get help finding opportunities, preparing applications, and improving your portfolio.",
     openMentor: "Open AI Mentor",
     formingDirection: "Getting started",
     goToPortfolio: "Go to Portfolio →",
@@ -344,7 +374,8 @@ export const en = {
     dialogTitle: "Title",
     dialogDescription: "Description",
     parentAccess: "Parent access",
-    parentAccessSub: "Share your progress with a parent or guardian. Your AI Mentor conversations are always private.",
+    parentAccessSub:
+      "Share your progress with a parent or guardian. Your AI Mentor conversations are always private.",
     generateCode: "Generate invite code",
     generatingCode: "Generating…",
     inviteCodeLabel: "Share this code with your parent:",
@@ -458,9 +489,18 @@ export const en = {
     manageBilling: "Manage plan",
     downgradeToFree: "Return to Free",
     faq: [
-      { q: "Do I need Pro to find opportunities?", a: "No. Browsing, saving, and tracking all opportunities is completely free." },
-      { q: "What does Pro unlock?", a: "Hand-picked opportunities each month, deadline reminders, portfolio guidance, and direct support." },
-      { q: "Can I cancel anytime?", a: "Yes. One click, no fees. You keep everything you built on Free." },
+      {
+        q: "Do I need Pro to find opportunities?",
+        a: "No. Browsing, saving, and tracking all opportunities is completely free.",
+      },
+      {
+        q: "What does Pro unlock?",
+        a: "Hand-picked opportunities each month, deadline reminders, portfolio guidance, and direct support.",
+      },
+      {
+        q: "Can I cancel anytime?",
+        a: "Yes. One click, no fees. You keep everything you built on Free.",
+      },
     ],
     lockedFeatureAdvancedMentor: "Advanced AI Mentor",
     lockedFeaturePortfolio: "Portfolio Analysis",
@@ -513,11 +553,31 @@ export const en = {
     mentorNote: "Ask AI Mentor",
     mentorNoteBody: "Get help with opportunities, applications, or your portfolio.",
     stages: {
-      discover: { title: "Set up your profile.", body: "Tell us your interests and what you're looking for. Takes 2 minutes.", cta: "Complete profile" },
-      directions: { title: "Find opportunities for you.", body: "Browse opportunities matched to your grade, location, and interests.", cta: "Browse opportunities" },
-      test: { title: "Start your first application.", body: "Save an opportunity and add it to your plan.", cta: "Browse opportunities" },
-      prove: { title: "Build your portfolio.", body: "Add achievements, projects, and experiences to your portfolio.", cta: "Open portfolio" },
-      opportunities: { title: "You have opportunities to apply to.", body: "Check upcoming deadlines and move applications forward.", cta: "View My Plan" },
+      discover: {
+        title: "Set up your profile.",
+        body: "Tell us your interests and what you're looking for. Takes 2 minutes.",
+        cta: "Complete profile",
+      },
+      directions: {
+        title: "Find opportunities for you.",
+        body: "Browse opportunities matched to your grade, location, and interests.",
+        cta: "Browse opportunities",
+      },
+      test: {
+        title: "Start your first application.",
+        body: "Save an opportunity and add it to your plan.",
+        cta: "Browse opportunities",
+      },
+      prove: {
+        title: "Build your portfolio.",
+        body: "Add achievements, projects, and experiences to your portfolio.",
+        cta: "Open portfolio",
+      },
+      opportunities: {
+        title: "You have opportunities to apply to.",
+        body: "Check upcoming deadlines and move applications forward.",
+        cta: "View My Plan",
+      },
     },
   },
   discoverPage: {

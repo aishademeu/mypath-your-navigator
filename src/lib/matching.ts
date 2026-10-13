@@ -23,7 +23,15 @@ const FIELD_KEYWORDS: Record<string, string[]> = {
   Science: ["science", "research", "STEM", "math", "biomedical", "engineering"],
   Business: ["business", "startup", "entrepreneurship"],
   Arts: ["arts", "creative", "design", "media"],
-  "Social Impact": ["impact", "service", "activism", "human rights", "youth", "public service", "equity"],
+  "Social Impact": [
+    "impact",
+    "service",
+    "activism",
+    "human rights",
+    "youth",
+    "public service",
+    "equity",
+  ],
   Leadership: ["leadership"],
   Writing: ["writing", "media", "language"],
   Design: ["design", "creative"],
@@ -65,12 +73,16 @@ export function matchOpportunity(opp: Opportunity, ctx: ProfileContext): MatchRe
 
   if (!ageFit) blockers.push(`Age range ${opp.minAge ?? "?"}–${opp.maxAge ?? "?"}`);
   if (!gradeFit) blockers.push(`Grade ${opp.minGrade ?? "?"}–${opp.maxGrade ?? "?"}`);
-  if (!countryFit) blockers.push(`Available in ${Array.isArray(opp.countries) ? opp.countries.join(", ") : "select regions"}`);
+  if (!countryFit)
+    blockers.push(
+      `Available in ${Array.isArray(opp.countries) ? opp.countries.join(", ") : "select regions"}`,
+    );
 
   // interest overlap
   const interests = ctx.interests ?? [];
   const interestHits = opp.fields.filter((f) => interests.includes(f));
-  if (interestHits.length) reasons.push(`Aligns with your interest in ${interestHits.slice(0, 2).join(" & ")}`);
+  if (interestHits.length)
+    reasons.push(`Aligns with your interest in ${interestHits.slice(0, 2).join(" & ")}`);
 
   // problems overlap via keywords
   const problems = ctx.problems ?? [];
@@ -80,11 +92,22 @@ export function matchOpportunity(opp: Opportunity, ctx: ProfileContext): MatchRe
 
   // goals
   const goals = ctx.goals ?? [];
-  if (goals.includes("Prepare for universities") && (opp.category === "Research" || opp.category === "Summer Programs")) reasons.push("Strong signal for university applications");
-  if (goals.includes("Find competitions") && opp.category === "Competitions") reasons.push("Matches your goal to compete");
-  if (goals.includes("Build projects") && opp.category === "Projects") reasons.push("Matches your goal to build");
-  if (goals.includes("Meet mentors") && (opp.category === "Research" || opp.category === "Leadership Programs")) reasons.push("Includes mentorship");
-  if (goals.includes("Develop skills") && opp.category === "Internships") reasons.push("Hands-on skill building");
+  if (
+    goals.includes("Prepare for universities") &&
+    (opp.category === "Research" || opp.category === "Summer Programs")
+  )
+    reasons.push("Strong signal for university applications");
+  if (goals.includes("Find competitions") && opp.category === "Competitions")
+    reasons.push("Matches your goal to compete");
+  if (goals.includes("Build projects") && opp.category === "Projects")
+    reasons.push("Matches your goal to build");
+  if (
+    goals.includes("Meet mentors") &&
+    (opp.category === "Research" || opp.category === "Leadership Programs")
+  )
+    reasons.push("Includes mentorship");
+  if (goals.includes("Develop skills") && opp.category === "Internships")
+    reasons.push("Hands-on skill building");
 
   // Qualitative badge determination without fake percentages
   let qualitativeBadge = "Explore";
@@ -102,7 +125,8 @@ export function matchOpportunity(opp: Opportunity, ctx: ProfileContext): MatchRe
   score += Math.min(problemHits, 3) * 10;
   if (!eligible) score -= 40;
 
-  if (reasons.length === 0 && eligible) reasons.push("A broad, high-signal opportunity worth considering");
+  if (reasons.length === 0 && eligible)
+    reasons.push("A broad, high-signal opportunity worth considering");
 
   return { score, qualitativeBadge, eligible, reasons, blockers };
 }
@@ -121,36 +145,99 @@ export type ApplyStep = { key: string; title: string; description: string; desc?
 
 export function applyGuideFor(opp: Opportunity): ApplyStep[] {
   const base: ApplyStep[] = [
-    { key: "read", title: "Read the full opportunity page", description: `Visit ${opp.org} and read every requirement carefully. Note the exact deadline and time zone.` },
-    { key: "eligibility", title: "Confirm eligibility", description: `Requirements: ${opp.requirements.join("; ")}. Double-check age, grade, and country.` },
-    { key: "materials", title: "Gather materials", description: "Transcripts, CV/résumé, portfolio links, and any specific documents the application asks for." },
+    {
+      key: "read",
+      title: "Read the full opportunity page",
+      description: `Visit ${opp.org} and read every requirement carefully. Note the exact deadline and time zone.`,
+    },
+    {
+      key: "eligibility",
+      title: "Confirm eligibility",
+      description: `Requirements: ${opp.requirements.join("; ")}. Double-check age, grade, and country.`,
+    },
+    {
+      key: "materials",
+      title: "Gather materials",
+      description:
+        "Transcripts, CV/résumé, portfolio links, and any specific documents the application asks for.",
+    },
   ];
 
   if (opp.category === "Scholarships") {
-    base.push({ key: "essay", title: "Draft your essay", description: "Answer the prompt honestly. Show growth, not perfection. Have someone you trust read it before submitting." });
-    base.push({ key: "recs", title: "Request recommendations", description: "Ask 2–3 weeks in advance. Give recommenders a résumé + prompt bullet points." });
+    base.push({
+      key: "essay",
+      title: "Draft your essay",
+      description:
+        "Answer the prompt honestly. Show growth, not perfection. Have someone you trust read it before submitting.",
+    });
+    base.push({
+      key: "recs",
+      title: "Request recommendations",
+      description: "Ask 2–3 weeks in advance. Give recommenders a résumé + prompt bullet points.",
+    });
   }
   if (opp.category === "Research" || opp.category === "Summer Programs") {
-    base.push({ key: "proposal", title: "Prepare research statement", description: "Write 1 clear paragraph on the questions you want to explore and why." });
-    base.push({ key: "recs", title: "Line up a teacher recommendation", description: "Ideally a STEM/humanities teacher who knows your independent work." });
+    base.push({
+      key: "proposal",
+      title: "Prepare research statement",
+      description: "Write 1 clear paragraph on the questions you want to explore and why.",
+    });
+    base.push({
+      key: "recs",
+      title: "Line up a teacher recommendation",
+      description: "Ideally a STEM/humanities teacher who knows your independent work.",
+    });
   }
   if (opp.category === "Competitions") {
-    base.push({ key: "team", title: "Form your team", description: "Choose complementary skills. Set a shared doc and weekly checkpoints." });
-    base.push({ key: "prototype", title: "Build a prototype / draft submission", description: "Ship a rough version early; iterate weekly toward the deadline." });
+    base.push({
+      key: "team",
+      title: "Form your team",
+      description: "Choose complementary skills. Set a shared doc and weekly checkpoints.",
+    });
+    base.push({
+      key: "prototype",
+      title: "Build a prototype / draft submission",
+      description: "Ship a rough version early; iterate weekly toward the deadline.",
+    });
   }
   if (opp.category === "Internships") {
-    base.push({ key: "resume", title: "Polish your résumé", description: "One page. Lead with impact — projects, results, numbers." });
-    base.push({ key: "interview", title: "Prep for interview", description: "Rehearse 3 stories: a project, a challenge, a moment of leadership." });
+    base.push({
+      key: "resume",
+      title: "Polish your résumé",
+      description: "One page. Lead with impact — projects, results, numbers.",
+    });
+    base.push({
+      key: "interview",
+      title: "Prep for interview",
+      description: "Rehearse 3 stories: a project, a challenge, a moment of leadership.",
+    });
   }
   if (opp.category === "Leadership Programs" || opp.category === "Volunteering") {
-    base.push({ key: "impact", title: "Document your impact", description: "Write a short summary of what you've built or led, with numbers if you can." });
+    base.push({
+      key: "impact",
+      title: "Document your impact",
+      description: "Write a short summary of what you've built or led, with numbers if you can.",
+    });
   }
   if (opp.category === "Projects") {
-    base.push({ key: "idea", title: "Sharpen your idea", description: "Write a 3-sentence pitch: problem, solution, who it helps." });
+    base.push({
+      key: "idea",
+      title: "Sharpen your idea",
+      description: "Write a 3-sentence pitch: problem, solution, who it helps.",
+    });
   }
 
-  base.push({ key: "review", title: "Review + submit early", description: "Aim to submit 48 hours before the deadline. Save PDFs of everything you send." });
-  base.push({ key: "followup", title: "Follow up + track it", description: "Note the decision date. Whatever happens, save your submission for your portfolio." });
+  base.push({
+    key: "review",
+    title: "Review + submit early",
+    description: "Aim to submit 48 hours before the deadline. Save PDFs of everything you send.",
+  });
+  base.push({
+    key: "followup",
+    title: "Follow up + track it",
+    description:
+      "Note the decision date. Whatever happens, save your submission for your portfolio.",
+  });
 
   return base;
 }

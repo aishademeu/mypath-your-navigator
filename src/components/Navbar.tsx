@@ -24,9 +24,7 @@ export function Navbar() {
     { to: "/profile" as const, label: "Profile" },
   ];
 
-  const publicNav = [
-    { to: "/opportunities" as const, label: "Opportunities" },
-  ];
+  const publicNav = [{ to: "/opportunities" as const, label: "Opportunities" }];
 
   const nav = user ? authNav : publicNav;
 
@@ -58,9 +56,7 @@ export function Navbar() {
           <div className="flex flex-none items-center gap-2">
             {user ? (
               <>
-                <span className="hidden text-sm text-muted-foreground lg:inline">
-                  {firstName}
-                </span>
+                <span className="hidden text-sm text-muted-foreground lg:inline">{firstName}</span>
                 <button
                   onClick={async () => {
                     await supabase.auth.signOut();

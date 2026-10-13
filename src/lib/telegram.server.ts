@@ -36,7 +36,7 @@ export interface ExtractedOpportunityData {
  */
 export async function extractOpportunityFromTelegramText(
   postText: string,
-  channel: string
+  channel: string,
 ): Promise<ExtractedOpportunityData | null> {
   if (!postText || postText.trim().length < 30) return null;
 
@@ -225,14 +225,22 @@ export async function archiveExpiredOpportunities(): Promise<number> {
 // Fallback Heuristic Parser when AI key is unavailable
 function heuristicTelegramParser(text: string, channel: string): ExtractedOpportunityData | null {
   const low = text.toLowerCase();
-  const isOpp = /хакатон|конкурс|стипенди|стажировк|олимпиад|лагерь|грант|scholarship|internship|competition|olympiad|fellowship|hackathon|program/i.test(low);
+  const isOpp =
+    /хакатон|конкурс|стипенди|стажировк|олимпиад|лагерь|грант|scholarship|internship|competition|olympiad|fellowship|hackathon|program/i.test(
+      low,
+    );
   if (!isOpp) return null;
 
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
   const title = lines[0]?.replace(/[#*!✦🚀💡]/g, "").trim() || "Educational Opportunity";
 
   // Match deadline date
-  const dateMatch = text.match(/(?:дедлайн|deadline|до|before|until)[:\s]*(\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?)/i);
+  const dateMatch = text.match(
+    /(?:дедлайн|deadline|до|before|until)[:\s]*(\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?)/i,
+  );
   let deadline: string | null = null;
   if (dateMatch) {
     deadline = "2026-11-30"; // Formatted date placeholder
@@ -245,7 +253,10 @@ function heuristicTelegramParser(text: string, channel: string): ExtractedOpport
     is_opportunity: true,
     title: title.slice(0, 80),
     org: "Channel @" + channel,
-    category: low.includes("scholarship") || low.includes("стипенди") || low.includes("грант") ? "Scholarships" : "Competitions",
+    category:
+      low.includes("scholarship") || low.includes("стипенди") || low.includes("грант")
+        ? "Scholarships"
+        : "Competitions",
     description: lines.slice(1, 4).join(" ").slice(0, 300) || text.slice(0, 200),
     deadline,
     cost: low.includes("free") || low.includes("бесплатн") ? "free" : "paid",

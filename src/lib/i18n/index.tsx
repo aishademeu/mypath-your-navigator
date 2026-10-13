@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { en, type Dict } from "./en";
 import { ru } from "./ru";
 import { kk } from "./kk";
@@ -19,7 +27,9 @@ type Ctx = {
   lang: Lang;
   setLang: (l: Lang) => void;
   t: <K1 extends keyof Dict, K2 extends keyof Dict[K1]>(
-    section: K1, key: K2, vars?: Record<string, string | number>,
+    section: K1,
+    key: K2,
+    vars?: Record<string, string | number>,
   ) => Dict[K1][K2] extends string ? string : Dict[K1][K2];
   dict: Dict;
 };
@@ -43,13 +53,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       const uid = data.session?.user?.id;
       if (!uid) return;
-      supabase.from("profiles").select("preferred_lang").eq("id", uid).maybeSingle().then(({ data }) => {
-        const pref = (data as { preferred_lang?: string } | null)?.preferred_lang as Lang | undefined;
-        if (pref && DICTS[pref] && pref !== (window.localStorage.getItem(STORAGE_KEY) as Lang)) {
-          setLangState(pref);
-          window.localStorage.setItem(STORAGE_KEY, pref);
-        }
-      });
+      supabase
+        .from("profiles")
+        .select("preferred_lang")
+        .eq("id", uid)
+        .maybeSingle()
+        .then(({ data }) => {
+          const pref = (data as { preferred_lang?: string } | null)?.preferred_lang as
+            Lang | undefined;
+          if (pref && DICTS[pref] && pref !== (window.localStorage.getItem(STORAGE_KEY) as Lang)) {
+            setLangState(pref);
+            window.localStorage.setItem(STORAGE_KEY, pref);
+          }
+        });
     });
   }, []);
 

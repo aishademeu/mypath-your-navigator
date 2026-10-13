@@ -19,7 +19,9 @@ function AdminPortalPage() {
   const { user } = useSession();
   const { data: profile, isLoading } = useProfile(user);
 
-  const [tab, setTab] = useState<"opportunities" | "payments" | "telegram" | "users">("opportunities");
+  const [tab, setTab] = useState<"opportunities" | "payments" | "telegram" | "users">(
+    "opportunities",
+  );
   const [ingestText, setIngestText] = useState("");
   const [ingestChannel, setIngestChannel] = useState("edu_strategies");
   const [ingestStatus, setIngestStatus] = useState<string | null>(null);
@@ -67,13 +69,22 @@ function AdminPortalPage() {
     queryKey: ["admin-users"],
     enabled: profile?.role === "admin",
     queryFn: async () => {
-      const { data } = await (supabase as any).from("profiles").select("*").order("created_at", { ascending: false }).limit(30);
+      const { data } = await (supabase as any)
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(30);
       return data ?? [];
     },
   });
 
   if (isLoading) {
-    return <div className="min-h-screen bg-background"><Navbar /><div className="p-10 text-center">Checking credentials...</div></div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="p-10 text-center">Checking credentials...</div>
+      </div>
+    );
   }
 
   // Server-side enforced: Non-admins cannot access admin operations
@@ -149,7 +160,9 @@ function AdminPortalPage() {
       <main className="mx-auto max-w-7xl px-5 py-8 md:px-6 md:py-10">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-navy/10 pb-4">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-growth">Platform Administration</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-growth">
+              Platform Administration
+            </div>
             <h1 className="mt-1 font-display text-3xl text-navy">MyPath Command Center</h1>
           </div>
           <button
@@ -166,7 +179,10 @@ function AdminPortalPage() {
           {(
             [
               ["opportunities", `Opportunities (${opps.length})`],
-              ["payments", `Manual Subscriptions (${payments.filter((p: any) => p.status === "pending").length} pending)`],
+              [
+                "payments",
+                `Manual Subscriptions (${payments.filter((p: any) => p.status === "pending").length} pending)`,
+              ],
               ["telegram", "Telegram Ingestion"],
               ["users", "User Roles"],
             ] as const
@@ -213,8 +229,8 @@ function AdminPortalPage() {
                             o.status === "approved"
                               ? "bg-growth/20 text-growth"
                               : o.status === "pending_review"
-                              ? "bg-gold/40 text-navy"
-                              : "bg-destructive/10 text-destructive"
+                                ? "bg-gold/40 text-navy"
+                                : "bg-destructive/10 text-destructive"
                           }`}
                         >
                           {o.status}
@@ -278,8 +294,8 @@ function AdminPortalPage() {
                             p.status === "approved"
                               ? "bg-growth/20 text-growth"
                               : p.status === "pending"
-                              ? "bg-gold/40 text-navy"
-                              : "bg-destructive/10 text-destructive"
+                                ? "bg-gold/40 text-navy"
+                                : "bg-destructive/10 text-destructive"
                           }`}
                         >
                           {p.status}
@@ -324,7 +340,8 @@ function AdminPortalPage() {
             <div className="rounded-3xl border border-navy/10 bg-white p-6 shadow-sm">
               <h3 className="font-display text-lg text-navy">Direct Message Ingestion Test</h3>
               <p className="mt-1 text-xs text-navy/60">
-                Paste any raw Telegram channel post. The AI pipeline will classify, extract structured schema, deduplicate, and store into the database.
+                Paste any raw Telegram channel post. The AI pipeline will classify, extract
+                structured schema, deduplicate, and store into the database.
               </p>
               <form onSubmit={handleIngestTelegram} className="mt-4 space-y-3">
                 <select
@@ -350,7 +367,9 @@ function AdminPortalPage() {
                 >
                   Ingest & Process
                 </button>
-                {ingestStatus && <p className="mt-2 text-xs font-semibold text-growth">{ingestStatus}</p>}
+                {ingestStatus && (
+                  <p className="mt-2 text-xs font-semibold text-growth">{ingestStatus}</p>
+                )}
               </form>
             </div>
 
@@ -361,7 +380,10 @@ function AdminPortalPage() {
               </p>
               <div className="mt-4 space-y-2">
                 {sources.map((s: any) => (
-                  <div key={s.id} className="flex items-center justify-between rounded-2xl bg-ivory p-3 text-xs">
+                  <div
+                    key={s.id}
+                    className="flex items-center justify-between rounded-2xl bg-ivory p-3 text-xs"
+                  >
                     <div>
                       <span className="font-semibold text-navy">@{s.channel_username}</span>
                       <div className="text-navy/50">{s.title || "Monitored channel"}</div>
@@ -400,18 +422,25 @@ function AdminPortalPage() {
                         {u.role || "student"}
                       </span>
                     </td>
-                    <td className="p-4 text-navy/60">{u.country || "—"} {u.city ? `· ${u.city}` : ""}</td>
+                    <td className="p-4 text-navy/60">
+                      {u.country || "—"} {u.city ? `· ${u.city}` : ""}
+                    </td>
                     <td className="p-4 flex gap-1">
                       {(["student", "parent", "admin"] as const).map((r) => (
                         <button
                           key={r}
                           disabled={u.role === r}
                           onClick={async () => {
-                            await (supabase as any).from("profiles").update({ role: r }).eq("id", u.id);
+                            await (supabase as any)
+                              .from("profiles")
+                              .update({ role: r })
+                              .eq("id", u.id);
                             refetchUsers();
                           }}
                           className={`rounded px-2 py-1 text-[10px] font-semibold ${
-                            u.role === r ? "bg-navy text-ivory opacity-60" : "border border-navy/10 hover:bg-navy/5"
+                            u.role === r
+                              ? "bg-navy text-ivory opacity-60"
+                              : "border border-navy/10 hover:bg-navy/5"
                           }`}
                         >
                           {r}

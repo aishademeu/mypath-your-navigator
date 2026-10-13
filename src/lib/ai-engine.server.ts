@@ -1,11 +1,11 @@
 /**
  * MyPath Hard AI Core - Multi-Provider Server-Side AI Engine
- * 
+ *
  * Supports:
  * 1. Google Gemini API (via GEMINI_API_KEY)
  * 2. OpenAI / Compatible (via OPENAI_API_KEY or LOVABLE_API_KEY)
  * 3. High-Quality Deterministic Qualitative Reasoning Fallback
- * 
+ *
  * Security: Keys are ONLY read server-side and never exposed to the client.
  * Cost control: Enforces max tokens, compact context, and JSON mode.
  */
@@ -102,7 +102,10 @@ export async function callAI(options: AICallOptions): Promise<string> {
         const text = data.choices?.[0]?.message?.content;
         if (text) return text.trim();
       } else {
-        console.warn(`[AI Engine] OpenAI provider returned status ${res.status}:`, await res.text());
+        console.warn(
+          `[AI Engine] OpenAI provider returned status ${res.status}:`,
+          await res.text(),
+        );
       }
     } catch (err) {
       console.warn("[AI Engine] OpenAI provider call failed:", err);

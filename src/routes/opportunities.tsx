@@ -12,19 +12,36 @@ import {
   type Opportunity,
 } from "@/lib/opportunities";
 import { rankOpportunities } from "@/lib/matching";
-import { useSession, useProfile, useOnboarding, useSavedOpportunities, useToggleSaved, useOpportunities, useAddApplication } from "@/lib/supabase-hooks";
+import {
+  useSession,
+  useProfile,
+  useOnboarding,
+  useSavedOpportunities,
+  useToggleSaved,
+  useOpportunities,
+  useAddApplication,
+} from "@/lib/supabase-hooks";
 import { formatDate } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/opportunities")({
   component: OpportunitiesPage,
-  head: () => ({ meta: [
-    { title: "MyPath — Opportunities Database" },
-    { name: "description", content: "Verified scholarships, research, competitions, internships and leadership programs — ranked by fit with your profile." },
-    { property: "og:title", content: "MyPath Opportunities" },
-    { property: "og:description", content: "Verified scholarships, research, and programs for ambitious students." },
-  ]}),
+  head: () => ({
+    meta: [
+      { title: "MyPath — Opportunities Database" },
+      {
+        name: "description",
+        content:
+          "Verified scholarships, research, competitions, internships and leadership programs — ranked by fit with your profile.",
+      },
+      { property: "og:title", content: "MyPath Opportunities" },
+      {
+        property: "og:description",
+        content: "Verified scholarships, research, and programs for ambitious students.",
+      },
+    ],
+  }),
 });
 
 const GRADES = [6, 7, 8, 9, 10, 11, 12];
@@ -43,13 +60,24 @@ type CardProps = {
 };
 
 const OpportunityCard = memo(function OpportunityCard({
-  opp: o, qualitativeBadge, eligible, reason, days, saved, hydrated, onView, onSave,
+  opp: o,
+  qualitativeBadge,
+  eligible,
+  reason,
+  days,
+  saved,
+  hydrated,
+  onView,
+  onSave,
 }: CardProps) {
   const { dict } = useI18n();
   const { user } = useSession();
   const addApplication = useAddApplication(user?.id);
   const urgent = days <= 7;
-  const countdown = days <= 0 ? dict.opportunities.lastDay : dict.opportunities.daysLeft.replace("{n}", String(days));
+  const countdown =
+    days <= 0
+      ? dict.opportunities.lastDay
+      : dict.opportunities.daysLeft.replace("{n}", String(days));
 
   return (
     <div className="group relative flex flex-col justify-between rounded-3xl border border-navy/10 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-navy/25 hover:shadow-xl md:p-6">
@@ -85,9 +113,7 @@ const OpportunityCard = memo(function OpportunityCard({
         </div>
 
         {/* Description */}
-        <p className="mt-3 text-sm leading-relaxed text-navy/70 line-clamp-3">
-          {o.description}
-        </p>
+        <p className="mt-3 text-sm leading-relaxed text-navy/70 line-clamp-3">{o.description}</p>
 
         {/* Why it matches */}
         {reason && (
@@ -99,7 +125,10 @@ const OpportunityCard = memo(function OpportunityCard({
         {/* Tags */}
         <div className="mt-3.5 flex flex-wrap gap-1.5">
           {o.tags.slice(0, 4).map((t) => (
-            <span key={t} className="rounded-full bg-ivory px-2.5 py-0.5 text-[11px] font-medium text-navy/60">
+            <span
+              key={t}
+              className="rounded-full bg-ivory px-2.5 py-0.5 text-[11px] font-medium text-navy/60"
+            >
               #{t}
             </span>
           ))}
@@ -190,14 +219,17 @@ function OpportunitiesPage() {
   // Expired listings drop out automatically: the deadline is compared to today.
   const openList = useMemo(() => openOpportunities(rawOpportunities), [rawOpportunities]);
 
-  const ctx = useMemo(() => ({
-    age: profile?.age ?? null,
-    grade: profile?.grade ? parseInt(profile.grade, 10) : null,
-    country: profile?.country ?? null,
-    interests: onboarding?.interests ?? [],
-    problems: onboarding?.problems ?? [],
-    goals: onboarding?.goals ?? [],
-  }), [profile, onboarding]);
+  const ctx = useMemo(
+    () => ({
+      age: profile?.age ?? null,
+      grade: profile?.grade ? parseInt(profile.grade, 10) : null,
+      country: profile?.country ?? null,
+      interests: onboarding?.interests ?? [],
+      problems: onboarding?.problems ?? [],
+      goals: onboarding?.goals ?? [],
+    }),
+    [profile, onboarding],
+  );
 
   const savedIds = useMemo(() => new Set((saved ?? []).map((s) => s.opportunity_id)), [saved]);
 
@@ -208,26 +240,59 @@ function OpportunitiesPage() {
       .filter((r) => cat === "All" || r.opp.category === cat)
       .filter((r) => !eligibleOnly || r.eligible)
       .filter((r) => g == null || ((r.opp.minGrade ?? 6) <= g && (r.opp.maxGrade ?? 12) >= g))
-      .filter((r) => !country || !r.opp.countries || r.opp.countries === "worldwide" || (r.opp.countries as string[]).includes(country))
+      .filter(
+        (r) =>
+          !country ||
+          !r.opp.countries ||
+          r.opp.countries === "worldwide" ||
+          (r.opp.countries as string[]).includes(country),
+      )
       .filter((r) => !format || r.opp.format === format)
       .filter((r) => !cost || r.opp.cost === cost)
-      .filter((r) => !q || (r.opp.title + r.opp.description + r.opp.org + r.opp.tags.join(" ")).toLowerCase().includes(q.toLowerCase()));
+      .filter(
+        (r) =>
+          !q ||
+          (r.opp.title + r.opp.description + r.opp.org + r.opp.tags.join(" "))
+            .toLowerCase()
+            .includes(q.toLowerCase()),
+      );
   }, [q, cat, eligibleOnly, ctx, grade, country, format, cost, openList]);
 
-  const onSave = useCallback((opp: Opportunity) => {
-    if (!user) { navigate({ to: "/auth", search: { mode: "signup" } }); return; }
-    toggleSaved.mutate({ opportunityId: opp.id, currentlySaved: savedIds.has(opp.id) });
-  }, [user, navigate, toggleSaved, savedIds]);
+  const onSave = useCallback(
+    (opp: Opportunity) => {
+      if (!user) {
+        navigate({ to: "/auth", search: { mode: "signup" } });
+        return;
+      }
+      toggleSaved.mutate({ opportunityId: opp.id, currentlySaved: savedIds.has(opp.id) });
+    },
+    [user, navigate, toggleSaved, savedIds],
+  );
 
-  const catLabel = (c: string) => c === "All" ? dict.opportunities.all : (dict.categories[c as Category] ?? c);
+  const catLabel = (c: string) =>
+    c === "All" ? dict.opportunities.all : (dict.categories[c as Category] ?? c);
   const formatLabel = (f: string) =>
-    f === "online" ? dict.opportunities.online : f === "in-person" ? dict.opportunities.inPerson : dict.opportunities.hybrid;
+    f === "online"
+      ? dict.opportunities.online
+      : f === "in-person"
+        ? dict.opportunities.inPerson
+        : dict.opportunities.hybrid;
   const costLabel = (c: string) =>
-    c === "free" ? dict.opportunities.costFree : c === "paid" ? dict.opportunities.costPaid : dict.opportunities.costStipend;
+    c === "free"
+      ? dict.opportunities.costFree
+      : c === "paid"
+        ? dict.opportunities.costPaid
+        : dict.opportunities.costStipend;
 
   const anyFilter = !!(grade || country || format || cost || q || cat !== "All" || eligibleOnly);
   const resetFilters = () => {
-    setGrade(""); setCountry(""); setFormat(""); setCost(""); setQ(""); setCat("All"); setEligibleOnly(false);
+    setGrade("");
+    setCountry("");
+    setFormat("");
+    setCost("");
+    setQ("");
+    setCat("All");
+    setEligibleOnly(false);
   };
 
   const selectClass =
@@ -236,10 +301,9 @@ function OpportunitiesPage() {
   return (
     <div className="min-h-screen bg-ivory/50 pb-24 md:pb-16">
       <Navbar />
-      
+
       {/* Full-width container */}
       <main className="mx-auto max-w-[1720px] px-4 py-8 sm:px-6 md:py-10 lg:px-10">
-        
         {/* Header Title Section */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
@@ -255,7 +319,8 @@ function OpportunitiesPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-navy/70 shadow-sm border border-navy/10">
-              ⚡ {filtered.length} {filtered.length === 1 ? "Opportunity" : "Opportunities"} Available
+              ⚡ {filtered.length} {filtered.length === 1 ? "Opportunity" : "Opportunities"}{" "}
+              Available
             </span>
           </div>
         </div>
@@ -271,7 +336,10 @@ function OpportunitiesPage() {
               className="w-full bg-transparent text-sm text-navy placeholder:text-navy/40 outline-none"
             />
             {q && (
-              <button onClick={() => setQ("")} className="text-xs text-navy/40 hover:text-navy px-1">
+              <button
+                onClick={() => setQ("")}
+                className="text-xs text-navy/40 hover:text-navy px-1"
+              >
                 ✕
               </button>
             )}
@@ -291,21 +359,57 @@ function OpportunitiesPage() {
 
         {/* Extended Filter Dropdowns */}
         <div className="mt-3.5 flex flex-wrap items-center gap-2">
-          <select aria-label={dict.opportunities.anyGrade} value={grade} onChange={(e) => setGrade(e.target.value)} className={selectClass}>
+          <select
+            aria-label={dict.opportunities.anyGrade}
+            value={grade}
+            onChange={(e) => setGrade(e.target.value)}
+            className={selectClass}
+          >
             <option value="">{dict.opportunities.anyGrade}</option>
-            {GRADES.map((g) => <option key={g} value={g}>{dict.opportunities.gradeLabel.replace("{n}", String(g))}</option>)}
+            {GRADES.map((g) => (
+              <option key={g} value={g}>
+                {dict.opportunities.gradeLabel.replace("{n}", String(g))}
+              </option>
+            ))}
           </select>
-          <select aria-label={dict.opportunities.anyCountry} value={country} onChange={(e) => setCountry(e.target.value)} className={selectClass}>
+          <select
+            aria-label={dict.opportunities.anyCountry}
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className={selectClass}
+          >
             <option value="">{dict.opportunities.anyCountry}</option>
-            {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {COUNTRIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
-          <select aria-label={dict.opportunities.anyFormat} value={format} onChange={(e) => setFormat(e.target.value)} className={selectClass}>
+          <select
+            aria-label={dict.opportunities.anyFormat}
+            value={format}
+            onChange={(e) => setFormat(e.target.value)}
+            className={selectClass}
+          >
             <option value="">{dict.opportunities.anyFormat}</option>
-            {FORMATS.map((f) => <option key={f} value={f}>{formatLabel(f)}</option>)}
+            {FORMATS.map((f) => (
+              <option key={f} value={f}>
+                {formatLabel(f)}
+              </option>
+            ))}
           </select>
-          <select aria-label={dict.opportunities.anyCost} value={cost} onChange={(e) => setCost(e.target.value)} className={selectClass}>
+          <select
+            aria-label={dict.opportunities.anyCost}
+            value={cost}
+            onChange={(e) => setCost(e.target.value)}
+            className={selectClass}
+          >
             <option value="">{dict.opportunities.anyCost}</option>
-            {COSTS.map((c) => <option key={c} value={c}>{costLabel(c)}</option>)}
+            {COSTS.map((c) => (
+              <option key={c} value={c}>
+                {costLabel(c)}
+              </option>
+            ))}
           </select>
           {anyFilter && (
             <button
@@ -320,7 +424,8 @@ function OpportunitiesPage() {
         {/* Category Chips with Horizontal Scroll */}
         <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {(["All", ...CATEGORIES] as const).map((c) => {
-            const count = c === "All" ? openList.length : openList.filter((o) => o.category === c).length;
+            const count =
+              c === "All" ? openList.length : openList.filter((o) => o.category === c).length;
             const activeCat = cat === c;
             return (
               <button
@@ -332,7 +437,12 @@ function OpportunitiesPage() {
                     : "border border-navy/15 bg-white text-navy/70 hover:border-navy/40 hover:text-navy"
                 }`}
               >
-                {catLabel(c)} <span className={`ml-1 text-[10px] ${activeCat ? "text-ivory/80" : "text-navy/40"}`}>({count})</span>
+                {catLabel(c)}{" "}
+                <span
+                  className={`ml-1 text-[10px] ${activeCat ? "text-ivory/80" : "text-navy/40"}`}
+                >
+                  ({count})
+                </span>
               </button>
             );
           })}
@@ -344,8 +454,13 @@ function OpportunitiesPage() {
             <div className="rounded-3xl border border-dashed border-navy/20 bg-white/60 p-16 text-center">
               <div className="text-3xl">🔍</div>
               <div className="mt-3 text-lg font-semibold text-navy">{dict.opportunities.empty}</div>
-              <p className="mt-1 text-sm text-navy/50">Попробуйте сбросить фильтры или изменить поисковый запрос.</p>
-              <button onClick={resetFilters} className="mt-4 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-ivory">
+              <p className="mt-1 text-sm text-navy/50">
+                Попробуйте сбросить фильтры или изменить поисковый запрос.
+              </p>
+              <button
+                onClick={resetFilters}
+                className="mt-4 rounded-full bg-navy px-5 py-2 text-xs font-semibold text-ivory"
+              >
                 {dict.opportunities.reset}
               </button>
             </div>
@@ -406,23 +521,28 @@ function OpportunitiesPage() {
               )}
             </div>
 
-            <p className="mt-4 text-base leading-relaxed text-navy/80">
-              {active.description}
-            </p>
+            <p className="mt-4 text-base leading-relaxed text-navy/80">{active.description}</p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-ivory p-4">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">{dict.dashboard.deadline}</div>
-                <div className="mt-1 font-display text-xl font-bold text-navy">{formatDate(active.deadline, lang, { dateStyle: "long" })}</div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">
+                  {dict.dashboard.deadline}
+                </div>
+                <div className="mt-1 font-display text-xl font-bold text-navy">
+                  {formatDate(active.deadline, lang, { dateStyle: "long" })}
+                </div>
                 <div className="mt-1 text-xs font-semibold text-[#C23524]">
-                  ⏳ {daysLeft(active.deadline) <= 0
+                  ⏳{" "}
+                  {daysLeft(active.deadline) <= 0
                     ? dict.opportunities.lastDay
                     : dict.opportunities.daysLeft.replace("{n}", String(daysLeft(active.deadline)))}
                 </div>
               </div>
 
               <div className="rounded-2xl bg-ivory p-4">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">{dict.opportunities.requirements}</div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">
+                  {dict.opportunities.requirements}
+                </div>
                 <ul className="mt-1 text-xs space-y-1 text-navy/80 font-medium">
                   {active.requirements.length > 0 ? (
                     active.requirements.map((r) => <li key={r}>• {r}</li>)
@@ -433,21 +553,41 @@ function OpportunitiesPage() {
               </div>
 
               <div className="rounded-2xl bg-ivory p-4">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">{dict.opportunities.eligibility}</div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">
+                  {dict.opportunities.eligibility}
+                </div>
                 <ul className="mt-1 text-xs space-y-1 text-navy/80 font-medium">
-                  {active.minAge && <li>• {dict.opportunities.ages} {active.minAge}–{active.maxAge ?? "18+"}</li>}
-                  {active.minGrade && <li>• {dict.opportunities.grades} {active.minGrade}–{active.maxGrade ?? 12}</li>}
-                  <li>• {active.countries === "worldwide" || !active.countries ? dict.opportunities.worldwide : (active.countries as string[]).join(", ")}</li>
+                  {active.minAge && (
+                    <li>
+                      • {dict.opportunities.ages} {active.minAge}–{active.maxAge ?? "18+"}
+                    </li>
+                  )}
+                  {active.minGrade && (
+                    <li>
+                      • {dict.opportunities.grades} {active.minGrade}–{active.maxGrade ?? 12}
+                    </li>
+                  )}
+                  <li>
+                    •{" "}
+                    {active.countries === "worldwide" || !active.countries
+                      ? dict.opportunities.worldwide
+                      : (active.countries as string[]).join(", ")}
+                  </li>
                   {active.format && <li>• Формат: {formatLabel(active.format)}</li>}
                   {active.cost && <li>• Стоимость: {costLabel(active.cost)}</li>}
                 </ul>
               </div>
 
               <div className="rounded-2xl bg-ivory p-4">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">{dict.opportunities.bestFor}</div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-navy/50">
+                  {dict.opportunities.bestFor}
+                </div>
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {active.fields.map((f) => (
-                    <span key={f} className="rounded-full bg-lavender/25 px-2.5 py-0.5 text-[11px] font-semibold text-navy">
+                    <span
+                      key={f}
+                      className="rounded-full bg-lavender/25 px-2.5 py-0.5 text-[11px] font-semibold text-navy"
+                    >
                       {f}
                     </span>
                   ))}
@@ -458,7 +598,9 @@ function OpportunitiesPage() {
             {/* Source channel block */}
             {active.sourceUrl && (
               <div className="mt-4 flex items-center justify-between rounded-2xl bg-navy/5 px-4 py-3 text-xs text-navy/80">
-                <span>📢 Источник: <strong>{active.sourceChannel || "Telegram-канал"}</strong></span>
+                <span>
+                  📢 Источник: <strong>{active.sourceChannel || "Telegram-канал"}</strong>
+                </span>
                 <a
                   href={active.sourceUrl}
                   target="_blank"
@@ -498,7 +640,12 @@ function OpportunitiesPage() {
                 to="/apply-guide/$id"
                 params={{ id: active.id }}
                 className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-ivory hover:bg-navy/90 transition shadow-md"
-                onClick={(e) => { if (!user) { e.preventDefault(); navigate({ to: "/auth", search: { mode: "signup" } }); } }}
+                onClick={(e) => {
+                  if (!user) {
+                    e.preventDefault();
+                    navigate({ to: "/auth", search: { mode: "signup" } });
+                  }
+                }}
               >
                 {dict.opportunities.applyGuide}
               </Link>

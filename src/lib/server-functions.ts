@@ -1,12 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { runAdaptiveDiscoveryTurn, generateCareerHypotheses, type InterviewTurn } from "./discovery.server";
+import {
+  runAdaptiveDiscoveryTurn,
+  generateCareerHypotheses,
+  type InterviewTurn,
+} from "./discovery.server";
 import { computePrimaryNextAction } from "./mypath-engine.server";
 import { generateMentorResponse, type MentorMessage } from "./mentor.server";
 import { polishPortfolioItem } from "./portfolio-assistant.server";
-import { ingestTelegramPost, archiveExpiredOpportunities, type RawTelegramPost } from "./telegram.server";
-import { createStripeCheckoutSession, submitManualPayment, verifyManualPayment } from "./billing.server";
+import {
+  ingestTelegramPost,
+  archiveExpiredOpportunities,
+  type RawTelegramPost,
+} from "./telegram.server";
+import {
+  createStripeCheckoutSession,
+  submitManualPayment,
+  verifyManualPayment,
+} from "./billing.server";
 
 /**
  * 1. Adaptive Discovery Server Function
@@ -81,17 +93,34 @@ export const getMyPathActionFn = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const userId = context.userId;
 
-    const [profileRes, onboardingRes, hypothesesRes, portfolioRes, savedRes, actionsRes] = await Promise.all([
-      (supabaseAdmin as any).from("profiles").select("*").eq("id", userId).maybeSingle(),
-      (supabaseAdmin as any).from("onboarding").select("*").eq("user_id", userId).maybeSingle(),
-      (supabaseAdmin as any).from("career_hypotheses").select("*").eq("user_id", userId).eq("status", "active"),
-      (supabaseAdmin as any).from("portfolio_items").select("title, section").eq("user_id", userId),
-      (supabaseAdmin as any).from("saved_opportunities").select("opportunity_id").eq("user_id", userId),
-      (supabaseAdmin as any).from("my_path_actions").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
-    ]);
+    const [profileRes, onboardingRes, hypothesesRes, portfolioRes, savedRes, actionsRes] =
+      await Promise.all([
+        (supabaseAdmin as any).from("profiles").select("*").eq("id", userId).maybeSingle(),
+        (supabaseAdmin as any).from("onboarding").select("*").eq("user_id", userId).maybeSingle(),
+        (supabaseAdmin as any)
+          .from("career_hypotheses")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("status", "active"),
+        (supabaseAdmin as any)
+          .from("portfolio_items")
+          .select("title, section")
+          .eq("user_id", userId),
+        (supabaseAdmin as any)
+          .from("saved_opportunities")
+          .select("opportunity_id")
+          .eq("user_id", userId),
+        (supabaseAdmin as any)
+          .from("my_path_actions")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+      ]);
 
     const activeHypotheses = hypothesesRes.data || [];
-    const completedActionCount = (actionsRes.data || []).filter((a: any) => a.status === "completed").length;
+    const completedActionCount = (actionsRes.data || []).filter(
+      (a: any) => a.status === "completed",
+    ).length;
 
     // Check if there is already an active incomplete action created in the last 7 days
     const currentAction = (actionsRes.data || []).find((a: any) => a.status === "active");
@@ -165,13 +194,26 @@ export const mentorChatFn = createServerFn({ method: "POST" })
     });
 
     // Retrieve context for mentor
-    const [profileRes, onboardingRes, hypothesesRes, portfolioRes, recentChatRes] = await Promise.all([
-      (supabaseAdmin as any).from("profiles").select("*").eq("id", userId).maybeSingle(),
-      (supabaseAdmin as any).from("onboarding").select("*").eq("user_id", userId).maybeSingle(),
-      (supabaseAdmin as any).from("career_hypotheses").select("*").eq("user_id", userId).eq("status", "active"),
-      (supabaseAdmin as any).from("portfolio_items").select("title, section").eq("user_id", userId),
-      (supabaseAdmin as any).from("chat_messages").select("role, content").eq("user_id", userId).order("created_at", { ascending: false }).limit(8),
-    ]);
+    const [profileRes, onboardingRes, hypothesesRes, portfolioRes, recentChatRes] =
+      await Promise.all([
+        (supabaseAdmin as any).from("profiles").select("*").eq("id", userId).maybeSingle(),
+        (supabaseAdmin as any).from("onboarding").select("*").eq("user_id", userId).maybeSingle(),
+        (supabaseAdmin as any)
+          .from("career_hypotheses")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("status", "active"),
+        (supabaseAdmin as any)
+          .from("portfolio_items")
+          .select("title, section")
+          .eq("user_id", userId),
+        (supabaseAdmin as any)
+          .from("chat_messages")
+          .select("role, content")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(8),
+      ]);
 
     const studentCtx = {
       name: profileRes.data?.name,
@@ -284,7 +326,9 @@ export const generateParentInviteFn = createServerFn({ method: "POST" })
  */
 export const moderateOpportunityFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { id: string; status: "approved" | "rejected" | "expired"; verified?: boolean }) => d)
+  .validator(
+    (d: { id: string; status: "approved" | "rejected" | "expired"; verified?: boolean }) => d,
+  )
   .handler(async ({ context, data }) => {
     const adminId = context.userId;
     // Server-side check that user is admin
@@ -302,7 +346,7 @@ export const moderateOpportunityFn = createServerFn({ method: "POST" })
       .from("opportunities")
       .update({
         status: data.status,
-        verified: data.verified ?? (data.status === "approved"),
+        verified: data.verified ?? data.status === "approved",
         updated_at: new Date().toISOString(),
       })
       .eq("id", data.id);
@@ -363,8 +407,7 @@ export const ingestTelegramPostFn = createServerFn({ method: "POST" })
 /**
  * 10. Auto-expiration trigger
  */
-export const triggerAutoExpirationFn = createServerFn({ method: "POST" })
-  .handler(async () => {
-    const expiredCount = await archiveExpiredOpportunities();
-    return { expiredCount };
-  });
+export const triggerAutoExpirationFn = createServerFn({ method: "POST" }).handler(async () => {
+  const expiredCount = await archiveExpiredOpportunities();
+  return { expiredCount };
+});

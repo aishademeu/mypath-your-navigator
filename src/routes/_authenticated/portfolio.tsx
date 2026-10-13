@@ -2,7 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { useSession, usePortfolio, useAddPortfolioItem, useUpdatePortfolioItem, useDeletePortfolioItem } from "@/lib/supabase-hooks";
+import {
+  useSession,
+  usePortfolio,
+  useAddPortfolioItem,
+  useUpdatePortfolioItem,
+  useDeletePortfolioItem,
+} from "@/lib/supabase-hooks";
 import { exportPortfolioPDF } from "@/lib/pdf-export";
 import { Plus, X, Check } from "lucide-react";
 
@@ -11,7 +17,11 @@ export const Route = createFileRoute("/_authenticated/portfolio")({
   head: () => ({
     meta: [
       { title: "MyPath — Portfolio" },
-      { name: "description", content: "Build and export your student portfolio. Add achievements, projects, research, leadership, volunteering, certificates, skills, and awards." },
+      {
+        name: "description",
+        content:
+          "Build and export your student portfolio. Add achievements, projects, research, leadership, volunteering, certificates, skills, and awards.",
+      },
     ],
   }),
 });
@@ -39,15 +49,24 @@ function PortfolioPage() {
 
   const [editing, setEditing] = useState<string | null>(null); // id of item being edited
   const [newSection, setNewSection] = useState<string>("projects");
-  const [newItem, setNewItem] = useState({ title: "", organization: "", date: "", description: "", link: "" });
+  const [newItem, setNewItem] = useState({
+    title: "",
+    organization: "",
+    date: "",
+    description: "",
+    link: "",
+  });
   const [exporting, setExporting] = useState(false);
 
   const items = (profile ?? []).filter((i) => i.section !== "about" && i.section !== "story");
   const sections = Object.entries(
-    items.reduce((acc, cur) => {
-      (acc[cur.section] = acc[cur.section] || []).push(cur);
-      return acc;
-    }, {} as Record<string, typeof items>)
+    items.reduce(
+      (acc, cur) => {
+        (acc[cur.section] = acc[cur.section] || []).push(cur);
+        return acc;
+      },
+      {} as Record<string, typeof items>,
+    ),
   ).sort((a, b) => a[0].localeCompare(b[0]));
 
   const handleExport = async () => {
@@ -101,10 +120,13 @@ function PortfolioPage() {
       <main className="mx-auto max-w-5xl px-5 py-8 md:px-6 md:py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">Portfolio</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
+              Portfolio
+            </div>
             <h1 className="mt-1 font-display text-3xl md:text-4xl">Your Portfolio</h1>
             <p className="mt-1.5 text-sm text-navy/60">
-              Document achievements, projects, research, leadership, volunteering, certificates, skills, and awards. Export a clean PDF at any time.
+              Document achievements, projects, research, leadership, volunteering, certificates,
+              skills, and awards. Export a clean PDF at any time.
             </p>
           </div>
           <button
@@ -134,14 +156,28 @@ function PortfolioPage() {
               ) : (
                 <ul className="mt-4 space-y-3">
                   {itemsInSection.map((it) => (
-                    <li key={it.id} className="flex items-start justify-between gap-4 rounded-xl border border-navy/8 bg-ivory/30 p-3">
+                    <li
+                      key={it.id}
+                      className="flex items-start justify-between gap-4 rounded-xl border border-navy/8 bg-ivory/30 p-3"
+                    >
                       <div className="flex-1">
                         <div className="font-semibold text-navy">{it.title}</div>
-                        {it.organization && <div className="text-xs text-navy/60">{it.organization}</div>}
+                        {it.organization && (
+                          <div className="text-xs text-navy/60">{it.organization}</div>
+                        )}
                         {it.date && <div className="mt-1 text-xs text-navy/50">{it.date}</div>}
-                        {it.description && <p className="mt-1 text-xs text-navy/70 whitespace-pre-line">{it.description}</p>}
+                        {it.description && (
+                          <p className="mt-1 text-xs text-navy/70 whitespace-pre-line">
+                            {it.description}
+                          </p>
+                        )}
                         {it.link && (
-                          <a href={it.link} target="_blank" rel="noopener" className="mt-1 inline-block text-xs underline text-navy/70 hover:text-navy">
+                          <a
+                            href={it.link}
+                            target="_blank"
+                            rel="noopener"
+                            className="mt-1 inline-block text-xs underline text-navy/70 hover:text-navy"
+                          >
                             View link ↗
                           </a>
                         )}
@@ -172,7 +208,9 @@ function PortfolioPage() {
         {editing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
             <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-lg">
-              <h3 className="font-display text-xl">{editing === "new" ? "Add" : "Edit"} {SECTION_LABELS[newSection] ?? newSection}</h3>
+              <h3 className="font-display text-xl">
+                {editing === "new" ? "Add" : "Edit"} {SECTION_LABELS[newSection] ?? newSection}
+              </h3>
               <div className="mt-4 space-y-3">
                 <input
                   placeholder="Title"

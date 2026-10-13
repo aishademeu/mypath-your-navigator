@@ -23,9 +23,7 @@ export interface MyPathContext {
  * Computes the single highest-leverage next action for the student.
  * Never outputs multiple disjoint tasks; synthesizes ONE clear priority.
  */
-export async function computePrimaryNextAction(
-  ctx: MyPathContext
-): Promise<PrimaryNextAction> {
+export async function computePrimaryNextAction(ctx: MyPathContext): Promise<PrimaryNextAction> {
   const lang = ctx.lang || "en";
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
 
@@ -61,7 +59,12 @@ Output JSON schema:
 - Leading Direction Hypothesis: ${primaryHypothesis ? primaryHypothesis.direction_name : "General Foundation"}
 - Hypothesis Rationale: ${primaryHypothesis ? primaryHypothesis.why_it_appeared : ""}
 - Recommended Experiment: ${primaryHypothesis ? primaryHypothesis.next_experiment : "Build a starter project"}
-- Saved Opportunities: ${ctx.savedOpportunities.map((o) => o.title).slice(0, 3).join(", ") || "None"}
+- Saved Opportunities: ${
+    ctx.savedOpportunities
+      .map((o) => o.title)
+      .slice(0, 3)
+      .join(", ") || "None"
+  }
 
 Synthesize the single primary next action.`;
 
@@ -99,24 +102,34 @@ function computeFallbackPrimaryAction(ctx: MyPathContext): PrimaryNextAction {
     if (lang === "ru") {
       return {
         action: `Создай и опиши свой первый прикладной артефакт в сфере «${topInterest}»`,
-        why_it_matters: "Теоретические интересы не видны университетам и экспертам. Первый реальный проект переводит тебя из категории наблюдателей в категорию созидателей.",
-        expected_outcome: "Один законченный проект (эссе, прототип, исследование или инициатива), добавленный в твое портфолио.",
-        supporting_recommendation: primaryHypothesis?.next_experiment || "Начни с решения понятной задачи, которая занимает не более 7 дней.",
+        why_it_matters:
+          "Теоретические интересы не видны университетам и экспертам. Первый реальный проект переводит тебя из категории наблюдателей в категорию созидателей.",
+        expected_outcome:
+          "Один законченный проект (эссе, прототип, исследование или инициатива), добавленный в твое портфолио.",
+        supporting_recommendation:
+          primaryHypothesis?.next_experiment ||
+          "Начни с решения понятной задачи, которая занимает не более 7 дней.",
       };
     }
     if (lang === "kk") {
       return {
         action: `«${topInterest}» бағытында өзіңнің алғашқы нақты жобаңды жасап, портфолиоға қос`,
-        why_it_matters: "Тек қызығушылық жеткіліксіз — университеттер мен сарапшылар нақты нәтижені бағалайды. Алғашқы жоба сені жасаушылар қатарына өткізеді.",
-        expected_outcome: "Портфолиоңда бір толық аяқталған жұмыс (эссе, прототип немесе бастама) пайда болады.",
-        supporting_recommendation: primaryHypothesis?.next_experiment || "7 күн ішінде аяқталатын қарапайым шешімнен баста.",
+        why_it_matters:
+          "Тек қызығушылық жеткіліксіз — университеттер мен сарапшылар нақты нәтижені бағалайды. Алғашқы жоба сені жасаушылар қатарына өткізеді.",
+        expected_outcome:
+          "Портфолиоңда бір толық аяқталған жұмыс (эссе, прототип немесе бастама) пайда болады.",
+        supporting_recommendation:
+          primaryHypothesis?.next_experiment || "7 күн ішінде аяқталатын қарапайым шешімнен баста.",
       };
     }
     return {
       action: `Build and document your first tangible proof-of-work project in ${topInterest}`,
-      why_it_matters: "Curiosity alone doesn't prove capability to admissions committees or mentors. A single finished artifact separates builders from spectators.",
+      why_it_matters:
+        "Curiosity alone doesn't prove capability to admissions committees or mentors. A single finished artifact separates builders from spectators.",
       expected_outcome: "One documented project or research artifact published in your portfolio.",
-      supporting_recommendation: primaryHypothesis?.next_experiment || "Pick a problem you can finish and show within 7 days.",
+      supporting_recommendation:
+        primaryHypothesis?.next_experiment ||
+        "Pick a problem you can finish and show within 7 days.",
     };
   }
 
@@ -127,8 +140,10 @@ function computeFallbackPrimaryAction(ctx: MyPathContext): PrimaryNextAction {
       return {
         action: `Подготовь черновик заявки на участие в «${opp.title}»`,
         why_it_matters: `Ты уже сохранил эту возможность. Участие в отборе от ${opp.org} даст внешнюю валидацию твоих навыков.`,
-        expected_outcome: "Готовый черновик мотивационного письма или эссе с релевантными пунктами твоего портфолио.",
-        supporting_recommendation: "Выдели 45 минут в ближайшие 48 часов, чтобы закрыть первый шаг заявки.",
+        expected_outcome:
+          "Готовый черновик мотивационного письма или эссе с релевантными пунктами твоего портфолио.",
+        supporting_recommendation:
+          "Выдели 45 минут в ближайшие 48 часов, чтобы закрыть первый шаг заявки.",
       };
     }
     if (lang === "kk") {
@@ -142,19 +157,25 @@ function computeFallbackPrimaryAction(ctx: MyPathContext): PrimaryNextAction {
     return {
       action: `Draft your core application submission for "${opp.title}"`,
       why_it_matters: `You saved this opportunity. Putting your work in front of ${opp.org} provides objective external validation.`,
-      expected_outcome: "A completed first draft of your essay or submission linking your portfolio evidence.",
-      supporting_recommendation: "Block 45 minutes in the next 48 hours to complete step 1 of the application.",
+      expected_outcome:
+        "A completed first draft of your essay or submission linking your portfolio evidence.",
+      supporting_recommendation:
+        "Block 45 minutes in the next 48 hours to complete step 1 of the application.",
     };
   }
 
   // Case 3: Next experiment from leading hypothesis
-  const exp = primaryHypothesis?.next_experiment || `Conduct an outreach interview with a professional in ${topInterest}`;
+  const exp =
+    primaryHypothesis?.next_experiment ||
+    `Conduct an outreach interview with a professional in ${topInterest}`;
   if (lang === "ru") {
     return {
       action: exp,
       why_it_matters: `Это проверит гипотезу «${primaryHypothesis?.direction_name || topInterest}» на практике до того, как ты потратишь месяцы вслепую.`,
-      expected_outcome: "Ясное понимание: вдохновляет ли тебя эта сфера в реальности или стоит скорректировать курс.",
-      supporting_recommendation: "Зафиксируй выводы в блокноте или обсуди с AI Ментором сразу после выполнения.",
+      expected_outcome:
+        "Ясное понимание: вдохновляет ли тебя эта сфера в реальности или стоит скорректировать курс.",
+      supporting_recommendation:
+        "Зафиксируй выводы в блокноте или обсуди с AI Ментором сразу после выполнения.",
     };
   }
   if (lang === "kk") {
@@ -169,6 +190,7 @@ function computeFallbackPrimaryAction(ctx: MyPathContext): PrimaryNextAction {
     action: exp,
     why_it_matters: `This tests your hypothesis "${primaryHypothesis?.direction_name || topInterest}" against reality before you commit months blind.`,
     expected_outcome: "Direct experiential clarity on whether this direction energizes you.",
-    supporting_recommendation: "Note down key learnings and review them with your AI Mentor once done.",
+    supporting_recommendation:
+      "Note down key learnings and review them with your AI Mentor once done.",
   };
 }

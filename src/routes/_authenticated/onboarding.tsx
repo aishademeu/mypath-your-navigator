@@ -6,20 +6,51 @@ import { useSession, useSaveOnboarding } from "@/lib/supabase-hooks";
 export const Route = createFileRoute("/_authenticated/onboarding")({ component: Onboarding });
 
 const INTERESTS = [
-  "Technology", "Science", "Mathematics", "Engineering", "Business", "Entrepreneurship",
-  "Arts", "Design", "Music", "Writing", "Film & Media", "Sports",
-  "Social Impact", "Leadership", "Law", "Psychology", "Healthcare",
-  "Environment", "Education", "History", "Philosophy", "Languages",
+  "Technology",
+  "Science",
+  "Mathematics",
+  "Engineering",
+  "Business",
+  "Entrepreneurship",
+  "Arts",
+  "Design",
+  "Music",
+  "Writing",
+  "Film & Media",
+  "Sports",
+  "Social Impact",
+  "Leadership",
+  "Law",
+  "Psychology",
+  "Healthcare",
+  "Environment",
+  "Education",
+  "History",
+  "Philosophy",
+  "Languages",
 ];
 
 const OPPORTUNITY_TYPES = [
-  "Scholarships", "Competitions", "Research", "Internships",
-  "Summer Programs", "Volunteering", "Hackathons", "Leadership Programs", "Courses",
+  "Scholarships",
+  "Competitions",
+  "Research",
+  "Internships",
+  "Summer Programs",
+  "Volunteering",
+  "Hackathons",
+  "Leadership Programs",
+  "Courses",
 ];
 
 const GOALS = [
-  "Build projects", "Find competitions", "Prepare for universities", "Develop skills",
-  "Get scholarships", "Do research", "Start something of my own", "Build my portfolio",
+  "Build projects",
+  "Find competitions",
+  "Prepare for universities",
+  "Develop skills",
+  "Get scholarships",
+  "Do research",
+  "Start something of my own",
+  "Build my portfolio",
 ];
 
 const STEPS = [
@@ -107,7 +138,10 @@ function Onboarding() {
         </div>
 
         {/* Step card */}
-        <div key={current.key} className="animate-fade-up mt-8 rounded-2xl border border-navy/10 bg-white/90 p-6 shadow-sm backdrop-blur sm:p-8 md:mt-10">
+        <div
+          key={current.key}
+          className="animate-fade-up mt-8 rounded-2xl border border-navy/10 bg-white/90 p-6 shadow-sm backdrop-blur sm:p-8 md:mt-10"
+        >
           <h1 className="font-display text-2xl md:text-4xl text-balance">{current.title}</h1>
           <p className="mt-2 text-navy/60 text-sm md:text-base">{current.sub}</p>
 

@@ -65,10 +65,16 @@ function MentorPage() {
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-lavender/30 blur-3xl" />
           <div className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-gold/20 blur-3xl" />
           <div className="relative flex items-center gap-4">
-            <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-gradient-to-br from-lavender to-gold text-2xl">✦</div>
+            <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-gradient-to-br from-lavender to-gold text-2xl">
+              ✦
+            </div>
             <div className="min-w-0">
-              <div className="text-xs uppercase tracking-widest text-ivory/60">{dict.mentor.kicker}</div>
-              <h1 className="mt-1 font-display text-2xl leading-tight md:text-4xl">{dict.mentor.heroTitle}</h1>
+              <div className="text-xs uppercase tracking-widest text-ivory/60">
+                {dict.mentor.kicker}
+              </div>
+              <h1 className="mt-1 font-display text-2xl leading-tight md:text-4xl">
+                {dict.mentor.heroTitle}
+              </h1>
             </div>
           </div>
         </div>
@@ -77,11 +83,21 @@ function MentorPage() {
           <div className="max-h-[55vh] min-h-[42vh] overflow-y-auto p-4 md:p-6">
             {(chat?.length ?? 0) === 0 && (
               <div className="mx-auto max-w-lg py-8 text-center md:py-10">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-navy text-ivory">✦</div>
-                <p className="mt-4 font-display text-2xl text-balance">{dict.mentor.greeting.replace("{name}", firstName)}</p>
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-navy text-ivory">
+                  ✦
+                </div>
+                <p className="mt-4 font-display text-2xl text-balance">
+                  {dict.mentor.greeting.replace("{name}", firstName)}
+                </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                   {dict.mentor.prompts.map((p) => (
-                    <button key={p} onClick={() => send(p)} className="min-h-[40px] rounded-full border border-navy/15 bg-ivory px-4 py-2 text-sm hover:border-navy/40">{p}</button>
+                    <button
+                      key={p}
+                      onClick={() => send(p)}
+                      className="min-h-[40px] rounded-full border border-navy/15 bg-ivory px-4 py-2 text-sm hover:border-navy/40"
+                    >
+                      {p}
+                    </button>
                   ))}
                 </div>
                 <div className="mt-6">
@@ -108,8 +124,13 @@ function MentorPage() {
               </div>
             )}
             {(chat ?? []).map((m) => (
-              <div key={m.id} className={`mb-4 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-3xl px-4 py-3 text-sm md:px-5 ${m.role === "user" ? "bg-navy text-ivory" : "bg-ivory text-navy"}`}>
+              <div
+                key={m.id}
+                className={`mb-4 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[85%] rounded-3xl px-4 py-3 text-sm md:px-5 ${m.role === "user" ? "bg-navy text-ivory" : "bg-ivory text-navy"}`}
+                >
                   {m.content.split("\n").map((line, i) => (
                     <p key={i} className={i > 0 ? "mt-2" : ""}>
                       {line}
@@ -122,9 +143,18 @@ function MentorPage() {
               <div className="mb-4 flex justify-start">
                 <div className="rounded-3xl bg-ivory px-5 py-3 text-sm">
                   <span className="inline-flex gap-1">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-navy/40" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-navy/40" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-navy/40" style={{ animationDelay: "300ms" }} />
+                    <span
+                      className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                      style={{ animationDelay: "0ms" }}
+                    />
+                    <span
+                      className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                      style={{ animationDelay: "150ms" }}
+                    />
+                    <span
+                      className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                      style={{ animationDelay: "300ms" }}
+                    />
                   </span>
                 </div>
               </div>
@@ -162,12 +192,29 @@ function MentorPage() {
 
 // Keywords that signal a premium/Pro-only request across EN/RU/KK.
 const PRO_KEYWORDS = [
-  "essay", "эссе",
-  "cv", "резюме", "резуме",
-  "admission", "admit", "chances", "шанс", "поступлен", "түсу", "ықтимал",
-  "roadmap", "дорожн", "карт", "жол карта",
-  "deep analysis", "deep profile", "глубок", "терең",
-  "portfolio analysis", "анализ портфолио", "портфолио талда",
+  "essay",
+  "эссе",
+  "cv",
+  "резюме",
+  "резуме",
+  "admission",
+  "admit",
+  "chances",
+  "шанс",
+  "поступлен",
+  "түсу",
+  "ықтимал",
+  "roadmap",
+  "дорожн",
+  "карт",
+  "жол карта",
+  "deep analysis",
+  "deep profile",
+  "глубок",
+  "терең",
+  "portfolio analysis",
+  "анализ портфолио",
+  "портфолио талда",
 ];
 
 function isProPrompt(text: string): boolean {
@@ -187,12 +234,13 @@ function matchProFeature(
       lockedFeaturePortfolio: string;
       lockedFeatureAdvancedMentor: string;
     };
-  }
+  },
 ): string {
   const low = text.toLowerCase();
   if (/(essay|эссе)/i.test(low)) return dict.pro.lockedFeatureEssay;
   if (/(cv|резюме|резуме)/i.test(low)) return dict.pro.lockedFeatureCV;
-  if (/(admission|admit|chance|шанс|поступлен|түсу|ықтимал)/i.test(low)) return dict.pro.lockedFeatureAdmission;
+  if (/(admission|admit|chance|шанс|поступлен|түсу|ықтимал)/i.test(low))
+    return dict.pro.lockedFeatureAdmission;
   if (/(roadmap|дорожн|жол карта|карт)/i.test(low)) return dict.pro.lockedFeatureRoadmap;
   if (/(portfolio|портфолио)/i.test(low)) return dict.pro.lockedFeaturePortfolio;
   if (/(deep|глубок|терең)/i.test(low)) return dict.pro.lockedFeatureDeepAnalysis;

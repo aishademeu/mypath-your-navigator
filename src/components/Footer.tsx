@@ -14,22 +14,50 @@ export function Footer() {
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-navy/60">MyPath</div>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><Link to="/opportunities" className="hover:underline">{dict.nav.opportunities}</Link></li>
-            <li><Link to="/dashboard" className="hover:underline">{dict.nav.dashboard}</Link></li>
-            <li><Link to="/profile" className="hover:underline">{dict.nav.portfolio}</Link></li>
-            <li><Link to="/mentor" className="hover:underline">{dict.nav.mentor}</Link></li>
+            <li>
+              <Link to="/opportunities" className="hover:underline">
+                {dict.nav.opportunities}
+              </Link>
+            </li>
+            <li>
+              <Link to="/dashboard" className="hover:underline">
+                {dict.nav.dashboard}
+              </Link>
+            </li>
+            <li>
+              <Link to="/profile" className="hover:underline">
+                {dict.nav.portfolio}
+              </Link>
+            </li>
+            <li>
+              <Link to="/mentor" className="hover:underline">
+                {dict.nav.mentor}
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-navy/60">{dict.auth.createAccount}</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-navy/60">
+            {dict.auth.createAccount}
+          </div>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><Link to="/auth" search={{ mode: "signup" }} className="hover:underline">{dict.nav.start}</Link></li>
-            <li><Link to="/auth" search={{ mode: "login" }} className="hover:underline">{dict.nav.login}</Link></li>
+            <li>
+              <Link to="/auth" search={{ mode: "signup" }} className="hover:underline">
+                {dict.nav.start}
+              </Link>
+            </li>
+            <li>
+              <Link to="/auth" search={{ mode: "login" }} className="hover:underline">
+                {dict.nav.login}
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-navy/60">MyPath</div>
-          <p className="mt-3 text-sm text-muted-foreground">© {new Date().getFullYear()} MyPath Platform.</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            © {new Date().getFullYear()} MyPath Platform.
+          </p>
         </div>
       </div>
     </footer>

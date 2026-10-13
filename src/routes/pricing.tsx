@@ -45,8 +45,8 @@ function PricingPage() {
           lang === "ru"
             ? "Ваш платёж отправлен на проверку администратором. Статус: В обработке."
             : lang === "kk"
-            ? "Төлеміңіз әкімші тексеруіне жіберілді. Мәртебесі: Тексерілуде."
-            : "Your payment has been submitted for administrator verification. Status: Pending."
+              ? "Төлеміңіз әкімші тексеруіне жіберілді. Мәртебесі: Тексерілуде."
+              : "Your payment has been submitted for administrator verification. Status: Pending.",
         );
         setReceiptNote("");
       } else {
@@ -70,13 +70,17 @@ function PricingPage() {
           <h1 className="mx-auto mt-5 max-w-3xl font-display text-4xl leading-[1.05] text-balance md:text-6xl">
             {dict.pro.heroTitle}
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base text-navy/70 md:text-lg">{dict.pro.heroSub}</p>
+          <p className="mx-auto mt-5 max-w-2xl text-base text-navy/70 md:text-lg">
+            {dict.pro.heroSub}
+          </p>
         </section>
 
         <section className="mt-12 grid gap-6 md:grid-cols-2 md:items-stretch">
           {/* Free */}
           <div className="animate-fade-up flex flex-col rounded-[2rem] border border-navy/10 bg-white p-7 md:p-8">
-            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">{dict.pro.freeKicker}</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
+              {dict.pro.freeKicker}
+            </div>
             <h2 className="mt-2 font-display text-3xl">{dict.pro.freeTitle}</h2>
             <div className="mt-4 flex items-baseline gap-1">
               <span className="font-display text-5xl">0</span>
@@ -118,7 +122,9 @@ function PricingPage() {
                 </div>
                 <h2 className="mt-2 font-display text-3xl">MyPath Pro</h2>
                 <div className="mt-4 flex items-baseline gap-1.5">
-                  <span className="font-display text-5xl">{PRO_PRICE_KZT.toLocaleString("ru-RU")}</span>
+                  <span className="font-display text-5xl">
+                    {PRO_PRICE_KZT.toLocaleString("ru-RU")}
+                  </span>
                   <span className="text-ivory/60">KZT / {dict.pro.perMonth}</span>
                 </div>
                 <p className="mt-2 text-sm text-ivory/70">{dict.pro.priceNote}</p>
@@ -151,10 +157,15 @@ function PricingPage() {
                         }}
                         className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-gold to-lavender px-6 py-3 text-sm font-bold text-navy shadow-lg transition hover:opacity-95"
                       >
-                        {lang === "ru" ? "Оформить подписку (5,000 ₸)" : "Upgrade to Pro (5,000 KZT)"} →
+                        {lang === "ru"
+                          ? "Оформить подписку (5,000 ₸)"
+                          : "Upgrade to Pro (5,000 KZT)"}{" "}
+                        →
                       </button>
                       <p className="text-center text-[11px] text-ivory/60">
-                        {lang === "ru" ? "Мгновенное подтверждение через Kaspi / Карту" : "Supported via Kaspi & Card"}
+                        {lang === "ru"
+                          ? "Мгновенное подтверждение через Kaspi / Карту"
+                          : "Supported via Kaspi & Card"}
                       </p>
                     </>
                   )}
@@ -166,8 +177,14 @@ function PricingPage() {
 
         {/* Manual Payment Modal */}
         {manualOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4 backdrop-blur-sm" onClick={() => setManualOpen(false)}>
-            <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-3xl bg-white p-6 md:p-8 shadow-2xl">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4 backdrop-blur-sm"
+            onClick={() => setManualOpen(false)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg rounded-3xl bg-white p-6 md:p-8 shadow-2xl"
+            >
               <h3 className="font-display text-2xl text-navy">
                 {lang === "ru" ? "Оформление подписки MyPath Pro" : "MyPath Pro Activation"}
               </h3>
@@ -196,7 +213,9 @@ function PricingPage() {
                 <form onSubmit={handleManualSubmit} className="mt-5 space-y-4">
                   <label className="block">
                     <span className="text-xs font-semibold uppercase tracking-wider text-navy/60">
-                      {lang === "ru" ? "Имя отправителя / Номер перевода" : "Sender name / Transfer note"}
+                      {lang === "ru"
+                        ? "Имя отправителя / Номер перевода"
+                        : "Sender name / Transfer note"}
                     </span>
                     <input
                       value={receiptNote}
@@ -218,7 +237,11 @@ function PricingPage() {
                       disabled={submitting || !receiptNote.trim()}
                       className="rounded-full bg-navy px-6 py-2 text-sm font-semibold text-ivory hover:bg-navy/90 disabled:opacity-50"
                     >
-                      {submitting ? "Submitting..." : lang === "ru" ? "Отправить на проверку" : "Submit for Verification"}
+                      {submitting
+                        ? "Submitting..."
+                        : lang === "ru"
+                          ? "Отправить на проверку"
+                          : "Submit for Verification"}
                     </button>
                   </div>
                 </form>

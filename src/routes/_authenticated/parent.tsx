@@ -50,7 +50,11 @@ function ParentPortalPage() {
     queryKey: ["student-profile", activeStudentId],
     enabled: !!activeStudentId,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("id", activeStudentId).maybeSingle();
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", activeStudentId)
+        .maybeSingle();
       return data;
     },
   });
@@ -86,7 +90,10 @@ function ParentPortalPage() {
     queryKey: ["student-portfolio", activeStudentId],
     enabled: !!activeStudentId,
     queryFn: async () => {
-      const { data } = await supabase.from("portfolio_items").select("*").eq("user_id", activeStudentId);
+      const { data } = await supabase
+        .from("portfolio_items")
+        .select("*")
+        .eq("user_id", activeStudentId);
       return data ?? [];
     },
   });
@@ -98,17 +105,25 @@ function ParentPortalPage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
-              {lang === "ru" ? "Родительский портал" : lang === "kk" ? "Ата-ана порталы" : "Parent Portal"}
+              {lang === "ru"
+                ? "Родительский портал"
+                : lang === "kk"
+                  ? "Ата-ана порталы"
+                  : "Parent Portal"}
             </div>
             <h1 className="mt-1 font-display text-3xl md:text-5xl text-navy">
-              {lang === "ru" ? "Развитие и ориентиры ребенка" : lang === "kk" ? "Балаңыздың даму бағыты" : "Student Growth & Direction"}
+              {lang === "ru"
+                ? "Развитие и ориентиры ребенка"
+                : lang === "kk"
+                  ? "Балаңыздың даму бағыты"
+                  : "Student Growth & Direction"}
             </h1>
             <p className="mt-2 text-sm text-navy/60 max-w-2xl">
               {lang === "ru"
                 ? "Поддерживайте траекторию развития ребенка. Высокоуровневые цели, вехи портфолио и направления видны здесь. Личные диалоги с AI Ментором остаются строго конфиденциальными."
                 : lang === "kk"
-                ? "Балаңыздың даму траекториясын бақылаңыз. Мақсаттар мен портфолио жетістіктері осында көрінеді. AI Тәлімгермен жеке диалогтар құпия сақталады."
-                : "Support your student's trajectory. High-level milestones, working hypotheses, and portfolio growth are visible here. Private AI mentor dialogues remain strictly confidential."}
+                  ? "Балаңыздың даму траекториясын бақылаңыз. Мақсаттар мен портфолио жетістіктері осында көрінеді. AI Тәлімгермен жеке диалогтар құпия сақталады."
+                  : "Support your student's trajectory. High-level milestones, working hypotheses, and portfolio growth are visible here. Private AI mentor dialogues remain strictly confidential."}
             </p>
           </div>
         </div>
@@ -116,7 +131,11 @@ function ParentPortalPage() {
         {/* Link Student by Code Form */}
         <div className="mt-8 rounded-3xl border border-navy/10 bg-white p-6 shadow-sm">
           <h2 className="font-display text-xl text-navy">
-            {lang === "ru" ? "Привязать аккаунт ребенка" : lang === "kk" ? "Баланың аккаунтын қосу" : "Link a Student Account"}
+            {lang === "ru"
+              ? "Привязать аккаунт ребенка"
+              : lang === "kk"
+                ? "Баланың аккаунтын қосу"
+                : "Link a Student Account"}
           </h2>
           <p className="mt-1 text-xs text-navy/60">
             {lang === "ru"
@@ -152,7 +171,9 @@ function ParentPortalPage() {
                     key={l.id}
                     onClick={() => setSelectedStudentId(l.student_id)}
                     className={`rounded-full px-4 py-1.5 text-xs font-semibold ${
-                      activeStudentId === l.student_id ? "bg-navy text-ivory" : "bg-white border border-navy/10 text-navy"
+                      activeStudentId === l.student_id
+                        ? "bg-navy text-ivory"
+                        : "bg-white border border-navy/10 text-navy"
                     }`}
                   >
                     Student #{idx + 1}
@@ -164,10 +185,15 @@ function ParentPortalPage() {
             <div className="grid gap-6 md:grid-cols-3">
               {/* Student Profile Card */}
               <div className="rounded-3xl border border-navy/10 bg-white p-6">
-                <div className="text-xs uppercase tracking-wider text-navy/50 font-semibold">Student Profile</div>
-                <h3 className="mt-2 font-display text-2xl text-navy">{studentProfile?.name || "Student"}</h3>
+                <div className="text-xs uppercase tracking-wider text-navy/50 font-semibold">
+                  Student Profile
+                </div>
+                <h3 className="mt-2 font-display text-2xl text-navy">
+                  {studentProfile?.name || "Student"}
+                </h3>
                 <div className="mt-1 text-xs text-navy/60">
-                  {studentProfile?.country} {studentProfile?.city ? `· ${studentProfile.city}` : ""} · Grade {studentProfile?.grade || "—"}
+                  {studentProfile?.country} {studentProfile?.city ? `· ${studentProfile.city}` : ""}{" "}
+                  · Grade {studentProfile?.grade || "—"}
                 </div>
                 {studentProfile?.mini_bio && (
                   <div className="mt-4 rounded-xl bg-ivory p-3 text-xs italic text-navy/80">
@@ -194,7 +220,9 @@ function ParentPortalPage() {
                     {studentHypotheses.slice(0, 2).map((h: any, i: number) => (
                       <div key={h.id || i} className="rounded-2xl bg-white/10 p-4">
                         <div className="font-display text-lg text-gold">{h.direction_name}</div>
-                        <p className="mt-1 text-xs text-ivory/80 leading-relaxed">{h.why_it_appeared}</p>
+                        <p className="mt-1 text-xs text-ivory/80 leading-relaxed">
+                          {h.why_it_appeared}
+                        </p>
                         {h.next_experiment && (
                           <div className="mt-2 text-xs text-ivory/90">
                             <b>Current Experiment:</b> {h.next_experiment}
@@ -219,7 +247,9 @@ function ParentPortalPage() {
               {studentAction ? (
                 <div className="mt-3">
                   <div className="font-display text-xl text-navy">{studentAction.action}</div>
-                  <p className="mt-1 text-xs text-navy/70 leading-relaxed">{studentAction.why_it_matters}</p>
+                  <p className="mt-1 text-xs text-navy/70 leading-relaxed">
+                    {studentAction.why_it_matters}
+                  </p>
                   <div className="mt-2 text-xs text-growth font-medium">
                     Expected outcome: {studentAction.expected_outcome}
                   </div>
@@ -239,9 +269,13 @@ function ParentPortalPage() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
                 {(studentPortfolio || []).map((item: any) => (
                   <div key={item.id} className="rounded-2xl bg-ivory p-4">
-                    <span className="text-[10px] uppercase tracking-wider text-navy/50 font-semibold">{item.section}</span>
+                    <span className="text-[10px] uppercase tracking-wider text-navy/50 font-semibold">
+                      {item.section}
+                    </span>
                     <div className="font-semibold text-navy mt-1 text-sm">{item.title}</div>
-                    {item.description && <p className="mt-1 text-xs text-navy/70 line-clamp-2">{item.description}</p>}
+                    {item.description && (
+                      <p className="mt-1 text-xs text-navy/70 line-clamp-2">{item.description}</p>
+                    )}
                   </div>
                 ))}
                 {(studentPortfolio || []).length === 0 && (

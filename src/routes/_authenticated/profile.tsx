@@ -22,8 +22,17 @@ import { polishPortfolioFn, generateParentInviteFn } from "@/lib/server-function
 
 export const Route = createFileRoute("/_authenticated/profile")({ component: ProfilePage });
 
-type SectionKey = "about" | "story" | "projects" | "research" | "leadership" | "achievements" | "skills";
-const SECTION_KEYS: SectionKey[] = ["about", "story", "projects", "research", "leadership", "achievements", "skills"];
+type SectionKey =
+  "about" | "story" | "projects" | "research" | "leadership" | "achievements" | "skills";
+const SECTION_KEYS: SectionKey[] = [
+  "about",
+  "story",
+  "projects",
+  "research",
+  "leadership",
+  "achievements",
+  "skills",
+];
 
 function ProfilePage() {
   const { user } = useSession();
@@ -82,8 +91,15 @@ function ProfilePage() {
         <Navbar />
         <main className="mx-auto max-w-4xl px-5 py-8 md:px-6 md:py-12">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">{dict.profile.publicPreview}</div>
-            <button onClick={() => setPreview(false)} className="rounded-full border border-navy/15 px-4 py-2 text-sm">{dict.profile.backToEditor}</button>
+            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
+              {dict.profile.publicPreview}
+            </div>
+            <button
+              onClick={() => setPreview(false)}
+              className="rounded-full border border-navy/15 px-4 py-2 text-sm"
+            >
+              {dict.profile.backToEditor}
+            </button>
           </div>
 
           <div className="mt-6 overflow-hidden rounded-[2rem] border border-navy/10 bg-white shadow-xl">
@@ -98,16 +114,24 @@ function ProfilePage() {
             <div className="relative px-6 pb-8 sm:px-10">
               <div className="relative -mt-14 sm:-mt-16 z-10 flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-navy to-lavender font-display text-3xl text-ivory shadow-lg overflow-hidden">
                 {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                  <img
+                    src={profile.avatar_url}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   (profile.name ?? "M")[0]?.toUpperCase()
                 )}
               </div>
 
               <div className="mt-4">
-                <h1 className="font-display text-3xl md:text-4xl">{profile.name ?? "MyPath Student"}</h1>
+                <h1 className="font-display text-3xl md:text-4xl">
+                  {profile.name ?? "MyPath Student"}
+                </h1>
                 <div className="mt-1 text-sm text-navy/60">
-                  {profile.country ?? ""} {profile.city ? `· ${profile.city}` : ""} · {dict.profile.fields.age} {profile.age ?? "—"} · {dict.profile.fields.grade} {profile.grade ?? "—"}
+                  {profile.country ?? ""} {profile.city ? `· ${profile.city}` : ""} ·{" "}
+                  {dict.profile.fields.age} {profile.age ?? "—"} · {dict.profile.fields.grade}{" "}
+                  {profile.grade ?? "—"}
                 </div>
                 {profile.mini_bio && (
                   <p className="mt-3 max-w-2xl text-sm italic text-navy/80">"{profile.mini_bio}"</p>
@@ -119,12 +143,16 @@ function ProfilePage() {
                 if (list.length === 0) return null;
                 return (
                   <section key={k} className="mt-8 border-t border-navy/5 pt-6">
-                    <h2 className="font-display text-xl md:text-2xl">{dict.profile.sections[k].label}</h2>
+                    <h2 className="font-display text-xl md:text-2xl">
+                      {dict.profile.sections[k].label}
+                    </h2>
                     <div className="mt-3 space-y-3">
                       {list.map((i) => (
                         <div key={i.id} className="rounded-2xl border border-navy/10 p-4">
                           <div className="font-semibold">{i.title}</div>
-                          {i.description && <p className="mt-1 text-sm text-navy/70">{i.description}</p>}
+                          {i.description && (
+                            <p className="mt-1 text-sm text-navy/70">{i.description}</p>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -145,10 +173,15 @@ function ProfilePage() {
       <main className="mx-auto max-w-6xl px-5 py-8 md:px-6 md:py-10">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">{dict.profile.kicker}</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-navy/50">
+              {dict.profile.kicker}
+            </div>
             <h1 className="mt-2 font-display text-3xl md:text-5xl">{dict.profile.title}</h1>
           </div>
-          <button onClick={() => setPreview(true)} className="min-h-[44px] rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-ivory">
+          <button
+            onClick={() => setPreview(true)}
+            className="min-h-[44px] rounded-full bg-navy px-5 py-2.5 text-sm font-semibold text-ivory"
+          >
             {dict.profile.preview}
           </button>
         </div>
@@ -190,11 +223,16 @@ function ProfilePage() {
 
               {/* Pro status badge & parent invite trigger */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${isPro ? "bg-gradient-to-r from-gold to-lavender text-navy" : "bg-navy/5 text-navy/70"}`}>
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${isPro ? "bg-gradient-to-r from-gold to-lavender text-navy" : "bg-navy/5 text-navy/70"}`}
+                >
                   {isPro ? "✦ Pro Member" : "Free Plan"}
                 </span>
                 {!isPro && (
-                  <Link to="/pricing" className="text-xs font-semibold text-growth underline underline-offset-4">
+                  <Link
+                    to="/pricing"
+                    className="text-xs font-semibold text-growth underline underline-offset-4"
+                  >
                     Upgrade to Pro
                   </Link>
                 )}
@@ -209,8 +247,16 @@ function ProfilePage() {
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-navy/60">
                 {profile.country && <span>📍 {profile.country}</span>}
                 {profile.city && <span>· {profile.city}</span>}
-                {profile.age && <span>· {profile.age} {dict.profile.fields.age}</span>}
-                {profile.grade && <span>· {dict.profile.fields.grade} {profile.grade}</span>}
+                {profile.age && (
+                  <span>
+                    · {profile.age} {dict.profile.fields.age}
+                  </span>
+                )}
+                {profile.grade && (
+                  <span>
+                    · {dict.profile.fields.grade} {profile.grade}
+                  </span>
+                )}
                 {profile.school && <span>· {profile.school}</span>}
               </div>
             </div>
@@ -219,7 +265,11 @@ function ProfilePage() {
             <div className="mt-5 rounded-2xl border border-navy/10 bg-ivory/70 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">
-                  {lang === "ru" ? "Мини-биография" : lang === "kk" ? "Қысқаша мәлімет" : "Mini Bio"}
+                  {lang === "ru"
+                    ? "Мини-биография"
+                    : lang === "kk"
+                      ? "Қысқаша мәлімет"
+                      : "Mini Bio"}
                 </span>
                 {!miniBioEdit && (
                   <button
@@ -245,8 +295,8 @@ function ProfilePage() {
                       lang === "ru"
                         ? "1–2 предложения о себе своими словами (например: 'Учусь в 10 классе, интересуюсь робототехникой и мечтаю запустить свой проект')"
                         : lang === "kk"
-                        ? "Өзіңіз туралы 1-2 сөйлем (мысалы: '10-сынып оқушысымын, робототехникаға қызығамын')"
-                        : "1-2 sentences about yourself in your own words (e.g. '10th grader passionate about robotics and social tech')"
+                          ? "Өзіңіз туралы 1-2 сөйлем (мысалы: '10-сынып оқушысымын, робототехникаға қызығамын')"
+                          : "1-2 sentences about yourself in your own words (e.g. '10th grader passionate about robotics and social tech')"
                     }
                     className="w-full rounded-xl border border-navy/20 bg-white p-3 text-sm outline-none focus:border-navy"
                   />
@@ -277,8 +327,8 @@ function ProfilePage() {
                       {lang === "ru"
                         ? "Напиши коротко о себе. AI Ментор будет использовать это как ориентир."
                         : lang === "kk"
-                        ? "Өзіңіз туралы қысқаша жазыңыз. AI Тәлімгер осы мәліметті басшылыққа алады."
-                        : "Add a short note about who you are. AI Mentor uses this as real context."}
+                          ? "Өзіңіз туралы қысқаша жазыңыз. AI Тәлімгер осы мәліметті басшылыққа алады."
+                          : "Add a short note about who you are. AI Mentor uses this as real context."}
                     </span>
                   )}
                 </p>
@@ -292,21 +342,27 @@ function ProfilePage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="font-display text-lg md:text-xl text-navy">
-                {lang === "ru" ? "Пригласить родителя" : lang === "kk" ? "Ата-ананы шақыру" : "Invite a Parent"}
+                {lang === "ru"
+                  ? "Пригласить родителя"
+                  : lang === "kk"
+                    ? "Ата-ананы шақыру"
+                    : "Invite a Parent"}
               </h2>
               <p className="mt-1 text-xs text-navy/60">
                 {lang === "ru"
                   ? "Родитель сможет видеть твои цели, общее направление и портфолио. Твои диалоги с AI Ментором остаются строго приватными."
                   : lang === "kk"
-                  ? "Ата-анаңыз сіздің мақсаттарыңыз бен жетістіктеріңізді көре алады. AI Тәлімгермен жеке диалогтарыңыз құпия қалады."
-                  : "Parents can view high-level milestones and portfolio progress. Your AI Mentor chats remain strictly private."}
+                    ? "Ата-анаңыз сіздің мақсаттарыңыз бен жетістіктеріңізді көре алады. AI Тәлімгермен жеке диалогтарыңыз құпия қалады."
+                    : "Parents can view high-level milestones and portfolio progress. Your AI Mentor chats remain strictly private."}
               </p>
             </div>
             <div>
               {inviteCode ? (
                 <div className="flex items-center gap-2 rounded-2xl bg-lavender/20 px-4 py-2">
                   <span className="text-xs text-navy/70">Code:</span>
-                  <span className="font-mono text-sm font-bold tracking-wider text-navy">{inviteCode}</span>
+                  <span className="font-mono text-sm font-bold tracking-wider text-navy">
+                    {inviteCode}
+                  </span>
                 </div>
               ) : (
                 <button
@@ -314,7 +370,13 @@ function ProfilePage() {
                   onClick={handleGenerateParentInvite}
                   className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-ivory hover:bg-navy/90"
                 >
-                  {generatingCode ? "Generating..." : lang === "ru" ? "Создать код" : lang === "kk" ? "Код жасау" : "Generate Invite Code"}
+                  {generatingCode
+                    ? "Generating..."
+                    : lang === "ru"
+                      ? "Создать код"
+                      : lang === "kk"
+                        ? "Код жасау"
+                        : "Generate Invite Code"}
                 </button>
               )}
             </div>
@@ -325,12 +387,36 @@ function ProfilePage() {
         <section className="mt-6 rounded-3xl border border-navy/10 bg-white p-5 md:p-6">
           <h2 className="font-display text-xl md:text-2xl">{dict.profile.whoIAm}</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Editable label={dict.profile.fields.fullName} value={profile.name ?? ""} onSave={(v) => updateProfile.mutate({ name: v })} />
-            <Editable label={dict.profile.fields.country} value={profile.country ?? ""} onSave={(v) => updateProfile.mutate({ country: v })} />
-            <Editable label="City" value={profile.city ?? ""} onSave={(v) => updateProfile.mutate({ city: v })} />
-            <Editable label="School" value={profile.school ?? ""} onSave={(v) => updateProfile.mutate({ school: v })} />
-            <Editable label={dict.profile.fields.age} value={String(profile.age ?? "")} onSave={(v) => updateProfile.mutate({ age: parseInt(v, 10) || null })} />
-            <Editable label={dict.profile.fields.grade} value={profile.grade ?? ""} onSave={(v) => updateProfile.mutate({ grade: v })} />
+            <Editable
+              label={dict.profile.fields.fullName}
+              value={profile.name ?? ""}
+              onSave={(v) => updateProfile.mutate({ name: v })}
+            />
+            <Editable
+              label={dict.profile.fields.country}
+              value={profile.country ?? ""}
+              onSave={(v) => updateProfile.mutate({ country: v })}
+            />
+            <Editable
+              label="City"
+              value={profile.city ?? ""}
+              onSave={(v) => updateProfile.mutate({ city: v })}
+            />
+            <Editable
+              label="School"
+              value={profile.school ?? ""}
+              onSave={(v) => updateProfile.mutate({ school: v })}
+            />
+            <Editable
+              label={dict.profile.fields.age}
+              value={String(profile.age ?? "")}
+              onSave={(v) => updateProfile.mutate({ age: parseInt(v, 10) || null })}
+            />
+            <Editable
+              label={dict.profile.fields.grade}
+              value={profile.grade ?? ""}
+              onSave={(v) => updateProfile.mutate({ grade: v })}
+            />
           </div>
         </section>
 
@@ -366,7 +452,9 @@ function ProfilePage() {
           <div className="flex items-end justify-between">
             <div>
               <h2 className="font-display text-2xl md:text-3xl">{dict.profile.portfolio}</h2>
-              <p className="text-xs text-navy/60">Real proof of your capabilities and accomplishments.</p>
+              <p className="text-xs text-navy/60">
+                Real proof of your capabilities and accomplishments.
+              </p>
             </div>
           </div>
           <div className="mt-5 grid gap-4 md:mt-6 md:grid-cols-2 md:gap-5">
@@ -380,7 +468,10 @@ function ProfilePage() {
                       <h3 className="font-display text-lg md:text-xl">{s.label}</h3>
                       <div className="text-xs text-navy/60">{s.hint}</div>
                     </div>
-                    <button onClick={() => setAdding(k)} className="min-h-[36px] flex-none rounded-full bg-navy/5 px-3 py-1.5 text-xs font-semibold hover:bg-navy/10">
+                    <button
+                      onClick={() => setAdding(k)}
+                      className="min-h-[36px] flex-none rounded-full bg-navy/5 px-3 py-1.5 text-xs font-semibold hover:bg-navy/10"
+                    >
                       + {dict.common.add}
                     </button>
                   </div>
@@ -395,13 +486,23 @@ function ProfilePage() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="font-semibold text-navy">{i.title}</div>
-                            {i.description && <p className="mt-1 text-sm text-navy/70 leading-relaxed">{i.description}</p>}
+                            {i.description && (
+                              <p className="mt-1 text-sm text-navy/70 leading-relaxed">
+                                {i.description}
+                              </p>
+                            )}
                           </div>
                           <div className="flex flex-none gap-1">
-                            <button onClick={() => setEditing(i)} className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-navy/80 hover:bg-navy/5">
+                            <button
+                              onClick={() => setEditing(i)}
+                              className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-navy/80 hover:bg-navy/5"
+                            >
                               {dict.common.edit}
                             </button>
-                            <button onClick={() => remove.mutate(i.id)} className="rounded-full bg-white px-2.5 py-1 text-xs text-destructive hover:bg-destructive/10">
+                            <button
+                              onClick={() => remove.mutate(i.id)}
+                              className="rounded-full bg-white px-2.5 py-1 text-xs text-destructive hover:bg-destructive/10"
+                            >
                               {dict.common.delete}
                             </button>
                           </div>
@@ -420,10 +521,17 @@ function ProfilePage() {
             <h2 className="font-display text-xl md:text-2xl">{dict.profile.savedOpps}</h2>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {savedList.map((o) => (
-                <Link key={o.id} to="/apply-guide/$id" params={{ id: o.id }} className="rounded-2xl bg-ivory p-4 hover:bg-lavender/20 transition">
+                <Link
+                  key={o.id}
+                  to="/apply-guide/$id"
+                  params={{ id: o.id }}
+                  className="rounded-2xl bg-ivory p-4 hover:bg-lavender/20 transition"
+                >
                   <div className="text-[11px] text-navy/60">{dict.categories[o.category]}</div>
                   <div className="font-semibold">{o.title}</div>
-                  <div className="text-xs text-navy/60">{dict.dashboard.deadline} · {formatDate(o.deadline, lang)}</div>
+                  <div className="text-xs text-navy/60">
+                    {dict.dashboard.deadline} · {formatDate(o.deadline, lang)}
+                  </div>
                 </Link>
               ))}
             </div>
@@ -440,7 +548,11 @@ function ProfilePage() {
             setEditing(null);
           }}
           onSave={(v) => {
-            if (editing) update.mutate({ id: editing.id, patch: { title: v.title, description: v.description } });
+            if (editing)
+              update.mutate({
+                id: editing.id,
+                patch: { title: v.title, description: v.description },
+              });
             else addItem.mutate({ section: v.section, title: v.title, description: v.description });
             setAdding(null);
             setEditing(null);
@@ -453,17 +565,37 @@ function ProfilePage() {
   );
 }
 
-function Editable({ label, value, onSave }: { label: string; value: string; onSave: (v: string) => void }) {
+function Editable({
+  label,
+  value,
+  onSave,
+}: {
+  label: string;
+  value: string;
+  onSave: (v: string) => void;
+}) {
   const { dict } = useI18n();
   const [editing, setEditing] = useState(false);
   const [v, setV] = useState(value);
   if (!editing) {
     return (
       <div>
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{label}</div>
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">
+          {label}
+        </div>
         <div className="mt-1 flex items-start justify-between gap-2">
-          <div className="text-sm text-navy/80 whitespace-pre-line">{value || <span className="text-navy/40">{dict.common.notSet}</span>}</div>
-          <button onClick={() => { setV(value); setEditing(true); }} className="text-xs font-medium underline">{dict.common.edit}</button>
+          <div className="text-sm text-navy/80 whitespace-pre-line">
+            {value || <span className="text-navy/40">{dict.common.notSet}</span>}
+          </div>
+          <button
+            onClick={() => {
+              setV(value);
+              setEditing(true);
+            }}
+            className="text-xs font-medium underline"
+          >
+            {dict.common.edit}
+          </button>
         </div>
       </div>
     );
@@ -471,10 +603,27 @@ function Editable({ label, value, onSave }: { label: string; value: string; onSa
   return (
     <div>
       <div className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{label}</div>
-      <input value={v} onChange={(e) => setV(e.target.value)} className="mt-1 min-h-[40px] w-full rounded-xl border border-navy/15 bg-white px-3 py-2 text-sm outline-none focus:border-navy" />
+      <input
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        className="mt-1 min-h-[40px] w-full rounded-xl border border-navy/15 bg-white px-3 py-2 text-sm outline-none focus:border-navy"
+      />
       <div className="mt-2 flex gap-2">
-        <button onClick={() => { onSave(v); setEditing(false); }} className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-ivory">{dict.common.save}</button>
-        <button onClick={() => setEditing(false)} className="rounded-full border border-navy/15 px-3 py-1 text-xs">{dict.common.cancel}</button>
+        <button
+          onClick={() => {
+            onSave(v);
+            setEditing(false);
+          }}
+          className="rounded-full bg-navy px-3 py-1 text-xs font-semibold text-ivory"
+        >
+          {dict.common.save}
+        </button>
+        <button
+          onClick={() => setEditing(false)}
+          className="rounded-full border border-navy/15 px-3 py-1 text-xs"
+        >
+          {dict.common.cancel}
+        </button>
       </div>
     </div>
   );
@@ -498,7 +647,9 @@ function ItemDialog({
   const [skills, setSkills] = useState<string[]>([]);
   const [missingInfoPrompt, setMissingInfoPrompt] = useState<string | null>(null);
 
-  const sectionLabel = (dict.profile.sections as Record<string, { label: string }>)[initial.section]?.label ?? initial.section;
+  const sectionLabel =
+    (dict.profile.sections as Record<string, { label: string }>)[initial.section]?.label ??
+    initial.section;
 
   const handleAIPolish = async () => {
     if (!description.trim()) return;
@@ -525,8 +676,14 @@ function ItemDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl"
+      >
         <div className="flex items-center justify-between">
           <h3 className="font-display text-2xl">{sectionLabel}</h3>
           <button
@@ -541,20 +698,38 @@ function ItemDialog({
 
         <div className="mt-4 space-y-3">
           <label className="block">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{dict.profile.dialogTitle}</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 min-h-[44px] w-full rounded-xl border border-navy/15 bg-white px-3 py-2 text-sm outline-none focus:border-navy" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">
+              {dict.profile.dialogTitle}
+            </span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="mt-1 min-h-[44px] w-full rounded-xl border border-navy/15 bg-white px-3 py-2 text-sm outline-none focus:border-navy"
+            />
           </label>
           <label className="block">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">{dict.profile.dialogDescription}</span>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="mt-1 w-full rounded-xl border border-navy/15 bg-white p-2 text-sm outline-none focus:border-navy" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-navy/60">
+              {dict.profile.dialogDescription}
+            </span>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              className="mt-1 w-full rounded-xl border border-navy/15 bg-white p-2 text-sm outline-none focus:border-navy"
+            />
           </label>
 
           {skills.length > 0 && (
             <div className="rounded-xl bg-growth/10 p-3">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-growth">Demonstrated Competencies:</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-growth">
+                Demonstrated Competencies:
+              </span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {skills.map((s) => (
-                  <span key={s} className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-navy">
+                  <span
+                    key={s}
+                    className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-navy"
+                  >
                     ✓ {s}
                   </span>
                 ))}
@@ -570,7 +745,10 @@ function ItemDialog({
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-full border border-navy/15 px-4 py-2 text-sm">
+          <button
+            onClick={onClose}
+            className="rounded-full border border-navy/15 px-4 py-2 text-sm"
+          >
             {dict.common.cancel}
           </button>
           <button

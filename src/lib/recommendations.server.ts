@@ -19,7 +19,7 @@ export function matchOpportunitiesQualitatively(
   opportunities: Opportunity[],
   student: StudentProfileContext,
   hypotheses: CareerHypothesis[] = [],
-  lang: string = "en"
+  lang: string = "en",
 ): QualitativeMatch[] {
   const today = new Date().toISOString().slice(0, 10);
   const leadingHypothesis = hypotheses[0];
@@ -68,7 +68,7 @@ export function matchOpportunitiesQualitatively(
     if (student.country && opp.countries && opp.countries !== "worldwide") {
       const countryList = Array.isArray(opp.countries) ? opp.countries : [opp.countries];
       const matchCountry = countryList.some(
-        (c) => c.toLowerCase().trim() === student.country!.toLowerCase().trim()
+        (c) => c.toLowerCase().trim() === student.country!.toLowerCase().trim(),
       );
       if (!matchCountry) {
         eligible = false;
@@ -91,9 +91,10 @@ export function matchOpportunitiesQualitatively(
 
     // Career Hypothesis Alignment
     if (leadingHypothesis) {
-      const hypothesisMatches = opp.fields.some((f) =>
-        leadingHypothesis.direction_name.toLowerCase().includes(f.toLowerCase())
-      ) || (leadingHypothesis.relevant_interests || []).some((i) => opp.fields.includes(i));
+      const hypothesisMatches =
+        opp.fields.some((f) =>
+          leadingHypothesis.direction_name.toLowerCase().includes(f.toLowerCase()),
+        ) || (leadingHypothesis.relevant_interests || []).some((i) => opp.fields.includes(i));
 
       if (hypothesisMatches) {
         if (lang === "ru") {
@@ -101,29 +102,37 @@ export function matchOpportunitiesQualitatively(
         } else if (lang === "kk") {
           reasons.push(`«${leadingHypothesis.direction_name}» негізгі бағытыңды нығайтады`);
         } else {
-          reasons.push(`Directly advances your working trajectory in ${leadingHypothesis.direction_name}`);
+          reasons.push(
+            `Directly advances your working trajectory in ${leadingHypothesis.direction_name}`,
+          );
         }
       }
     }
 
     // Goals Alignment
     const goals = student.goals || [];
-    if (goals.includes("Build projects") && (opp.category === "Projects" || opp.category === "Competitions")) {
+    if (
+      goals.includes("Build projects") &&
+      (opp.category === "Projects" || opp.category === "Competitions")
+    ) {
       reasons.push(
         lang === "ru"
           ? "Помогает реализовать цель по созданию прикладных проектов"
           : lang === "kk"
-          ? "Қолданбалы жобалар жасау мақсатыңа сай келеді"
-          : "Serves your goal to build and ship practical projects"
+            ? "Қолданбалы жобалар жасау мақсатыңа сай келеді"
+            : "Serves your goal to build and ship practical projects",
       );
     }
-    if (goals.includes("Prepare for universities") && (opp.category === "Scholarships" || opp.category === "Research")) {
+    if (
+      goals.includes("Prepare for universities") &&
+      (opp.category === "Scholarships" || opp.category === "Research")
+    ) {
       reasons.push(
         lang === "ru"
           ? "Дает сильный академический сигнал для университетских приемных комиссий"
           : lang === "kk"
-          ? "Университетке түсу үшін күшті академиялық нәтиже береді"
-          : "Provides a high-value signal for university admissions"
+            ? "Университетке түсу үшін күшті академиялық нәтиже береді"
+            : "Provides a high-value signal for university admissions",
       );
     }
 
@@ -139,13 +148,13 @@ export function matchOpportunitiesQualitatively(
     }
 
     // Synthesize the primary qualitative "Why this is relevant to you" rationale
-    let relevanceRationale = reasons[0] || (
-      lang === "ru"
+    const relevanceRationale =
+      reasons[0] ||
+      (lang === "ru"
         ? "Полезная возможность для расширения кругозора и укрепления профиля"
         : lang === "kk"
-        ? "Профиліңді күшейтуге және жаңа мүмкіндіктер ашуға арналған бағдарлама"
-        : "Valuable program to broaden your horizon and strengthen your profile"
-    );
+          ? "Профиліңді күшейтуге және жаңа мүмкіндіктер ашуға арналған бағдарлама"
+          : "Valuable program to broaden your horizon and strengthen your profile");
 
     // Deadline check (within 10 days)
     const deadlineDays = opp.deadline

@@ -50,7 +50,7 @@ export interface CareerHypothesis {
 export async function runAdaptiveDiscoveryTurn(
   context: StudentProfileContext,
   history: InterviewTurn[],
-  lang: string = "en"
+  lang: string = "en",
 ): Promise<AdaptiveInterviewStepResult> {
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
 
@@ -133,7 +133,7 @@ Generate the next adaptive interview step.`;
 export async function generateCareerHypotheses(
   context: StudentProfileContext,
   history: InterviewTurn[],
-  lang: string = "en"
+  lang: string = "en",
 ): Promise<CareerHypothesis[]> {
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
 
@@ -223,7 +223,7 @@ Synthesize 3–5 personalized career hypotheses adhering strictly to the schema.
 function generateFallbackAdaptiveQuestion(
   context: StudentProfileContext,
   history: InterviewTurn[],
-  lang: string
+  lang: string,
 ): AdaptiveInterviewStepResult {
   const turnIndex = history.filter((h) => h.role === "user").length;
   const ints = context.interests || [];
@@ -231,14 +231,20 @@ function generateFallbackAdaptiveQuestion(
   const dream = (context.dream || "").toLowerCase();
 
   // Contradiction Check 1: Working with people vs solo craft
-  const likesLeadership = ints.includes("Leadership") || strs.includes("Leadership") || strs.includes("Public speaking");
-  const mentionsSolitary = dream.includes("alone") || dream.includes("solo") || dream.includes("один") || dream.includes("жалғыз");
+  const likesLeadership =
+    ints.includes("Leadership") || strs.includes("Leadership") || strs.includes("Public speaking");
+  const mentionsSolitary =
+    dream.includes("alone") ||
+    dream.includes("solo") ||
+    dream.includes("один") ||
+    dream.includes("жалғыз");
 
   if (likesLeadership && mentionsSolitary && turnIndex === 0) {
     if (lang === "ru") {
       return {
         done: false,
-        question: "Ранее ты указал интерес к лидерству и людям, но также отметил желание работать самостоятельно. Что для тебя комфортнее: вести за собой небольшую доверенную команду или глубоко погружаться в задачу автономно?",
+        question:
+          "Ранее ты указал интерес к лидерству и людям, но также отметил желание работать самостоятельно. Что для тебя комфортнее: вести за собой небольшую доверенную команду или глубоко погружаться в задачу автономно?",
         dimension_explored: "Разрешение противоречия",
         reasoning: "Устранение неясности между стремлением к лидерству и автономной работой.",
       };
@@ -246,14 +252,16 @@ function generateFallbackAdaptiveQuestion(
     if (lang === "kk") {
       return {
         done: false,
-        question: "Бұған дейін көшбасшылық пен адамдармен жұмыс істеуге қызығушылық білдірдің, бірақ сонымен бірге жеке жұмыс істегің келетінін айттың. Саған қайсысы қолайлырақ: шағын топпен жұмыс істеу ме, әлде терең жеке зерттеу ме?",
+        question:
+          "Бұған дейін көшбасшылық пен адамдармен жұмыс істеуге қызығушылық білдірдің, бірақ сонымен бірге жеке жұмыс істегің келетінін айттың. Саған қайсысы қолайлырақ: шағын топпен жұмыс істеу ме, әлде терең жеке зерттеу ме?",
         dimension_explored: "Қарама-қайшылықты анықтау",
         reasoning: "Көшбасшылық пен дербес жұмыс арасындағы теңгерімді нақтылау.",
       };
     }
     return {
       done: false,
-      question: "Earlier you highlighted an interest in leadership, but you also mentioned valuing working independently. Which setting feels more natural: leading a small, close-knit team, or having deep uninterrupted focus on your own piece of work?",
+      question:
+        "Earlier you highlighted an interest in leadership, but you also mentioned valuing working independently. Which setting feels more natural: leading a small, close-knit team, or having deep uninterrupted focus on your own piece of work?",
       dimension_explored: "Contradiction resolution",
       reasoning: "Clarifying balance between leadership and autonomous craft.",
     };
@@ -261,7 +269,13 @@ function generateFallbackAdaptiveQuestion(
 
   // Turn 0: Deep dive into real-world project experience or hands-on application
   if (turnIndex === 0) {
-    const topInterest = ints[0] || (lang === "ru" ? "твоей любимой сфере" : lang === "kk" ? "қызығушылығыңда" : "your top interest");
+    const topInterest =
+      ints[0] ||
+      (lang === "ru"
+        ? "твоей любимой сфере"
+        : lang === "kk"
+          ? "қызығушылығыңда"
+          : "your top interest");
     if (lang === "ru") {
       return {
         done: false,
@@ -291,22 +305,26 @@ function generateFallbackAdaptiveQuestion(
     if (lang === "ru") {
       return {
         done: false,
-        question: "Представь, что у тебя есть месяц свободы для одного проекта. Ты предпочтешь исследовать фундаментальный вопрос без спешки или быстро запустить что-то практическое в условиях неопределенности?",
+        question:
+          "Представь, что у тебя есть месяц свободы для одного проекта. Ты предпочтешь исследовать фундаментальный вопрос без спешки или быстро запустить что-то практическое в условиях неопределенности?",
         dimension_explored: "Среда и отношение к риску",
-        reasoning: "Разделение академического исследовательского пути и прикладного/стартап подхода.",
+        reasoning:
+          "Разделение академического исследовательского пути и прикладного/стартап подхода.",
       };
     }
     if (lang === "kk") {
       return {
         done: false,
-        question: "Егер саған бір жоба жасауға бір ай уақыт берілсе: асықпай іргелі ғылыми сұрақты терең зерттеуді таңдар ма едің, әлде белгісіздік жағдайында тәуекел етіп практикалық нәтиже шығаруды ма?",
+        question:
+          "Егер саған бір жоба жасауға бір ай уақыт берілсе: асықпай іргелі ғылыми сұрақты терең зерттеуді таңдар ма едің, әлде белгісіздік жағдайында тәуекел етіп практикалық нәтиже шығаруды ма?",
         dimension_explored: "Орта мен тәуекелге көзқарас",
         reasoning: "Академиялық зерттеу мен қолданбалы кәсіпкерлік бағыттарын ажырату.",
       };
     }
     return {
       done: false,
-      question: "If you had one month of complete freedom to tackle any project, would you rather deeply investigate an intellectual question without rush, or rapidly ship something into the real world under uncertainty?",
+      question:
+        "If you had one month of complete freedom to tackle any project, would you rather deeply investigate an intellectual question without rush, or rapidly ship something into the real world under uncertainty?",
       dimension_explored: "Work environment and risk appetite",
       reasoning: "Differentiating intellectual research vs rapid application.",
     };
@@ -316,7 +334,8 @@ function generateFallbackAdaptiveQuestion(
   if (lang === "ru") {
     return {
       done: false,
-      question: "Вспомни один реальный случай за последний год, когда ты преодолел сложную задачу или почувствовал искреннюю гордость за результат. Что именно это было?",
+      question:
+        "Вспомни один реальный случай за последний год, когда ты преодолел сложную задачу или почувствовал искреннюю гордость за результат. Что именно это было?",
       dimension_explored: "Реальные жизненные примеры",
       reasoning: "Сбор фактологических свидетельств для формулирования гипотез.",
     };
@@ -324,14 +343,16 @@ function generateFallbackAdaptiveQuestion(
   if (lang === "kk") {
     return {
       done: false,
-      question: "Соңғы бір жылда қиын кедергіні жеңіп, нәтижесіне шын жүректен мақтанған бір нақты оқиғаңды айтып берші. Ол қандай іс еді?",
+      question:
+        "Соңғы бір жылда қиын кедергіні жеңіп, нәтижесіне шын жүректен мақтанған бір нақты оқиғаңды айтып берші. Ол қандай іс еді?",
       dimension_explored: "Өмірлік нақты тәжірибе",
       reasoning: "Нақты дәлелдерге негізделген гипотеза жасау үшін фактілер жинау.",
     };
   }
   return {
     done: false,
-    question: "Think back to one specific moment in the past year when you pushed through a hard problem or felt genuine pride in what you finished. What was that task?",
+    question:
+      "Think back to one specific moment in the past year when you pushed through a hard problem or felt genuine pride in what you finished. What was that task?",
     dimension_explored: "Real experiential evidence",
     reasoning: "Gathering ground-truth empirical evidence for career hypotheses.",
   };
@@ -340,23 +361,32 @@ function generateFallbackAdaptiveQuestion(
 function synthesizeFallbackHypotheses(
   context: StudentProfileContext,
   history: InterviewTurn[],
-  lang: string
+  lang: string,
 ): CareerHypothesis[] {
-  const ints = context.interests && context.interests.length > 0 ? context.interests : ["Technology", "Leadership"];
-  const strs = context.strengths && context.strengths.length > 0 ? context.strengths : ["Problem solving", "Curiosity"];
-  const problems = context.problems && context.problems.length > 0 ? context.problems : ["Education inequality", "Technology access"];
-  
+  const ints =
+    context.interests && context.interests.length > 0
+      ? context.interests
+      : ["Technology", "Leadership"];
+  const strs =
+    context.strengths && context.strengths.length > 0
+      ? context.strengths
+      : ["Problem solving", "Curiosity"];
+  const problems =
+    context.problems && context.problems.length > 0
+      ? context.problems
+      : ["Education inequality", "Technology access"];
+
   // Extract user text fragments as actual evidence
   const userQuotes = history
     .filter((h) => h.role === "user")
     .map((h) => h.content)
     .filter((c) => c.length > 10);
 
-  const evidenceA = userQuotes[0] 
+  const evidenceA = userQuotes[0]
     ? `Your statement: "${userQuotes[0].slice(0, 90)}..."`
     : `Your chosen interest in ${ints[0]} and strength in ${strs[0] || "curiosity"}.`;
-  
-  const evidenceB = userQuotes[1] 
+
+  const evidenceB = userQuotes[1]
     ? `Your reflection: "${userQuotes[1].slice(0, 90)}..."`
     : `Your declared commitment to solving ${problems[0] || "meaningful problems"}.`;
 
@@ -365,29 +395,41 @@ function synthesizeFallbackHypotheses(
       {
         direction_name: `${ints[0]} & Прикладные инновации`,
         why_it_appeared: `Ты последовательно проявляешь интерес к сфере «${ints[0]}» и опираешься на сильную сторону «${strs[0] || "аналитическое мышление"}».`,
-        evidence: [evidenceA, `Выбор ценности решения проблемы: ${problems[0] || "развитие технологий"}`],
+        evidence: [
+          evidenceA,
+          `Выбор ценности решения проблемы: ${problems[0] || "развитие технологий"}`,
+        ],
         relevant_strengths: [strs[0] || "Любознательность", strs[1] || "Инициативность"],
         relevant_interests: [ints[0], ints[1] || "Технологии"],
         unknowns: ["Привлекает ли тебя больше техническая глубина или организационная сторона."],
         skills_to_explore: ["Прототипирование решений", "Анализ потребностей пользователей"],
-        next_experiment: "Создай небольшой мини-проект или исследовательскую заметку по этой теме и покажи 3 сверстникам.",
+        next_experiment:
+          "Создай небольшой мини-проект или исследовательскую заметку по этой теме и покажи 3 сверстникам.",
         status: "active",
       },
       {
         direction_name: "Социальное предпринимательство & Лидерство",
         why_it_appeared: `Сочетание интереса к переменам в обществе (${problems[0] || "образование"}) с готовностью брать на себя инициативу.`,
-        evidence: [evidenceB, `Указанная сильная сторона: ${strs.find((s) => s.includes("Lead") || s.includes("Comm") || s.includes("Team")) || "Коммуникация"}`],
+        evidence: [
+          evidenceB,
+          `Указанная сильная сторона: ${strs.find((s) => s.includes("Lead") || s.includes("Comm") || s.includes("Team")) || "Коммуникация"}`,
+        ],
         relevant_strengths: ["Лидерство", "Коммуникация"],
         relevant_interests: [ints[1] || ints[0], "Социальное влияние"],
         unknowns: ["Насколько комфортно вести переговоры с внешними взрослыми партнерами."],
         skills_to_explore: ["Презентация идей", "Координация инициатив"],
-        next_experiment: "Организуй одно локальное мероприятие или волонтерскую сессию на 5–10 человек.",
+        next_experiment:
+          "Организуй одно локальное мероприятие или волонтерскую сессию на 5–10 человек.",
         status: "active",
       },
       {
         direction_name: "Аналитическое исследование & Стратегия",
-        why_it_appeared: "Стремление глубоко понимать первопричины проблем перед принятием решений.",
-        evidence: [`Твой ответ на этапе исследования задач`, `Системный интерес к сфере ${ints[0]}`],
+        why_it_appeared:
+          "Стремление глубоко понимать первопричины проблем перед принятием решений.",
+        evidence: [
+          `Твой ответ на этапе исследования задач`,
+          `Системный интерес к сфере ${ints[0]}`,
+        ],
         relevant_strengths: ["Исследование", "Аналитическое мышление"],
         relevant_interests: [ints[0], "Наука & Аналитика"],
         unknowns: ["Нравится ли работать с большими массивами данных или с качественными кейсами."],
@@ -403,12 +445,16 @@ function synthesizeFallbackHypotheses(
       {
         direction_name: `${ints[0]} & Қолданбалы инновациялар`,
         why_it_appeared: `Сен «${ints[0]}» бағытына тұрақты қызығушылық танытып, «${strs[0] || "ізденімпаздық"}» күшіңе сүйенесің.`,
-        evidence: [evidenceA, `Маңызды мәселе ретінде таңдауың: ${problems[0] || "білім теңсіздігі"}`],
+        evidence: [
+          evidenceA,
+          `Маңызды мәселе ретінде таңдауың: ${problems[0] || "білім теңсіздігі"}`,
+        ],
         relevant_strengths: [strs[0] || "Ізденімпаздық", strs[1] || "Бастамашылдық"],
         relevant_interests: [ints[0], ints[1] || "Технология"],
         unknowns: ["Техникалық тереңдік көбірек тарта ма, әлде ұйымдастырушылық жағы ма."],
         skills_to_explore: ["Шешімдердің прототипін жасау", "Пайдаланушылардың сұранысын талдау"],
-        next_experiment: "Осы бағытта шағын жоба немесе зерттеу жазбасын дайындап, 3 адамға көрсет.",
+        next_experiment:
+          "Осы бағытта шағын жоба немесе зерттеу жазбасын дайындап, 3 адамға көрсет.",
         status: "active",
       },
       {
@@ -419,13 +465,18 @@ function synthesizeFallbackHypotheses(
         relevant_interests: [ints[1] || ints[0], "Әлеуметтік ықпал"],
         unknowns: ["Сыртқы серіктестермен келіссөз жүргізу қаншалықты қолайлы."],
         skills_to_explore: ["Идеяны қорғау", "Бастамаларды үйлестіру"],
-        next_experiment: "5–10 адамға арналған бір шағын кездесу немесе волонтерлік бастама ұйымдастыр.",
+        next_experiment:
+          "5–10 адамға арналған бір шағын кездесу немесе волонтерлік бастама ұйымдастыр.",
         status: "active",
       },
       {
         direction_name: "Аналитикалық зерттеу & Стратегия",
-        why_it_appeared: "Шешім қабылдамас бұрын мәселенің түпкі себептерін терең түсінуге деген ұмтылыс.",
-        evidence: [`Сұрақтарға берген жауаптарыңдағы жүйелілік`, `${ints[0]} саласындағы қызығушылық`],
+        why_it_appeared:
+          "Шешім қабылдамас бұрын мәселенің түпкі себептерін терең түсінуге деген ұмтылыс.",
+        evidence: [
+          `Сұрақтарға берген жауаптарыңдағы жүйелілік`,
+          `${ints[0]} саласындағы қызығушылық`,
+        ],
         relevant_strengths: ["Зерттеу", "Аналитикалық ойлау"],
         relevant_interests: [ints[0], "Ғылым & Аналитика"],
         unknowns: ["Үлкен деректермен жұмыс істеу ұнай ма, әлде сапалық мысалдарды зерттеу ме."],
@@ -443,15 +494,21 @@ function synthesizeFallbackHypotheses(
       evidence: [evidenceA, `Identified priority cause: ${problems[0] || "technology access"}`],
       relevant_strengths: [strs[0] || "Curiosity", strs[1] || "Initiative"],
       relevant_interests: [ints[0], ints[1] || "Technology"],
-      unknowns: ["Whether you gravitate more toward the underlying technical craft or the product leadership side."],
+      unknowns: [
+        "Whether you gravitate more toward the underlying technical craft or the product leadership side.",
+      ],
       skills_to_explore: ["Rapid prototyping", "User research"],
-      next_experiment: "Build a tiny proof-of-concept or 1-page writeup on this topic and share it with 3 peers.",
+      next_experiment:
+        "Build a tiny proof-of-concept or 1-page writeup on this topic and share it with 3 peers.",
       status: "active",
     },
     {
       direction_name: "Social Impact & Initiative Leadership",
       why_it_appeared: `A distinct fusion of cause-oriented drive (${problems[0] || "youth development"}) and organizational initiative.`,
-      evidence: [evidenceB, `Declared competency: ${strs.find((s) => s.includes("Lead") || s.includes("Comm") || s.includes("Team")) || "Communication"}`],
+      evidence: [
+        evidenceB,
+        `Declared competency: ${strs.find((s) => s.includes("Lead") || s.includes("Comm") || s.includes("Team")) || "Communication"}`,
+      ],
       relevant_strengths: ["Leadership", "Communication"],
       relevant_interests: [ints[1] || ints[0], "Social Impact"],
       unknowns: ["How comfortable you are pitching external community stakeholders."],
@@ -461,13 +518,15 @@ function synthesizeFallbackHypotheses(
     },
     {
       direction_name: "Analytical Research & Strategy",
-      why_it_appeared: "A clear inclination to investigate root mechanisms rather than settling for superficial answers.",
+      why_it_appeared:
+        "A clear inclination to investigate root mechanisms rather than settling for superficial answers.",
       evidence: ["Systematic approach across your discovery responses", `Focus on ${ints[0]}`],
       relevant_strengths: ["Research", "Analytical thinking"],
       relevant_interests: [ints[0], "Science & Strategy"],
       unknowns: ["Whether you prefer quantitative data modeling or qualitative synthesis."],
       skills_to_explore: ["Literature synthesis", "Critical methodology"],
-      next_experiment: "Draft a concise 1-page memo analyzing the biggest bottleneck in this field.",
+      next_experiment:
+        "Draft a concise 1-page memo analyzing the biggest bottleneck in this field.",
       status: "active",
     },
   ];

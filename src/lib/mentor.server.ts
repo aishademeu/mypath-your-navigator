@@ -82,14 +82,21 @@ Reply to the student's latest message as their MyPath AI Mentor.`;
 
 function generateFallbackMentorResponse(ctx: MentorContext): string {
   const lang = ctx.lang || "en";
-  const lastUserMsg = [...ctx.conversationHistory].reverse().find((m) => m.role === "user")?.content || "";
+  const lastUserMsg =
+    [...ctx.conversationHistory].reverse().find((m) => m.role === "user")?.content || "";
   const low = lastUserMsg.toLowerCase();
   const name = (ctx.student.name || "friend").split(" ")[0];
   const topInterest = ctx.student.interests?.[0] || "your interest";
   const leadingHypothesis = ctx.hypotheses[0];
 
   // If asking about next steps / what to do
-  if (low.includes("next") || low.includes("делать") || low.includes("дальше") || low.includes("не істе") || low.includes("қадам")) {
+  if (
+    low.includes("next") ||
+    low.includes("делать") ||
+    low.includes("дальше") ||
+    low.includes("не істе") ||
+    low.includes("қадам")
+  ) {
     if (ctx.nextAction) {
       if (lang === "ru") {
         return `Здравствуй, ${name}. Давай сфокусируемся на главном.\n\nТвой текущий ключевой шаг сейчас: **${ctx.nextAction.action}**.\n\nПочему именно это: ${ctx.nextAction.why_it_matters}\n\nНе распыляйся на десятки задач одновременно. Сделай этот один шаг за ближайшие 48 часов, и это даст тебе осязаемый результат: ${ctx.nextAction.expected_outcome}.`;
@@ -102,7 +109,13 @@ function generateFallbackMentorResponse(ctx: MentorContext): string {
   }
 
   // If asking about direction / hypotheses
-  if (low.includes("direction") || low.includes("hypothes") || low.includes("направлен") || low.includes("бағыт") || low.includes("куда")) {
+  if (
+    low.includes("direction") ||
+    low.includes("hypothes") ||
+    low.includes("направлен") ||
+    low.includes("бағыт") ||
+    low.includes("куда")
+  ) {
     if (leadingHypothesis) {
       if (lang === "ru") {
         return `Глядя на твои ответы и профиль, твое ведущее направление сейчас — **${leadingHypothesis.direction_name}**.\n\nЭто не окончательный приговор, а гипотеза для проверки. Она появилась потому, что ты указал интерес к сфере ${topInterest} и сильные стороны в решении задач.\n\nГлавное неизвестное сейчас: ${leadingHypothesis.unknowns[0] || "насколько тебе близок прикладной формат"}. Чтобы проверить это без спешки, попробуй эксперимент: ${leadingHypothesis.next_experiment}.`;
@@ -115,7 +128,12 @@ function generateFallbackMentorResponse(ctx: MentorContext): string {
   }
 
   // If asking about portfolio / courses / resume
-  if (low.includes("course") || low.includes("курс") || low.includes("portfolio") || low.includes("портфолио")) {
+  if (
+    low.includes("course") ||
+    low.includes("курс") ||
+    low.includes("portfolio") ||
+    low.includes("портфолио")
+  ) {
     if (lang === "ru") {
       return `Честный совет, ${name}: я бы не рекомендовал сейчас записываться на очередной теоретический курс. У тебя уже достаточно общей информации.\n\nТо, чего сейчас действительно не хватает в профиле — это осязаемых доказательств того, что ты умеешь применять знания на практике. Один законченный проект или эссе принесут тебе в пять раз больше пользы, чем еще один сертификат о прослушивании лекций.`;
     }

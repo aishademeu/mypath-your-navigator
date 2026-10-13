@@ -1,11 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type SubscriptionState =
-  | "FREE"
-  | "PRO_ACTIVE"
-  | "PRO_EXPIRED"
-  | "PAYMENT_FAILED"
-  | "CANCELLED";
+  "FREE" | "PRO_ACTIVE" | "PRO_EXPIRED" | "PAYMENT_FAILED" | "CANCELLED";
 
 export const PRO_MONTHLY_PRICE_KZT = 5000;
 
@@ -53,12 +49,17 @@ export async function getUserSubscriptionState(userId: string): Promise<{
 /**
  * Creates a Stripe Checkout Session for recurring 5,000 KZT / month.
  */
-export async function createStripeCheckoutSession(userId: string, userEmail: string, origin: string): Promise<{ url: string | null; error?: string }> {
+export async function createStripeCheckoutSession(
+  userId: string,
+  userEmail: string,
+  origin: string,
+): Promise<{ url: string | null; error?: string }> {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeSecretKey) {
     return {
       url: null,
-      error: "Stripe API key is not configured. Please use the manual payment or contact administrator.",
+      error:
+        "Stripe API key is not configured. Please use the manual payment or contact administrator.",
     };
   }
 
@@ -74,7 +75,7 @@ export async function createStripeCheckoutSession(userId: string, userEmail: str
         cancel_url: `${origin}/pricing?status=cancelled`,
         mode: "subscription",
         customer_email: userEmail,
-        "client_reference_id": userId,
+        client_reference_id: userId,
         "line_items[0][price_data][currency]": "kzt",
         "line_items[0][price_data][product_data][name]": "MyPath Pro",
         "line_items[0][price_data][unit_amount]": String(PRO_MONTHLY_PRICE_KZT * 100),
@@ -99,7 +100,7 @@ export async function createStripeCheckoutSession(userId: string, userEmail: str
 export async function submitManualPayment(
   userId: string,
   receiptNote?: string,
-  receiptFileUrl?: string
+  receiptFileUrl?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await (supabaseAdmin as any).from("manual_payments").insert({
@@ -123,7 +124,7 @@ export async function submitManualPayment(
 export async function verifyManualPayment(
   paymentId: string,
   adminUserId: string,
-  decision: "approved" | "rejected"
+  decision: "approved" | "rejected",
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { data: payment, error: fetchErr } = await (supabaseAdmin as any)

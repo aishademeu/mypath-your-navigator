@@ -20,7 +20,7 @@ export interface PolishPortfolioOutput {
  * Enhances clarity, structures impact, and identifies demonstrated competencies.
  */
 export async function polishPortfolioItem(
-  input: PolishPortfolioInput
+  input: PolishPortfolioInput,
 ): Promise<PolishPortfolioOutput> {
   const lang = input.lang || "en";
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
@@ -65,7 +65,9 @@ Polish this portfolio item strictly adhering to the truth and guidelines.`;
       return {
         polishedTitle: parsed.polishedTitle,
         polishedDescription: parsed.polishedDescription,
-        demonstratedSkills: Array.isArray(parsed.demonstratedSkills) ? parsed.demonstratedSkills : [],
+        demonstratedSkills: Array.isArray(parsed.demonstratedSkills)
+          ? parsed.demonstratedSkills
+          : [],
         missingInformationPrompt: parsed.missingInformationPrompt || undefined,
       };
     }
@@ -75,17 +77,19 @@ Polish this portfolio item strictly adhering to the truth and guidelines.`;
 
   // Deterministic fallback
   const cleanTitle = input.title.trim() || "Independent Project";
-  const cleanDesc = input.rawDescription.trim() || "Conducted independent research and practical execution.";
+  const cleanDesc =
+    input.rawDescription.trim() || "Conducted independent research and practical execution.";
   return {
     polishedTitle: cleanTitle,
     polishedDescription: cleanDesc,
     demonstratedSkills: ["Initiative", "Critical Thinking", "Execution"],
-    missingInformationPrompt: input.rawDescription.length < 50
-      ? (lang === "ru"
+    missingInformationPrompt:
+      input.rawDescription.length < 50
+        ? lang === "ru"
           ? "Добавь конкретики: какова была твоя личная роль и какой конечный результат получился?"
           : lang === "kk"
-          ? "Нақтырақ жаз: сенің жеке рөлің қандай болды және қандай нақты нәтижеге қол жеткіздің?"
-          : "Could you specify what your exact role was and what the measurable outcome was?")
-      : undefined,
+            ? "Нақтырақ жаз: сенің жеке рөлің қандай болды және қандай нақты нәтижеге қол жеткіздің?"
+            : "Could you specify what your exact role was and what the measurable outcome was?"
+        : undefined,
   };
 }

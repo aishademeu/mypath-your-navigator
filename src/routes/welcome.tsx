@@ -7,7 +7,10 @@ export const Route = createFileRoute("/welcome")({
   head: () => ({
     meta: [
       { title: "MyPath — Choose your language / Выберите язык / Тілді таңдаңыз" },
-      { name: "description", content: "Select your preferred language for MyPath: English, Русский, Қазақша." },
+      {
+        name: "description",
+        content: "Select your preferred language for MyPath: English, Русский, Қазақша.",
+      },
       { property: "og:title", content: "MyPath — Choose your language" },
       { property: "og:description", content: "MyPath in English, Russian, or Kazakh." },
       { property: "og:type", content: "website" },
@@ -33,7 +36,9 @@ function Welcome() {
         </div>
 
         <div className="animate-fade-up mt-14 text-center md:mt-24">
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-navy/50">MyPath</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-navy/50">
+            MyPath
+          </div>
           <h1 className="mt-4 font-display text-4xl leading-tight text-navy md:text-5xl">
             Choose your language
           </h1>

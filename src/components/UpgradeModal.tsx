@@ -28,7 +28,8 @@ export function UpgradeModal() {
             </h3>
             {upgradeFeature && (
               <p className="mt-2 text-sm text-ivory/80">
-                {dict.pro.modalFeaturePrefix} <span className="font-semibold text-ivory">{upgradeFeature}</span>
+                {dict.pro.modalFeaturePrefix}{" "}
+                <span className="font-semibold text-ivory">{upgradeFeature}</span>
               </p>
             )}
           </div>
