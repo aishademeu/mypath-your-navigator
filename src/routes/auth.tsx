@@ -40,7 +40,12 @@ function AuthPage() {
     name: z.string().trim().min(2, "Please enter your full name").max(80),
     email: z.string().trim().email("Please enter a valid email address").max(255),
     phone: z.string().trim().optional(),
-    password: z.string().min(6, "Password must be at least 6 characters").max(100),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(100)
+      .regex(/[A-Za-z]/, "Password must contain at least one letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
     age: z.coerce
       .number()
       .int()
@@ -53,13 +58,18 @@ function AuthPage() {
   const parentSignupSchema = z.object({
     name: z.string().trim().min(2, "Please enter your full name").max(80),
     email: z.string().trim().email("Please enter a valid email address").max(255),
-    password: z.string().min(6, "Password must be at least 6 characters").max(100),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(100)
+      .regex(/[A-Za-z]/, "Password must contain at least one letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
     country: z.string().trim().min(2, "Please enter your country").max(80),
   });
 
   const loginSchema = z.object({
     email: z.string().trim().email("Please enter a valid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(1, "Please enter your password"),
   });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -94,16 +104,21 @@ function AuthPage() {
               .from("profiles")
               .update({
                 name: r.data.name,
+                display_name: r.data.name,
                 email: r.data.email,
                 country: r.data.country,
                 role: "parent",
               })
               .eq("id", authData.user.id);
+
+            await (supabase as any).from("consent_log").insert({
+              user_id: authData.user.id,
+              kind: "parent_registration",
+              text_version: "2026.10-v1",
+            });
           }
-          setBanner({
-            type: "info",
-            text: "Account created! Check your email to confirm, then log in.",
-          });
+          // Non-blocking navigation
+          navigate({ to: "/parent" as any });
         } else {
           const r = studentSignupSchema.safeParse(data);
           if (!r.success) {
@@ -121,12 +136,20 @@ function AuthPage() {
             },
           });
           if (error) throw error;
+
+          const currentYear = new Date().getFullYear();
+          const birthYear = currentYear - r.data.age;
+          const consentState = r.data.age < 16 ? "pending" : "none";
+
           if (authData.user) {
             await (supabase as any)
               .from("profiles")
               .update({
                 name: r.data.name,
+                display_name: r.data.name,
                 age: r.data.age,
+                birth_year: birthYear,
+                parental_consent: consentState,
                 country: r.data.country,
                 grade: r.data.grade,
                 email: r.data.email,
@@ -134,12 +157,22 @@ function AuthPage() {
                 role: "student",
               })
               .eq("id", authData.user.id);
+
+            // Log consent in consent_log
+            await (supabase as any).from("consent_log").insert({
+              user_id: authData.user.id,
+              kind: consentState === "pending" ? "minor_registration_pending_consent" : "standard_tos",
+              text_version: "2026.10-v1",
+            });
+
             navigate({ to: "/onboarding" });
           } else {
+            // Optional email notice as non-blocking nudge
             setBanner({
               type: "info",
-              text: "Check your email to confirm your account, then log in.",
+              text: "Account created! You can start using MyPath right now. Confirm your email whenever you have a chance.",
             });
+            navigate({ to: "/onboarding" });
           }
         }
       } else {

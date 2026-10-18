@@ -322,23 +322,19 @@ export const generateParentInviteFn = createServerFn({ method: "POST" })
   });
 
 /**
- * 7. Admin Server Function: Moderate Opportunity
+ * 7. Admin Server Function: Moderate Opportunity (R-A1-08 Audit Logged)
  */
 export const moderateOpportunityFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(
-    (d: { id: string; status: "approved" | "rejected" | "expired"; verified?: boolean }) => d,
+    (d: { id: string; status: "approved" | "rejected" | "expired" | "active" | "needs_review" | "hidden"; verified?: boolean }) => d,
   )
   .handler(async ({ context, data }) => {
+    const { verifyIsAdmin, writeAuditLog } = await import("./auth-security.server");
     const adminId = context.userId;
-    // Server-side check that user is admin
-    const { data: profile } = await (supabaseAdmin as any)
-      .from("profiles")
-      .select("role")
-      .eq("id", adminId)
-      .maybeSingle();
 
-    if (profile?.role !== "admin") {
+    const isAdmin = await verifyIsAdmin(adminId);
+    if (!isAdmin) {
       throw new Error("Unauthorized: Admin access required");
     }
 
@@ -346,41 +342,65 @@ export const moderateOpportunityFn = createServerFn({ method: "POST" })
       .from("opportunities")
       .update({
         status: data.status,
-        verified: data.verified ?? data.status === "approved",
+        verified: data.verified ?? (data.status === "approved" || data.status === "active"),
         updated_at: new Date().toISOString(),
       })
       .eq("id", data.id);
 
     if (error) throw error;
+
+    await writeAuditLog({
+      actorId: adminId,
+      action: "moderate_opportunity",
+      target: `opportunity:${data.id}`,
+      details: { status: data.status, verified: data.verified },
+    });
+
     return { success: true };
   });
 
 /**
- * 8. Manual Payment Submission & Verification Server Functions
+ * 8. Manual Payment Submission & Verification Server Functions (R-A1-08 Audit Logged)
  */
 export const submitPaymentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: { note?: string; receiptUrl?: string }) => d)
   .handler(async ({ context, data }) => {
-    return await submitManualPayment(context.userId, data.note, data.receiptUrl);
+    const res = await submitManualPayment(context.userId, data.note, data.receiptUrl);
+    if (res.success) {
+      const { writeAuditLog } = await import("./auth-security.server");
+      await writeAuditLog({
+        actorId: context.userId,
+        action: "submit_payment",
+        target: `user:${context.userId}`,
+        details: { note: data.note, receiptUrl: data.receiptUrl },
+      });
+    }
+    return res;
   });
 
 export const adminVerifyPaymentFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: { paymentId: string; decision: "approved" | "rejected" }) => d)
   .handler(async ({ context, data }) => {
+    const { verifyIsAdmin, writeAuditLog } = await import("./auth-security.server");
     const adminId = context.userId;
-    const { data: profile } = await (supabaseAdmin as any)
-      .from("profiles")
-      .select("role")
-      .eq("id", adminId)
-      .maybeSingle();
 
-    if (profile?.role !== "admin") {
+    const isAdmin = await verifyIsAdmin(adminId);
+    if (!isAdmin) {
       throw new Error("Unauthorized: Admin access required");
     }
 
-    return await verifyManualPayment(data.paymentId, adminId, data.decision);
+    const result = await verifyManualPayment(data.paymentId, adminId, data.decision);
+    if (result.success) {
+      await writeAuditLog({
+        actorId: adminId,
+        action: `verify_payment_${data.decision}`,
+        target: `payment:${data.paymentId}`,
+        details: { decision: data.decision },
+      });
+    }
+    return result;
   });
 
 /**
@@ -390,18 +410,22 @@ export const ingestTelegramPostFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: RawTelegramPost) => d)
   .handler(async ({ context, data }) => {
+    const { verifyIsAdmin, writeAuditLog } = await import("./auth-security.server");
     const adminId = context.userId;
-    const { data: profile } = await (supabaseAdmin as any)
-      .from("profiles")
-      .select("role")
-      .eq("id", adminId)
-      .maybeSingle();
 
-    if (profile?.role !== "admin") {
+    const isAdmin = await verifyIsAdmin(adminId);
+    if (!isAdmin) {
       throw new Error("Unauthorized: Admin access required");
     }
 
-    return await ingestTelegramPost(data);
+    const result = await ingestTelegramPost(data);
+    await writeAuditLog({
+      actorId: adminId,
+      action: "ingest_telegram_post",
+      target: `channel:${data.channel_username}`,
+      details: { status: result.status, opportunityId: result.opportunityId },
+    });
+    return result;
   });
 
 /**
@@ -411,3 +435,76 @@ export const triggerAutoExpirationFn = createServerFn({ method: "POST" }).handle
   const expiredCount = await archiveExpiredOpportunities();
   return { expiredCount };
 });
+
+/**
+ * 11. Self-Service Data Export Function (R-A1-07)
+ */
+export const exportUserDataFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { exportUserData, writeAuditLog } = await import("./auth-security.server");
+    const data = await exportUserData(context.userId);
+    await writeAuditLog({
+      actorId: context.userId,
+      action: "export_user_data",
+      target: `user:${context.userId}`,
+    });
+    return data;
+  });
+
+/**
+ * 12. Account Deletion Request Function (R-A1-07)
+ */
+export const requestAccountDeletionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { requestAccountDeletion } = await import("./auth-security.server");
+    return await requestAccountDeletion(context.userId);
+  });
+
+/**
+ * 13. Evidence Signed URL Generator (R-A1-04)
+ */
+export const getEvidenceSignedUrlFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: { storagePath: string; expiresInSeconds?: number }) => d)
+  .handler(async ({ context, data }) => {
+    const { generateSignedEvidenceUrl } = await import("./storage.server");
+    return await generateSignedEvidenceUrl(context.userId, data.storagePath, data.expiresInSeconds);
+  });
+
+/**
+ * 14. Parental Consent Logging Function (R-A1-06)
+ */
+export const recordConsentFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: { kind: string; textVersion: string }) => d)
+  .handler(async ({ context, data }) => {
+    const { logConsent, writeAuditLog } = await import("./auth-security.server");
+    await logConsent(context.userId, data.kind, data.textVersion);
+    await writeAuditLog({
+      actorId: context.userId,
+      action: "record_consent",
+      target: `user:${context.userId}`,
+      details: { kind: data.kind, textVersion: data.textVersion },
+    });
+    return { success: true };
+  });
+
+/**
+ * 15. Submit Community Report (R-A1-10)
+ */
+export const submitReportFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: { targetType: "opportunity" | "user" | "other"; targetId: string; message: string }) => d)
+  .handler(async ({ context, data }) => {
+    const { error } = await (supabaseAdmin as any).from("reports").insert({
+      user_id: context.userId,
+      target_type: data.targetType,
+      target_id: data.targetId,
+      message: data.message,
+      status: "open",
+    });
+    if (error) throw error;
+    return { success: true };
+  });
