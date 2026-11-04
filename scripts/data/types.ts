@@ -1,0 +1,35 @@
+export interface OpportunityContract {
+  id: string;
+  slug: string;
+  title: { ru: string; kk: string; en: string };
+  organization: string;
+  category: string;
+  directions: string[];
+  description: { ru: string; kk: string; en: string };
+  summary: { ru: string; kk: string; en: string };
+  requirements_checklist: { ru: string[]; kk: string[]; en: string[] };
+  official_url: string;
+  source_url: string;
+  cost_type: 'free' | 'paid' | 'fully_funded' | 'stipend';
+  cost_amount: number | null;
+  cost_currency: string | null;
+  format: 'online' | 'offline' | 'hybrid';
+  location: string | null;
+  min_grade: number | null;
+  max_grade: number | null;
+  min_age: number | null;
+  max_age: number | null;
+  eligibility_countries: string[];
+  excluded_countries: string[];
+  citizenship_rule: 'open' | 'us_only' | 'uk_only' | 'eu_only' | 'other';
+  citizenship_note: string | null;
+  language_requirements: string[];
+  deadline_type: 'fixed' | 'rolling' | 'annual_estimate' | 'unknown';
+  deadline_date: string | null;
+  cycle_year: number;
+  status: 'active' | 'expired' | 'needs_review' | 'hidden';
+  translation_source: 'human' | 'machine';
+  verified_at: string;
+  verified_by: string;
+  verification_note: string;
+}
