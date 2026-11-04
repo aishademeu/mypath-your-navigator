@@ -26,6 +26,10 @@ import { useHydrated } from "@/lib/use-hydrated";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/opportunities")({
+  validateSearch: (search: Record<string, unknown>): { cat?: string; q?: string } => ({
+    cat: typeof search.cat === "string" ? search.cat : undefined,
+    q: typeof search.q === "string" ? search.q : undefined,
+  }),
   component: OpportunitiesPage,
   head: () => ({
     meta: [
@@ -197,10 +201,11 @@ const OpportunityCard = memo(function OpportunityCard({
 
 function OpportunitiesPage() {
   const navigate = useNavigate();
+  const searchParams = Route.useSearch();
   const { dict, lang } = useI18n();
   const hydrated = useHydrated();
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState<string>("All");
+  const [q, setQ] = useState(searchParams.q || "");
+  const [cat, setCat] = useState<string>(searchParams.cat || "All");
   const [grade, setGrade] = useState("");
   const [country, setCountry] = useState("");
   const [format, setFormat] = useState("");

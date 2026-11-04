@@ -121,6 +121,7 @@ function Landing() {
               <Link
                 key={cat}
                 to="/opportunities"
+                search={{ cat }}
                 className="rounded-xl border border-navy/10 bg-white/70 px-3.5 py-1.5 text-sm font-medium text-navy/80 transition hover:bg-white hover:border-navy/25"
               >
                 {cat}
@@ -168,7 +169,7 @@ function Landing() {
                 Opportunities
               </div>
               <h2 className="mt-2 font-display text-2xl md:text-3xl">
-                Browse 50+ curated programs
+                Browse 190+ curated programs
               </h2>
               <p className="mt-4 text-navy/70 leading-relaxed">
                 Every opportunity is real — scholarships, research programs, competitions,
