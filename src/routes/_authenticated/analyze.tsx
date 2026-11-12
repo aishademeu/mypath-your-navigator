@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { usePostHog } from "@posthog/react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useSession, useProfile, useOnboarding, useCareerHypotheses } from "@/lib/supabase-hooks";
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/analyze")({ component: Ana
 
 function AnalyzePage() {
   const { user } = useSession();
+  const posthog = usePostHog();
   const { data: profile } = useProfile(user);
   const { data: onboarding } = useOnboarding(user);
   const { data: existingHypotheses, refetch: refetchHypotheses } = useCareerHypotheses(user?.id);
@@ -23,11 +25,15 @@ function AnalyzePage() {
   const [stage, setStage] = useState<"idle" | "interviewing" | "done">("idle");
   const [loading, setLoading] = useState(false);
   const [hypotheses, setHypotheses] = useState<CareerHypothesis[]>([]);
+  const [aiSessionId, setAiSessionId] = useState<string | null>(null);
 
   // If user already has hypotheses in DB and hasn't started a new session, show them
   const activeHypotheses = hypotheses.length > 0 ? hypotheses : existingHypotheses || [];
 
   const startAdaptiveInterview = async () => {
+    const sessionId = crypto.randomUUID();
+    setAiSessionId(sessionId);
+    posthog.capture("career_interview_started");
     setStage("interviewing");
     setLoading(true);
     setHistory([]);
@@ -36,6 +42,7 @@ function AnalyzePage() {
         data: {
           history: [],
           lang,
+          aiSessionId: sessionId,
         },
       });
       if (res.question) {
@@ -43,6 +50,9 @@ function AnalyzePage() {
         setDimension(res.dimension_explored || "");
       } else if (res.done && res.hypotheses) {
         setHypotheses(res.hypotheses);
+        posthog.capture("career_analysis_completed", {
+          hypothesis_count: res.hypotheses.length,
+        });
         setStage("done");
         refetchHypotheses();
       }
@@ -73,11 +83,15 @@ function AnalyzePage() {
         data: {
           history: updatedHistory,
           lang,
+          aiSessionId,
         },
       });
 
       if (res.done && res.hypotheses) {
         setHypotheses(res.hypotheses);
+        posthog.capture("career_analysis_completed", {
+          hypothesis_count: res.hypotheses.length,
+        });
         setStage("done");
         refetchHypotheses();
       } else if (res.question) {

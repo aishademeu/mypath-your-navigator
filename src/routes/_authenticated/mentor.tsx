@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { usePostHog } from "@posthog/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/mentor")({ component: Ment
 
 function MentorPage() {
   const qc = useQueryClient();
+  const posthog = usePostHog();
   const { user } = useSession();
   const { data: profile } = useProfile(user);
   const { data: chat } = useChat(user);
@@ -48,6 +50,7 @@ function MentorPage() {
           lang,
         },
       });
+      posthog.capture("mentor_message_sent");
       // Invalidate chat query to fetch the newly appended message & assistant response
       await qc.invalidateQueries({ queryKey: ["chat", user?.id] });
     } catch (err) {

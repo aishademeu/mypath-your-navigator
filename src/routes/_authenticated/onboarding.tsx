@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { usePostHog } from "@posthog/react";
 import { Logo } from "@/components/Logo";
 import { useSession, useSaveOnboarding } from "@/lib/supabase-hooks";
 
@@ -79,6 +80,7 @@ const STEPS = [
 
 function Onboarding() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
   const { user } = useSession();
   const save = useSaveOnboarding(user?.id);
 
@@ -112,6 +114,10 @@ function Onboarding() {
       dream: null,
       experience_level: null,
       completed_at: new Date().toISOString(),
+    });
+    posthog.capture("onboarding_completed", {
+      interest_count: state.interests.length,
+      goal_count: state.goals.length,
     });
     navigate({ to: "/dashboard" });
   };

@@ -9,8 +9,10 @@ if hasattr(sys.stdout, "reconfigure"):
 from telethon import TelegramClient, events
 from ai_extractor import extract_opportunity_from_text
 from database import save_opportunity
+from posthog_logs import get_posthog_logger
 
 load_dotenv()
+posthog_logger = get_posthog_logger()
 
 API_ID = int(os.getenv("TELEGRAM_API_ID", "0"))
 API_HASH = os.getenv("TELEGRAM_API_HASH", "")
@@ -37,21 +39,25 @@ async def handle_new_post(event):
 
     # 1. AI analysis
     print("[AI] Analyzing post content with Gemini...")
-    extracted = extract_opportunity_from_text(text)
+    extracted = extract_opportunity_from_text(text, capture_ai=True)
 
     if not extracted or not extracted.is_opportunity:
         print("[AI] Post is not an opportunity or extraction failed. Skipping.")
+        posthog_logger.info("telegram_post_skipped")
         return
 
     print(f"[AI] Opportunity found: '{extracted.title}' ({extracted.category})")
     print(f"[AI] Deadline: {extracted.deadline} | Format: {extracted.format} | Cost: {extracted.cost}")
 
     # 2. Save to Supabase
-    save_opportunity(
+    saved = save_opportunity(
         opp=extracted,
         source_channel=channel_name,
         source_message_id=message_id,
         raw_text=text
+    )
+    posthog_logger.info(
+        "telegram_opportunity_persisted" if saved else "telegram_opportunity_not_persisted"
     )
 
 async def main():
@@ -61,6 +67,9 @@ async def main():
     print("=" * 60)
 
     await client.start()
+    posthog_logger.info(
+        "telegram_listener_connected", extra={"monitored_channel_count": len(CHANNELS)}
+    )
     print("\n✅ Telegram client connected successfully!")
     print("👂 Listening for new opportunities in real time (Press Ctrl+C to stop)...")
 

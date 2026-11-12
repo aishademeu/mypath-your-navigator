@@ -1,4 +1,4 @@
-import { callAI } from "./ai-engine.server";
+import { callAI, type AIObservabilityContext } from "./ai-engine.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export interface RawTelegramPost {
@@ -37,6 +37,7 @@ export interface ExtractedOpportunityData {
 export async function extractOpportunityFromTelegramText(
   postText: string,
   channel: string,
+  observability?: AIObservabilityContext,
 ): Promise<ExtractedOpportunityData | null> {
   if (!postText || postText.trim().length < 30) return null;
 
@@ -95,6 +96,7 @@ Extract structured opportunity JSON adhering to the instructions.`;
       jsonOutput: true,
       temperature: 0.1,
       maxTokens: 1000,
+      observability,
     });
     const parsed = JSON.parse(raw);
     if (!parsed.is_opportunity) return null;
@@ -109,7 +111,10 @@ Extract structured opportunity JSON adhering to the instructions.`;
  * Idempotent Ingestion Pipeline:
  * Ingests a raw Telegram message, deduplicates, parses via AI, validates, and stores into Supabase.
  */
-export async function ingestTelegramPost(post: RawTelegramPost): Promise<{
+export async function ingestTelegramPost(
+  post: RawTelegramPost,
+  observability?: AIObservabilityContext,
+): Promise<{
   status: "inserted" | "skipped_duplicate" | "not_opportunity" | "error";
   opportunityId?: string;
   error?: string;
@@ -128,7 +133,11 @@ export async function ingestTelegramPost(post: RawTelegramPost): Promise<{
     }
 
     // 2. AI Extraction
-    const extracted = await extractOpportunityFromTelegramText(post.text, post.channel_username);
+    const extracted = await extractOpportunityFromTelegramText(
+      post.text,
+      post.channel_username,
+      observability,
+    );
     if (!extracted || !extracted.is_opportunity) {
       return { status: "not_opportunity" };
     }

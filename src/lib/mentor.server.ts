@@ -1,4 +1,4 @@
-import { callAI } from "./ai-engine.server";
+import { callAI, type AIObservabilityContext } from "./ai-engine.server";
 import type { StudentProfileContext, CareerHypothesis } from "./discovery.server";
 import type { PrimaryNextAction } from "./mypath-engine.server";
 
@@ -20,7 +20,10 @@ export interface MentorContext {
  * Executes a contextual turn with the AI Mentor.
  * Employs a bounded context window (last 6 messages) and contextual grounding.
  */
-export async function generateMentorResponse(ctx: MentorContext): Promise<string> {
+export async function generateMentorResponse(
+  ctx: MentorContext,
+  observability?: AIObservabilityContext,
+): Promise<string> {
   const lang = ctx.lang || "en";
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
 
@@ -71,6 +74,7 @@ Reply to the student's latest message as their MyPath AI Mentor.`;
       prompt,
       temperature: 0.35,
       maxTokens: 650,
+      observability,
     });
     if (response) return response;
   } catch {

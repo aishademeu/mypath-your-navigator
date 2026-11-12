@@ -9,7 +9,8 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { PostHogErrorBoundary, PostHogProvider, usePostHog } from "@posthog/react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -18,6 +19,7 @@ import { LanguageProvider, useI18n, hasStoredLang } from "@/lib/i18n";
 import { MobileNav } from "@/components/MobileNav";
 import { ProProvider } from "@/lib/pro";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { useSession } from "@/lib/supabase-hooks";
 
 import { en } from "@/lib/i18n/en";
 
@@ -163,9 +165,12 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
+const posthogHost = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  return (
+  const app = (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <ProProvider>
@@ -177,6 +182,87 @@ function RootComponent() {
       </LanguageProvider>
     </QueryClientProvider>
   );
+
+  if (!posthogToken) {
+    if (import.meta.env.DEV && typeof window !== "undefined") {
+      console.error(
+        "VITE_PUBLIC_POSTHOG_PROJECT_TOKEN variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once VITE_PUBLIC_POSTHOG_PROJECT_TOKEN is configured",
+      );
+    }
+    return app;
+  }
+
+  if (!posthogHost) {
+    if (import.meta.env.DEV && typeof window !== "undefined") {
+      console.error(
+        "VITE_PUBLIC_POSTHOG_HOST variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once VITE_PUBLIC_POSTHOG_HOST is configured",
+      );
+    }
+    return app;
+  }
+
+  return (
+    <PostHogProvider
+      apiKey={posthogToken}
+      options={{
+        api_host: posthogHost,
+        capture_exceptions: true,
+        debug: import.meta.env.DEV,
+      }}
+    >
+      <PostHogIdentity />
+      <PostHogErrorBoundary fallback={<PostHogErrorFallback />}>{app}</PostHogErrorBoundary>
+    </PostHogProvider>
+  );
+}
+
+function PostHogErrorFallback() {
+  const { dict } = useSafeI18n();
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-xl font-semibold">{dict.common.somethingWrong}</h1>
+        <a
+          href="/"
+          className="mt-6 inline-flex rounded-full border border-input bg-background px-5 py-2.5 text-sm font-medium"
+        >
+          {dict.common.home}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function PostHogIdentity() {
+  const posthog = usePostHog();
+  const { user, loading } = useSession();
+  const previousUserId = useRef<string | null>(null);
+  const userId = user?.id ?? null;
+  const email = user?.email;
+  const name = typeof user?.user_metadata.name === "string" ? user.user_metadata.name : undefined;
+  const role = typeof user?.user_metadata.role === "string" ? user.user_metadata.role : undefined;
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (userId) {
+      if (previousUserId.current && previousUserId.current !== userId) {
+        posthog.reset();
+      }
+
+      posthog.identify(userId, { email, name, role });
+      previousUserId.current = userId;
+      return;
+    }
+
+    if (previousUserId.current) {
+      posthog.reset();
+      previousUserId.current = null;
+    }
+  }, [email, loading, name, posthog, role, userId]);
+
+  return null;
 }
 
 function WelcomeRedirect() {

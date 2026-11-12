@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { usePostHog } from "@posthog/react";
 import { z } from "zod";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ function AuthPage() {
   const { mode, role: initialRole } = Route.useSearch();
   const isSignup = mode === "signup";
   const navigate = useNavigate();
+  const posthog = usePostHog();
   const [role, setRole] = useState<"student" | "parent">(initialRole || "student");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -117,6 +119,7 @@ function AuthPage() {
               text_version: "2026.10-v1",
             });
           }
+          posthog.capture("account_registered", { account_role: "parent" });
           // Non-blocking navigation
           navigate({ to: "/parent" as any });
         } else {
@@ -165,6 +168,7 @@ function AuthPage() {
               text_version: "2026.10-v1",
             });
 
+            posthog.capture("account_registered", { account_role: "student" });
             navigate({ to: "/onboarding" });
           } else {
             // Optional email notice as non-blocking nudge
@@ -172,6 +176,7 @@ function AuthPage() {
               type: "info",
               text: "Account created! You can start using MyPath right now. Confirm your email whenever you have a chance.",
             });
+            posthog.capture("account_registered", { account_role: "student" });
             navigate({ to: "/onboarding" });
           }
         }
@@ -188,6 +193,7 @@ function AuthPage() {
           password: r.data.password,
         });
         if (error) throw error;
+        posthog.capture("user_logged_in");
         if (loginData.user) {
           const { data: prof } = await (supabase as any)
             .from("profiles")
@@ -224,6 +230,7 @@ function AuthPage() {
         redirectTo: `${window.location.origin}/auth?mode=login`,
       });
       if (error) throw error;
+      posthog.capture("password_reset_requested");
       setBanner({ type: "info", text: "Password reset email sent. Check your inbox." });
       setShowReset(false);
     } catch (err: unknown) {

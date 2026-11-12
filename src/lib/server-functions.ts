@@ -19,13 +19,14 @@ import {
   submitManualPayment,
   verifyManualPayment,
 } from "./billing.server";
+import { createAIObservabilityContext } from "./posthog-ai.server";
 
 /**
  * 1. Adaptive Discovery Server Function
  */
 export const discoveryTurnFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { history: InterviewTurn[]; lang?: string }) => d)
+  .validator((d: { history: InterviewTurn[]; lang?: string; aiSessionId?: string }) => d)
   .handler(async ({ context, data }) => {
     const userId = context.userId;
 
@@ -52,7 +53,16 @@ export const discoveryTurnFn = createServerFn({ method: "POST" })
       experience_level: onboardingRes.data?.experience_level,
     };
 
-    const result = await runAdaptiveDiscoveryTurn(studentCtx, data.history, data.lang || "en");
+    const result = await runAdaptiveDiscoveryTurn(
+      studentCtx,
+      data.history,
+      data.lang || "en",
+      createAIObservabilityContext(
+        userId,
+        data.aiSessionId || `discovery-${userId}`,
+        "discovery_adaptive_turn",
+      ),
+    );
 
     // If done, persist the hypotheses to the career_hypotheses table
     if (result.done && result.hypotheses && result.hypotheses.length > 0) {
@@ -148,14 +158,17 @@ export const getMyPathActionFn = createServerFn({ method: "POST" })
       dream: onboardingRes.data?.dream,
     };
 
-    const nextAction = await computePrimaryNextAction({
-      student: studentCtx,
-      hypotheses: activeHypotheses,
-      completedActionCount,
-      portfolioItemsCount: (portfolioRes.data || []).length,
-      savedOpportunities: [],
-      lang: data.lang || profileRes.data?.language || "en",
-    });
+    const nextAction = await computePrimaryNextAction(
+      {
+        student: studentCtx,
+        hypotheses: activeHypotheses,
+        completedActionCount,
+        portfolioItemsCount: (portfolioRes.data || []).length,
+        savedOpportunities: [],
+        lang: data.lang || profileRes.data?.language || "en",
+      },
+      createAIObservabilityContext(userId, null, "primary_next_action"),
+    );
 
     // Save into database as the current active action
     const { data: inserted } = await (supabaseAdmin as any)
@@ -237,13 +250,16 @@ export const mentorChatFn = createServerFn({ method: "POST" })
 
     const portfolioSummary = (portfolioRes.data || []).map((p: any) => `${p.section}: ${p.title}`);
 
-    const reply = await generateMentorResponse({
-      student: studentCtx,
-      hypotheses: hypothesesRes.data || [],
-      portfolioSummary,
-      conversationHistory: history,
-      lang: data.lang || profileRes.data?.language || "en",
-    });
+    const reply = await generateMentorResponse(
+      {
+        student: studentCtx,
+        hypotheses: hypothesesRes.data || [],
+        portfolioSummary,
+        conversationHistory: history,
+        lang: data.lang || profileRes.data?.language || "en",
+      },
+      createAIObservabilityContext(userId, `mentor-${userId}`, "mentor_response"),
+    );
 
     // Save mentor's reply to chat_messages
     await (supabaseAdmin as any).from("chat_messages").insert({
@@ -261,13 +277,16 @@ export const mentorChatFn = createServerFn({ method: "POST" })
 export const polishPortfolioFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: { title: string; section: string; rawDescription: string; lang?: string }) => d)
-  .handler(async ({ data }) => {
-    return await polishPortfolioItem({
-      title: data.title,
-      section: data.section,
-      rawDescription: data.rawDescription,
-      lang: data.lang || "en",
-    });
+  .handler(async ({ context, data }) => {
+    return await polishPortfolioItem(
+      {
+        title: data.title,
+        section: data.section,
+        rawDescription: data.rawDescription,
+        lang: data.lang || "en",
+      },
+      createAIObservabilityContext(context.userId, null, "portfolio_item_polish"),
+    );
   });
 
 /**
@@ -418,7 +437,10 @@ export const ingestTelegramPostFn = createServerFn({ method: "POST" })
       throw new Error("Unauthorized: Admin access required");
     }
 
-    const result = await ingestTelegramPost(data);
+    const result = await ingestTelegramPost(
+      data,
+      createAIObservabilityContext(adminId, null, "telegram_opportunity_extraction"),
+    );
     await writeAuditLog({
       actorId: adminId,
       action: "ingest_telegram_post",
