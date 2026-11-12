@@ -10,12 +10,15 @@
  * Cost control: Enforces max tokens, compact context, and JSON mode.
  */
 
+import { captureAIGeneration, type AIObservabilityContext } from "./posthog-ai.server";
+
 export interface AICallOptions {
   systemPrompt: string;
   prompt: string;
   jsonOutput?: boolean;
   temperature?: number;
   maxTokens?: number;
+  observability?: AIObservabilityContext;
 }
 
 export async function callAI(options: AICallOptions): Promise<string> {
@@ -24,10 +27,15 @@ export async function callAI(options: AICallOptions): Promise<string> {
 
   // 1. Google Gemini Provider
   if (geminiKey) {
-    try {
-      const model = "gemini-2.5-flash";
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+    const model = "gemini-2.5-flash";
+    const startedAt = performance.now();
+    const input = [
+      { role: "system" as const, content: options.systemPrompt },
+      { role: "user" as const, content: options.prompt },
+    ];
 
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
       const payload: any = {
         contents: [
           {
@@ -53,21 +61,65 @@ export async function callAI(options: AICallOptions): Promise<string> {
 
       if (res.ok) {
         const data = await res.json();
-        const candidate = data.candidates?.[0];
-        const text = candidate?.content?.parts?.[0]?.text;
-        if (text) return text.trim();
-      } else {
-        console.warn(`[AI Engine] Gemini returned status ${res.status}:`, await res.text());
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const output = text.trim();
+          await captureAIGeneration({
+            context: options.observability,
+            provider: "gemini",
+            model,
+            input,
+            output,
+            latency: (performance.now() - startedAt) / 1000,
+            httpStatus: res.status,
+            inputTokens: data.usageMetadata?.promptTokenCount,
+            outputTokens: data.usageMetadata?.candidatesTokenCount,
+            temperature: options.temperature ?? 0.2,
+            maxTokens: options.maxTokens ?? 1500,
+          });
+          return output;
+        }
       }
+
+      await captureAIGeneration({
+        context: options.observability,
+        provider: "gemini",
+        model,
+        input,
+        latency: (performance.now() - startedAt) / 1000,
+        httpStatus: res.status,
+        temperature: options.temperature ?? 0.2,
+        maxTokens: options.maxTokens ?? 1500,
+        error: new Error("empty_or_unsuccessful_response"),
+      });
+      console.warn(`[AI Engine] Gemini returned status ${res.status}`);
     } catch (err) {
+      await captureAIGeneration({
+        context: options.observability,
+        provider: "gemini",
+        model,
+        input,
+        latency: (performance.now() - startedAt) / 1000,
+        temperature: options.temperature ?? 0.2,
+        maxTokens: options.maxTokens ?? 1500,
+        error: err,
+      });
       console.warn("[AI Engine] Gemini call failed:", err);
     }
   }
 
   // 2. OpenAI / Lovable Provider
   if (openaiKey) {
+    const isLovable = !process.env.OPENAI_API_KEY && !!process.env.LOVABLE_API_KEY;
+    const model = isLovable ? "google/gemini-2.5-flash" : "gpt-4o-mini";
+    const provider = isLovable ? "gemini" : "openai";
+    const startedAt = performance.now();
+    const input = [
+      { role: "system" as const, content: options.systemPrompt },
+      { role: "user" as const, content: options.prompt },
+    ];
+
     try {
-      const isLovable = !process.env.OPENAI_API_KEY && !!process.env.LOVABLE_API_KEY;
       const baseUrl = isLovable ? "https://ai.gateway.lovable.dev/v1" : "https://api.openai.com/v1";
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -78,11 +130,8 @@ export async function callAI(options: AICallOptions): Promise<string> {
       }
 
       const payload: any = {
-        model: isLovable ? "google/gemini-2.5-flash" : "gpt-4o-mini",
-        messages: [
-          { role: "system", content: options.systemPrompt },
-          { role: "user", content: options.prompt },
-        ],
+        model,
+        messages: input,
         temperature: options.temperature ?? 0.2,
         max_tokens: options.maxTokens ?? 1500,
       };
@@ -100,14 +149,48 @@ export async function callAI(options: AICallOptions): Promise<string> {
       if (res.ok) {
         const data = await res.json();
         const text = data.choices?.[0]?.message?.content;
-        if (text) return text.trim();
-      } else {
-        console.warn(
-          `[AI Engine] OpenAI provider returned status ${res.status}:`,
-          await res.text(),
-        );
+        if (text) {
+          const output = text.trim();
+          await captureAIGeneration({
+            context: options.observability,
+            provider,
+            model,
+            input,
+            output,
+            latency: (performance.now() - startedAt) / 1000,
+            httpStatus: res.status,
+            inputTokens: data.usage?.prompt_tokens,
+            outputTokens: data.usage?.completion_tokens,
+            temperature: options.temperature ?? 0.2,
+            maxTokens: options.maxTokens ?? 1500,
+          });
+          return output;
+        }
       }
+
+      await captureAIGeneration({
+        context: options.observability,
+        provider,
+        model,
+        input,
+        latency: (performance.now() - startedAt) / 1000,
+        httpStatus: res.status,
+        temperature: options.temperature ?? 0.2,
+        maxTokens: options.maxTokens ?? 1500,
+        error: new Error("empty_or_unsuccessful_response"),
+      });
+      console.warn(`[AI Engine] OpenAI provider returned status ${res.status}`);
     } catch (err) {
+      await captureAIGeneration({
+        context: options.observability,
+        provider,
+        model,
+        input,
+        latency: (performance.now() - startedAt) / 1000,
+        temperature: options.temperature ?? 0.2,
+        maxTokens: options.maxTokens ?? 1500,
+        error: err,
+      });
       console.warn("[AI Engine] OpenAI provider call failed:", err);
     }
   }

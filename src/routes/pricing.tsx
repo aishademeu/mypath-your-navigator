@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { usePostHog } from "@posthog/react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { usePro } from "@/lib/pro";
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/pricing")({
 
 function PricingPage() {
   const { dict, lang } = useI18n();
+  const posthog = usePostHog();
   const { isPro } = usePro();
   const { user } = useSession();
 
@@ -41,6 +43,7 @@ function PricingPage() {
     try {
       const res = await (submitPaymentFn as any)({ data: { note: receiptNote.trim() } });
       if (res?.success) {
+        posthog.capture("payment_submission_created");
         setSubmittedStatus(
           lang === "ru"
             ? "Ваш платёж отправлен на проверку администратором. Статус: В обработке."

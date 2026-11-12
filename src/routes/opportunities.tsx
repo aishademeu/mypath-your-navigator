@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { memo, useCallback, useMemo, useState } from "react";
+import { usePostHog } from "@posthog/react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
@@ -75,6 +76,7 @@ const OpportunityCard = memo(function OpportunityCard({
   onSave,
 }: CardProps) {
   const { dict } = useI18n();
+  const posthog = usePostHog();
   const { user } = useSession();
   const addApplication = useAddApplication(user?.id);
   const urgent = days <= 7;
@@ -186,6 +188,9 @@ const OpportunityCard = memo(function OpportunityCard({
                     opportunityId: o.id,
                     status: "saved",
                   });
+                  posthog.capture("application_added_to_plan", {
+                    opportunity_category: o.category,
+                  });
                 }}
                 className="min-h-[44px] rounded-full bg-clay-deep px-3 py-2 text-xs font-medium text-ivory transition hover:opacity-90 active:scale-[0.98]"
               >
@@ -201,6 +206,7 @@ const OpportunityCard = memo(function OpportunityCard({
 
 function OpportunitiesPage() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
   const searchParams = Route.useSearch();
   const { dict, lang } = useI18n();
   const hydrated = useHydrated();
@@ -264,14 +270,18 @@ function OpportunitiesPage() {
   }, [q, cat, eligibleOnly, ctx, grade, country, format, cost, openList]);
 
   const onSave = useCallback(
-    (opp: Opportunity) => {
+    async (opp: Opportunity) => {
       if (!user) {
         navigate({ to: "/auth", search: { mode: "signup" } });
         return;
       }
-      toggleSaved.mutate({ opportunityId: opp.id, currentlySaved: savedIds.has(opp.id) });
+      const currentlySaved = savedIds.has(opp.id);
+      await toggleSaved.mutateAsync({ opportunityId: opp.id, currentlySaved });
+      if (!currentlySaved) {
+        posthog.capture("opportunity_saved", { opportunity_category: opp.category });
+      }
     },
-    [user, navigate, toggleSaved, savedIds],
+    [user, navigate, posthog, toggleSaved, savedIds],
   );
 
   const catLabel = (c: string) =>

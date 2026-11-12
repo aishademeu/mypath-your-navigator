@@ -30,6 +30,7 @@ dist-ssr
 !.env.example
 
 # Python & Telegram session
+.venv/
 __pycache__/
 *.py[cod]
 *$py.class

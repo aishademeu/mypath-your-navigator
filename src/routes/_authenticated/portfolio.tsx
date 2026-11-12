@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { usePostHog } from "@posthog/react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
@@ -42,6 +43,7 @@ const SECTION_LABELS: Record<string, string> = {
 
 function PortfolioPage() {
   const { user } = useSession();
+  const posthog = usePostHog();
   const { data: profile } = usePortfolio(user); // using same hook (returns portfolio rows)
   const add = useAddPortfolioItem(user?.id);
   const update = useUpdatePortfolioItem(user?.id);
@@ -81,6 +83,7 @@ function PortfolioPage() {
       mini_bio: null,
     };
     exportPortfolioPDF(profileData, profile ?? []);
+    posthog.capture("portfolio_exported", { item_count: items.length });
     setExporting(false);
   };
 
@@ -103,6 +106,7 @@ function PortfolioPage() {
   };
 
   const saveItem = async () => {
+    const operation = editing === "new" ? "created" : "updated";
     if (editing === "new") {
       await add.mutateAsync({
         ...newItem,
@@ -111,6 +115,7 @@ function PortfolioPage() {
     } else if (editing) {
       await update.mutateAsync({ id: editing, ...newItem, section: newSection });
     }
+    posthog.capture("portfolio_item_saved", { operation, section: newSection });
     setEditing(null);
   };
 

@@ -1,6 +1,10 @@
+import atexit
 import os
 import json
 import re
+import sys
+import time
+import uuid
 from typing import Optional, List, Literal
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -9,6 +13,77 @@ import requests
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+POSTHOG_PROJECT_TOKEN = os.getenv("POSTHOG_PROJECT_TOKEN")
+POSTHOG_HOST = os.getenv("POSTHOG_HOST")
+AI_SESSION_ID = f"telegram-parser-{uuid.uuid4()}"
+posthog_client = None
+
+
+def get_posthog_client():
+    global posthog_client
+
+    if not POSTHOG_PROJECT_TOKEN or not POSTHOG_HOST:
+        variable_name = "POSTHOG_PROJECT_TOKEN" if not POSTHOG_PROJECT_TOKEN else "POSTHOG_HOST"
+        print(
+            f"{variable_name} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once {variable_name} is configured",
+            file=sys.stderr,
+        )
+        return None
+
+    if posthog_client is None:
+        try:
+            from posthog import Posthog
+
+            posthog_client = Posthog(
+                POSTHOG_PROJECT_TOKEN,
+                host=POSTHOG_HOST,
+                privacy_mode=False,
+            )
+            atexit.register(posthog_client.shutdown)
+        except ImportError:
+            print("PostHog Python package is not installed; AI observability is disabled.", file=sys.stderr)
+            return None
+
+    return posthog_client
+
+
+def capture_ai_generation(
+    model: str,
+    prompt: str,
+    output: Optional[str],
+    latency: float,
+    status: Optional[int] = None,
+    input_tokens: Optional[int] = None,
+    output_tokens: Optional[int] = None,
+    error: Optional[Exception] = None,
+):
+    client = get_posthog_client()
+    if not client:
+        return
+
+    try:
+        client.capture(
+            distinct_id=AI_SESSION_ID,
+            event="$ai_generation",
+            properties={
+                "$ai_trace_id": str(uuid.uuid4()),
+                "$ai_session_id": AI_SESSION_ID,
+                "$ai_span_name": "telegram_opportunity_extraction",
+                "$ai_model": model,
+                "$ai_provider": "gemini",
+                "$ai_input": [{"role": "user", "content": prompt}],
+                "$ai_output_choices": [{"role": "assistant", "content": output}] if output else None,
+                "$ai_input_tokens": input_tokens,
+                "$ai_output_tokens": output_tokens,
+                "$ai_latency": latency,
+                "$ai_http_status": status,
+                "$ai_is_error": error is not None,
+                "$ai_error": type(error).__name__ if error else None,
+            },
+        )
+    except Exception:
+        # AI observability must not interrupt the Telegram listener.
+        pass
 
 class ExtractedOpportunity(BaseModel):
     is_opportunity: bool = Field(default=False, description="True if post contains an educational, scholarship, internship, competition, research or growth opportunity for youth/students. False for ads, quotes, general news, chats.")
@@ -73,7 +148,10 @@ Guidelines:
 5. Return strictly valid JSON adhering to the schema.
 """
 
-def extract_opportunity_from_text(post_text: str) -> Optional[ExtractedOpportunity]:
+def extract_opportunity_from_text(
+    post_text: str,
+    capture_ai: bool = False,
+) -> Optional[ExtractedOpportunity]:
     """Extracts structured opportunity details from raw post text using Google Gemini."""
     if not post_text or len(post_text.strip()) < 20:
         return None
@@ -95,9 +173,19 @@ def extract_opportunity_from_text(post_text: str) -> Optional[ExtractedOpportuni
         }
     }
 
+    started_at = time.perf_counter()
     try:
         response = requests.post(url, json=payload, timeout=30)
         if response.status_code != 200:
+            if capture_ai:
+                capture_ai_generation(
+                    model,
+                    prompt,
+                    None,
+                    time.perf_counter() - started_at,
+                    status=response.status_code,
+                    error=RuntimeError("unsuccessful_response"),
+                )
             print(f"[AI] Error from Gemini API: {response.status_code} {response.text}")
             return None
 
@@ -113,10 +201,30 @@ def extract_opportunity_from_text(post_text: str) -> Optional[ExtractedOpportuni
         # Clean potential markdown formatting
         cleaned_json = re.sub(r"^```json\s*", "", raw_json_str.strip(), flags=re.MULTILINE)
         cleaned_json = re.sub(r"```$", "", cleaned_json.strip())
-        
+
+        if capture_ai:
+            usage = result_data.get("usageMetadata", {})
+            capture_ai_generation(
+                model,
+                prompt,
+                cleaned_json,
+                time.perf_counter() - started_at,
+                status=response.status_code,
+                input_tokens=usage.get("promptTokenCount"),
+                output_tokens=usage.get("candidatesTokenCount"),
+            )
+
         parsed_dict = json.loads(cleaned_json)
         extracted = ExtractedOpportunity(**parsed_dict)
         return extracted
     except Exception as e:
+        if capture_ai:
+            capture_ai_generation(
+                model,
+                prompt,
+                None,
+                time.perf_counter() - started_at,
+                error=e,
+            )
         print(f"[AI] Extraction error: {e}")
         return None

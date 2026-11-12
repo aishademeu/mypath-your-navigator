@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
+import { usePostHog } from "@posthog/react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
@@ -66,6 +67,7 @@ const STATUS_COLORS: Record<Status, string> = {
 
 function MyPlan() {
   const { user } = useSession();
+  const posthog = usePostHog();
   const { data: applications, isLoading } = useApplications(user);
   const { data: allTasks } = useApplicationTasks(user?.id);
   const { data: rawOpps } = useOpportunities();
@@ -104,6 +106,17 @@ function MyPlan() {
     await addTask.mutateAsync({ opportunity_id: app.opportunity_id, title: text });
     setNewTaskText((p) => ({ ...p, [app.opportunity_id]: "" }));
     setAddingTask((p) => ({ ...p, [app.opportunity_id]: false }));
+  };
+
+  const handleStatusUpdate = async (opportunityId: string, status: Status) => {
+    await updateStatus.mutateAsync({ opportunityId, status });
+    posthog.capture("application_status_updated", { status });
+  };
+
+  const handleTaskToggle = async (task: ApplicationTaskRow) => {
+    const completed = !task.completed;
+    await toggleTask.mutateAsync({ id: task.id, completed });
+    if (completed) posthog.capture("application_task_completed");
   };
 
   const counts = useMemo(() => {
@@ -255,9 +268,7 @@ function MyPlan() {
                         {ALL_STATUSES.map((s) => (
                           <button
                             key={s}
-                            onClick={() =>
-                              updateStatus.mutate({ opportunityId: app.opportunity_id, status: s })
-                            }
+                            onClick={() => handleStatusUpdate(app.opportunity_id, s)}
                             className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
                               app.status === s
                                 ? "bg-navy text-ivory"
@@ -282,9 +293,7 @@ function MyPlan() {
                             className="flex items-center gap-3 rounded-xl border border-navy/8 bg-white px-3 py-2.5"
                           >
                             <button
-                              onClick={() =>
-                                toggleTask.mutate({ id: task.id, completed: !task.completed })
-                              }
+                              onClick={() => handleTaskToggle(task)}
                               className={`flex h-5 w-5 flex-none items-center justify-center rounded-md border text-xs transition ${
                                 task.completed
                                   ? "border-growth bg-growth text-ivory"

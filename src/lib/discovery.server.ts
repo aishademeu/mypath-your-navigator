@@ -1,4 +1,4 @@
-import { callAI } from "./ai-engine.server";
+import { callAI, type AIObservabilityContext } from "./ai-engine.server";
 
 export interface StudentProfileContext {
   name?: string;
@@ -51,13 +51,14 @@ export async function runAdaptiveDiscoveryTurn(
   context: StudentProfileContext,
   history: InterviewTurn[],
   lang: string = "en",
+  observability?: AIObservabilityContext,
 ): Promise<AdaptiveInterviewStepResult> {
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
 
   // Stop condition: if student has answered 3-4 adaptive follow-up questions, we have enough depth.
   const userAnswersCount = history.filter((h) => h.role === "user").length;
   if (userAnswersCount >= 3) {
-    const hypotheses = await generateCareerHypotheses(context, history, lang);
+    const hypotheses = await generateCareerHypotheses(context, history, lang, observability);
     return {
       done: true,
       hypotheses,
@@ -109,6 +110,7 @@ Generate the next adaptive interview step.`;
       jsonOutput: true,
       temperature: 0.3,
       maxTokens: 500,
+      observability,
     });
     const parsed = JSON.parse(raw);
     if (parsed.question) {
@@ -134,6 +136,7 @@ export async function generateCareerHypotheses(
   context: StudentProfileContext,
   history: InterviewTurn[],
   lang: string = "en",
+  observability?: AIObservabilityContext,
 ): Promise<CareerHypothesis[]> {
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
 
@@ -194,6 +197,7 @@ Synthesize 3–5 personalized career hypotheses adhering strictly to the schema.
       jsonOutput: true,
       temperature: 0.25,
       maxTokens: 1800,
+      observability,
     });
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed.hypotheses) && parsed.hypotheses.length >= 3) {

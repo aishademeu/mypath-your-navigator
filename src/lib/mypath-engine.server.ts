@@ -1,4 +1,4 @@
-import { callAI } from "./ai-engine.server";
+import { callAI, type AIObservabilityContext } from "./ai-engine.server";
 import type { StudentProfileContext, CareerHypothesis } from "./discovery.server";
 import type { Opportunity } from "./opportunities";
 
@@ -23,7 +23,10 @@ export interface MyPathContext {
  * Computes the single highest-leverage next action for the student.
  * Never outputs multiple disjoint tasks; synthesizes ONE clear priority.
  */
-export async function computePrimaryNextAction(ctx: MyPathContext): Promise<PrimaryNextAction> {
+export async function computePrimaryNextAction(
+  ctx: MyPathContext,
+  observability?: AIObservabilityContext,
+): Promise<PrimaryNextAction> {
   const lang = ctx.lang || "en";
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
 
@@ -75,6 +78,7 @@ Synthesize the single primary next action.`;
       jsonOutput: true,
       temperature: 0.2,
       maxTokens: 500,
+      observability,
     });
     const parsed = JSON.parse(raw);
     if (parsed.action && parsed.why_it_matters && parsed.expected_outcome) {

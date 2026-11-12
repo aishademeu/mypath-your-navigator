@@ -1,4 +1,4 @@
-import { callAI } from "./ai-engine.server";
+import { callAI, type AIObservabilityContext } from "./ai-engine.server";
 
 export interface PolishPortfolioInput {
   title: string;
@@ -21,6 +21,7 @@ export interface PolishPortfolioOutput {
  */
 export async function polishPortfolioItem(
   input: PolishPortfolioInput,
+  observability?: AIObservabilityContext,
 ): Promise<PolishPortfolioOutput> {
   const lang = input.lang || "en";
   const languageName = lang === "ru" ? "Russian" : lang === "kk" ? "Kazakh" : "English";
@@ -59,6 +60,7 @@ Polish this portfolio item strictly adhering to the truth and guidelines.`;
       jsonOutput: true,
       temperature: 0.2,
       maxTokens: 500,
+      observability,
     });
     const parsed = JSON.parse(raw);
     if (parsed.polishedTitle && parsed.polishedDescription) {
